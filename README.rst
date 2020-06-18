@@ -16,7 +16,7 @@ AponeurosesDetection
 
 
 
-This package contains functions that will enable aponeuroses and tubular structures detection[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dutomatic aponeuroses and tube-like structures detection.
+This package contains functions that will enable automatic aponeuroses and tubular structures detection in ultrasound images.
 
 
 * Free software: MIT license
