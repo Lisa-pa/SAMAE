@@ -123,7 +123,6 @@ gray_I = cv2.cvtColor(RGB_image, cv2.COLOR_RGB2GRAY);
 gray_I2 = 255 - gray_I; #inverse black and white
 #gray_I2 = cv2.equalizeHist(gray_I);
 
-
 'Multiscale Vessel Enhancement Method'
 seg, vesselness,hessXY, hessXX, hessYY = MVEF_2D(gray_I2, [4.], [0.5, 0.5]);
 
