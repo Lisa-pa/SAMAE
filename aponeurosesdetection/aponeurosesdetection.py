@@ -7,6 +7,9 @@
 import math as m;
 import cv2;
 import numpy as np;
+from skimage.transform import radon, iradon;
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
 
 "*****************************************************************************"
 "*********************************FUNCTIONS***********************************"
@@ -114,6 +117,78 @@ def MVEF_2D(I, scales, thresholds):
 '-----------------------------------------------------------------------------'
 
 
+def find_2largestLines(I, threshold):
+    """ Returns the segmented radon transform of I and the square-cropped 
+    image I. Threshold is used to segment the radon transform, to keep only 
+    the two largest bright lines of I; it must be between 0 and 255."""
+    
+    if len(I.shape) > 2:
+        I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY);
+    
+    if I.shape[0] != I.shape[1]:
+        mini = np.min(I.shape);
+        I = I[0:mini,0:mini]; #working with a square because of the unctioning of skimage radon function
+        """-> problem when aponeuroses not in the left part of the image !"""
+    
+    I_radon = radon(I, circle = True);
+    I_radon2 = I_radon/np.max(I_radon)*255; #spreading values between 0 and 255 to enhance white points
+    I_radon3 = cv2.threshold(I_radon2, threshold, 255, cv2.THRESH_BINARY)[1].astype(np.uint8); #keeping whitest regions
+
+    contours = cv2.findContours(I_radon3,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0]; #find white regions
+    contours_tuples = [(i, contours[i][:,0,:], contours[i].size) for i in range (len(contours))];
+
+    if len(contours_tuples)<2:
+        print('Error: Aponeuroses could not be located. Try a lower threshold for binarization.');
+    elif len(contours_tuples)>2: #remove smaller white points, that do not correspond to aponeuroses
+        contours_tuples.sort(key=lambda contours: contours[2]);
+        for x in range(len(contours_tuples)-2):
+            #change smaller white points into black points
+            center, radius = cv2.minEnclosingCircle(contours_tuples[x][1]);
+            cv2.circle(I_radon3, (int(center[0]), int(center[1])), int(np.ceil(radius)+1), 0, thickness=cv2.FILLED, lineType=8, shift=0);
+    
+    I_reconstructed = iradon(I_radon3);    
+    
+    return I_reconstructed, I
+
+"""
+def spread_aponeuroses(radon, I):
+    
+    
+    
+    return set1, set2
+"""
+"""
+def approx_inner_border(set1, set2, image, typeApprox):
+    
+    return borderUp, borderBottom
+"""
+
+"*****************************************************************************"
+"*********************************TEST****************************************"
+"*****************************************************************************"
+'Select image in an opening window'
+root = tk.Tk()
+root.withdraw()
+filename = askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+
+image = cv2.imread(filename, -1);
+imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY);    
+
+I_iR, I2 = find_2largestLines(imageG, 220.);
+
+#color in green to see what has been spotted
+for x in range(I_iR.shape[0]):
+    for y in range(I_iR.shape[1]):
+        if I_iR[x,y] >0:
+            image[x,y,:] = [0,255,0];
+            
+#I_iR = I_iR/np.max(I_iR)*255;
+#cv2.imwrite('Radon_iRadon_Cropped0.jpg', I_iR);
+cv2.imshow('cropped ini image', I2);
+cv2.imshow('image ini',image);
+cv2.imshow('Trasnformed I',I_iR);
+cv2.waitKey(0) & 0xFF;
+cv2.destroyAllWindows();
 "*****************************************************************************"
 "*****************************************************************************"
 "*****************************************************************************"
