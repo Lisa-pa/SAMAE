@@ -126,7 +126,7 @@ def apoContour(I, pointIni, l1, l2, mu, nu, dt, epsilon, omega, sigma, stop_thre
         newC = d_phi*dt + previousC;
                          
         #condition re-calculated for while loop
-        test = np.max(d_phi); #is there a better test ?
+        test = np.max(np.absolute(d_phi*dt)); #is there a better test ?
         print('test=',test);
         
         #replace previous contour by new one
