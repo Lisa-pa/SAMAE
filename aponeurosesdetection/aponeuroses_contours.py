@@ -31,10 +31,10 @@ def intensities(I, previousC, sigma, epsilon):
     HI = heavisideMatrix*I;
     OneMinusH_I = OneMinusHeaviside*I;
 
-    convolHI = cv2.GaussianBlur(HI, ksize = (2*I.shape[0]-1,2*I.shape[1]-1), sigmaX = sigma, sigmaY =sigma, borderType=cv2.BORDER_CONSTANT);
-    convolH = cv2.GaussianBlur(heavisideMatrix, ksize = (2*I.shape[0]-1,2*I.shape[1]-1),sigmaX = sigma,sigmaY = sigma, borderType=cv2.BORDER_CONSTANT);
-    convol1minusH_I = cv2.GaussianBlur(OneMinusH_I, ksize = (2*I.shape[0]-1,2*I.shape[1]-1),sigmaX =sigma, sigmaY =sigma, borderType=cv2.BORDER_CONSTANT);
-    convol1minusH = cv2.GaussianBlur(OneMinusHeaviside, ksize = (2*I.shape[0]-1,2*I.shape[1]-1), sigmaX =sigma, sigmaY =sigma, borderType=cv2.BORDER_CONSTANT);
+    convolHI = cv2.GaussianBlur(HI, ksize = (2*int(sigma)+1,2*int(sigma)+1), sigmaX = sigma, sigmaY =sigma, borderType=cv2.BORDER_CONSTANT);
+    convolH = cv2.GaussianBlur(heavisideMatrix, ksize = (2*int(sigma)+1,2*int(sigma)+1),sigmaX = sigma,sigmaY = sigma, borderType=cv2.BORDER_CONSTANT);
+    convol1minusH_I = cv2.GaussianBlur(OneMinusH_I, ksize = (2*int(sigma)+1,2*int(sigma)+1),sigmaX =sigma, sigmaY =sigma, borderType=cv2.BORDER_CONSTANT);
+    convol1minusH = cv2.GaussianBlur(OneMinusHeaviside, ksize = (2*int(sigma)+1,2*int(sigma)+1), sigmaX =sigma, sigmaY =sigma, borderType=cv2.BORDER_CONSTANT);
     
     f1 = convolHI/convolH;
     f2 = convol1minusH_I/convol1minusH;
