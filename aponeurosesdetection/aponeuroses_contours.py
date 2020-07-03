@@ -4,6 +4,16 @@ import numpy as np
 
 
 def heaviside(matrix, epsilon):
+    """[summary]
+
+    Args:
+        matrix ([type]): [description]
+        epsilon ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+
     h = np.zeros((matrix.shape))
     for u in range(matrix.shape[0]):
         h[u, :] = np.array([1/2.*(1+2.*m.atan(matrix[u,v]/epsilon)/m.pi) for v in range(matrix.shape[1])])
@@ -11,6 +21,17 @@ def heaviside(matrix, epsilon):
 
 
 def gaussianKernel(I, point, sigma):
+    """[summary]
+
+    Args:
+        I ([type]): [description]
+        point ([type]): [description]
+        sigma ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+
     absc = point[0]
     ordo = point[1]
     k = np.zeros((I.shape))
@@ -20,6 +41,17 @@ def gaussianKernel(I, point, sigma):
 
 
 def intensities(I, previousC, sigma, epsilon):
+    """[summary]
+
+    Args:
+        I ([type]): [description]
+        previousC ([type]): [description]
+        sigma ([type]): [description]
+        epsilon ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
 
     #local intensities
     heavisideMatrix = heaviside(previousC, epsilon)        
@@ -43,6 +75,24 @@ def intensities(I, previousC, sigma, epsilon):
 
 
 def apoContour(I, pointIni, l1, l2, mu, nu, dt, epsilon, omega, sigma, stop_thresh):
+    """[summary]
+
+    Args:
+        I ([type]): [description]
+        pointIni ([type]): [description]
+        l1 ([type]): [description]
+        l2 ([type]): [description]
+        mu ([type]): [description]
+        nu ([type]): [description]
+        dt ([type]): [description]
+        epsilon ([type]): [description]
+        omega ([type]): [description]
+        sigma ([type]): [description]
+        stop_thresh ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
 
     
     if len(I.shape) > 2:
