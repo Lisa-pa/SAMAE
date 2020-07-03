@@ -1,28 +1,24 @@
-"*****************************************************************************"
-"**********************************PACKAGES***********************************"
-"*****************************************************************************"
 import cv2
-import numpy as np
 import math as m
-"*****************************************************************************"
-"**********************************FUNCTIONS**********************************"
-"*****************************************************************************"
+import numpy as np
 
-'-----------------------------------------------------------------------------'
+
 def heaviside(matrix, epsilon):
     h = np.zeros((matrix.shape))
     for u in range(matrix.shape[0]):
-        h[u,:] = np.array([1/2.*(1+2.*m.atan(matrix[u,v]/epsilon)/m.pi) for v in range(matrix.shape[1])])
+        h[u, :] = np.array([1/2.*(1+2.*m.atan(matrix[u,v]/epsilon)/m.pi) for v in range(matrix.shape[1])])
     return h
-'-----------------------------------------------------------------------------'
+
+
 def gaussianKernel(I, point, sigma):
     absc = point[0]
     ordo = point[1]
     k = np.zeros((I.shape))
     for a in range(I.shape[0]):
-        k[a,:] = np.array([1/(2*m.pi*sigma**2) * np.exp(-((a-absc)**2 + (b-ordo)**2)/(2*sigma*sigma))for b in range(I.shape[1])])
+        k[a, :] = np.array([1/(2*m.pi*sigma**2) * np.exp(-((a-absc)**2 + (b-ordo)**2)/(2*sigma*sigma))for b in range(I.shape[1])])
     return k
-'-----------------------------------------------------------------------------'
+
+
 def intensities(I, previousC, sigma, epsilon):
 
     #local intensities
@@ -44,8 +40,10 @@ def intensities(I, previousC, sigma, epsilon):
     c2 = np.sum(OneMinusH_I)/np.sum(heavisideMatrix)
            
     return c1, c2, f1, f2
-'-----------------------------------------------------------------------------'
+
+
 def apoContour(I, pointIni, l1, l2, mu, nu, dt, epsilon, omega, sigma, stop_thresh):
+
     
     if len(I.shape) > 2:
         I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
@@ -133,16 +131,5 @@ def apoContour(I, pointIni, l1, l2, mu, nu, dt, epsilon, omega, sigma, stop_thre
         previousC = newC
         step = step+1
     
-    return previousC,step, test, LIF_Force, GIF_Force
+    return previousC, step, test, LIF_Force, GIF_Force
 
-"*****************************************************************************"
-"************************************TESTS************************************"
-"*****************************************************************************"
-image = cv2.imread('Ini2.bmp', -1)
-imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-pt1 = [76,85]
-contour, n, maxiDPHI, LIF, GIF = apoContour(image, pt1, 1.0, 1.0, 1.0, 65.025, 0.15, 1, 0.01, 3.0, 0.1)
-cv2.imshow('Initial I',image)
-cv2.imshow('LGIF',contour)
-cv2.waitKey(0) & 0xFF
-cv2.destroyAllWindows()
