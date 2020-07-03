@@ -31,7 +31,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    description="This package contains functions that will enable aponeuroses and tubular structures detection[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[D[Dutomatic aponeuroses and tube-like structures detection.",
+    description="This package contains functions for aponeuroses and tubular structures detection.",
     entry_points={
         'console_scripts': [
             'aponeurosesdetection=aponeurosesdetection.cli:main',
