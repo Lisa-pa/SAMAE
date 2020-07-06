@@ -16,12 +16,22 @@ from tkinter.filedialog import askopenfilename
 "*****************************************************************************"
 
 def d2_gaussianMasks(s):
-    """Implements Gaussian's second derivatives masks for a given scale s, 
-    which corresponds to the standard deviation"""
+    """Implements Gaussian's second derivatives masks for a given standard
+    deviation s.
+    The masks' size is set as 6*s rounded to the superior integer (+1 if even).
+
+    Args:
+        s (double) : standard deviation
+
+    Returns:
+        mask_xx, mask_xy, mask_yy (array_like): masks obtained from derivation of a gaussian,
+        according to x and x, to x and y, to y and y respectively.
+
+    """
     
     'Calculation of the size of the masks'
     size = m.ceil(s*6);
-    if size%2==0: #if size if peer, make it odd
+    if size%2==0: #if size if even, make it odd
         size+=1;
         
     half =  m.floor(size/2);
@@ -48,7 +58,7 @@ def d2_gaussianMasks(s):
 def MVEF_2D(I, scales, thresholds):
     """Multiscale Vessel Enhancement Method for 2D images - based on Frangi's,
     Rana's, and Jalborg's works.
-    I is a grayscale image. thresholds is a list of two thresholds which 
+    I is a grayscale image. thresholds is a list of two thresholds that 
     control the sensitivity of the line filter to the measures Fr and R.  
     scales is a list of lengths that correspond to the diameter of the 
     tube-like structure the operator wants to find"""
