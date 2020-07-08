@@ -49,7 +49,7 @@ def skmuscimg():
 
 
 def downloadFromDropbox(tok, path2file):
-    """Downloads a file from a dropbox account
+    """Download an image from a Dropbox account.
 
     Args:
         tok (string): access token that connects to the wanted
