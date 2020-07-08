@@ -85,6 +85,6 @@ def downloadFromDropbox(tok, path2file):
         return None
        
     data = np.frombuffer(file.content, np.uint8)
-    image = cv2.imdecode(data, 1) # cv2.IMREAD_COLOR in OpenCV 3.1
+    image = cv2.imdecode(data, 1)
 
     return image
