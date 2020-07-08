@@ -61,10 +61,15 @@ def downloadFromDropbox(tok, path2file):
             image (numpy.ndarray): 3-channel color image, with 
                                     coefficients' type == uint8
 
-    Example (not working yet, I have to find a way to generate tokens that
-    to not give total access to my dropbox account but only to the desired
-    file):
-        > token = 'randomstring_887_85sf84654f5dfdfggkf'
+    Example:
+            1) Register a new app in the App Console of your Dropbox
+            account. Set up parameters as you want.
+            2) In Dropbox>Applications>MyApp, import your data.
+            3) In the settings page of MyApp, generate a token and copy it.
+                It should look like a random string of letters and figures,
+                as below. (!!!This access token can be used to access your
+                account via the API. Don’t share your access token with anyone!!!) 
+        > token = 'Q8yhHQ4wquAAAAAAAAABRPb9LYdKAr2WGcmhhJ8egiX4_Qak6YZwBw4GUpX9DVeb'
         > path = '/cropped_20181002_153426_image.jpg'
         > dt = downloadFromDropbox(token, path);
     """
