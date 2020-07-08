@@ -55,7 +55,7 @@ def downloadFromDropbox(tok, path2file):
         tok (string): access token that connects to the wanted
                       app in Dropbox account
         path2file (string): Path of the file to download, in the
-                            app corresponding to the upward token.
+                            app corresponding to the above token.
 
     Output:
             image (numpy.ndarray): 3-channel color image, with 
