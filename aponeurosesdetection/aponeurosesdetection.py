@@ -125,30 +125,45 @@ def MVEF_2D(I, scales, thresholds):
 
     return I2, vesselness, hessian_xy, hessian_xx, hessian_yy
 '-----------------------------------------------------------------------------'
-
-
-def find_2largestLines(I, threshold):
-    """ Returns the segmented radon transform of I and the square-cropped 
-    image I. Threshold is used to segment the radon transform, to keep only 
-    the two largest bright lines of I; it must be between 0 and 255."""
+def apoLocation(I, thresh):
+    """Function that does segmentation on radon transform of image I
+    to detect the two aponeuroses as the two largest white lines.
+    It returns the inverse transform of the segmented radon transform as
+    well as location of two horizontal bands containing aponeuroses
     
+    Args:
+        I (array): one canal image
+        thresh: threshold used for segmentation. In the radon transform, all
+        pixels where value > thresh are kept, so that to keep only whiter areas
+        and remove gray areas.
+    
+    Returns:
+        I_reconstructed (array): array of same size than I, where the lines detected
+        equal 1, otherwise pixels equal 0.
+        loc1 (tuple): indicates two lines (distant of 50 pixels) of I between 
+        which the upper aponeurosis is.
+        loc2 (tuple): indicates two lines (distant of 50 pixels) of I between 
+        which the lower aponeurosis is.
+    """
+
     if len(I.shape) > 2:
         I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
-    
+        
+
+    #working with a square because radon function working on a circle only
     if I.shape[0] != I.shape[1]:
         mini = np.min(I.shape)
-        I = I[0:mini,0:mini] #working with a square because of the unctioning of skimage radon function
-        """-> problem when aponeuroses not in the left part of the image !"""
-    
+        I = I[0:mini,0:mini]
+        
     I_radon = radon(I, circle = True)
     I_radon2 = I_radon/np.max(I_radon)*255 #spreading values between 0 and 255 to enhance white points
-    I_radon3 = cv2.threshold(I_radon2, threshold, 255, cv2.THRESH_BINARY)[1].astype(np.uint8) #keeping whitest regions
+    I_radon3 = cv2.threshold(I_radon2, thresh, 255, cv2.THRESH_BINARY)[1].astype(np.uint8) #keeping whitest regions
 
     contours = cv2.findContours(I_radon3,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0] #find white regions
-    contours_tuples = [(i, contours[i][:,0,:], contours[i].size) for i in range (len(contours))]
+    contours_tuples = [(i, contours[i][:,0,:], contours[i].size) for i in range(len(contours))]
 
     if len(contours_tuples)<2:
-        print('Error: Aponeuroses could not be located. Try a lower threshold for binarization.')
+        raise TypeError('Less than two aponeuroses have been located. Try a lower threshold for binarization.')
     elif len(contours_tuples)>2: #remove smaller white points, that do not correspond to aponeuroses
         contours_tuples.sort(key=lambda contours: contours[2])
         for x in range(len(contours_tuples)-2):
@@ -156,49 +171,47 @@ def find_2largestLines(I, threshold):
             center, radius = cv2.minEnclosingCircle(contours_tuples[x][1])
             cv2.circle(I_radon3, (int(center[0]), int(center[1])), int(np.ceil(radius)+1), 0, thickness=cv2.FILLED, lineType=8, shift=0)
     
-    I_reconstructed = iradon(I_radon3)
+    I_reconstructed = (iradon(I_radon3)>0)*255.   
     
-    return I_reconstructed, I
-
-"""
-def spread_aponeuroses(radon, I):
+    #find locations of aponeuroses
+    j=0
+    while I_reconstructed[j,int(I_reconstructed.shape[1]/2)]==0:
+        j = j+1
+    upLine1 = max(0, j-20)
     
+    j=0
+    while I_reconstructed[I_reconstructed.shape[0]-1-j,int(I_reconstructed.shape[1]/2)]==0:
+        j=j+1
+    downLine2 = min(I_reconstructed.shape[0]-1-j + 20, I_reconstructed.shape[0])
     
-    
-    return set1, set2
-"""
-"""
-def approx_inner_border(set1, set2, image, typeApprox):
-    
-    return borderUp, borderBottom
-"""
+    loc1 = (upLine1,upLine1+50)
+    loc2 = (downLine2-50,downLine2)  
+  
+    return I_reconstructed, loc1, loc2
 
 "*****************************************************************************"
 "*********************************TEST****************************************"
 "*****************************************************************************"
-'Select image in an opening window'
-root = tk.Tk()
-root.withdraw()
-filename = askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+image = cv2.imread('skmuscle.jpg', -1)
+imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)  
 
-image = cv2.imread(filename, -1)
-imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) 
-
-I_iR, I2 = find_2largestLines(imageG, 220.)
+aponeuroses_Linear, apon1, apon2 = apoLocation(image, 220.)
 
 #color in green to see what has been spotted
-for x in range(I_iR.shape[0]):
-    for y in range(I_iR.shape[1]):
-        if I_iR[x,y] >0:
+for x in range(aponeuroses_Linear.shape[0]):
+    for y in range(aponeuroses_Linear.shape[1]):
+        if aponeuroses_Linear[x,y] >0:
             image[x,y,:] = [0,255,0]
-            
-#I_iR = I_iR/np.max(I_iR)*255;
-#cv2.imwrite('Radon_iRadon_Cropped0.jpg', I_iR);
-cv2.imshow('cropped ini image', I2)
+
+#cv2.imwrite('Radon_cropped_Kevin_jamon_20181002_153734_image.jpg', image);
 cv2.imshow('image ini',image)
-cv2.imshow('Trasnformed I',I_iR)
+cv2.imshow('Trasnformed I',aponeuroses_Linear)
+cv2.imshow('apo1', image[apon1[0]:apon1[1],:])
+cv2.imshow('apo2', image[apon2[0]:apon2[1],:])
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
+
+
 "*****************************************************************************"
 "*****************************************************************************"
 "*****************************************************************************"
