@@ -167,7 +167,7 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     """
     
     if len(I.shape) > 2:
-        I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY);
+        I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
         
     'Initialization'
     previousPhi = contourIni
@@ -182,10 +182,10 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
         w = 0.01
         dirac = eps/(math.pi*(eps*eps+previousPhi*previousPhi))        
         grad = np.gradient(previousPhi)
-        normgrad = np.sqrt(grad[0]*grad[0] + grad[1]*grad[1]);
+        normgrad = np.sqrt(grad[0]*grad[0] + grad[1]*grad[1])
         normgrad = normgrad + (normgrad == 0)*1.
-        div = np.gradient(grad[0]/normgrad, axis = 0) + np.gradient(grad[1]/normgrad, axis = 1);
-        lap = cv2.Laplacian(previousPhi, cv2.CV_64F);
+        div = np.gradient(grad[0]/normgrad, axis = 0) + np.gradient(grad[1]/normgrad, axis = 1)
+        lap = cv2.Laplacian(previousPhi, cv2.CV_64F)
         
         dPhi = dirac * ((1-w)*LIF + w*GIF)\
                 + nu * dirac * div\
