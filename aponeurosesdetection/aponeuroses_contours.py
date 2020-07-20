@@ -107,7 +107,7 @@ def initiateContour(I, typeC='circle', pointIni = None, setPoints = None):
                                        + (pointIni[1]-j)**2)
    
     if typeC == 'set_of_points':
-       print('not ready')
+        print('not ready')
 
         # if setPoints is None:
         #     raise TypeError('Missing list setPoints')
