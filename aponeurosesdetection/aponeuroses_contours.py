@@ -80,10 +80,10 @@ def intensities(I, previousPhi, eps, s, l1, l2):
     return c1, c2, f1, f2, LIF, GIF
 
 def initiateContour(I, typeC='circle', pointIni = None, setPoints = None):
-   """Create an initial contour for I as a zero level set function. The
-   shape of this contour depends on typeC.
+    """Create an initial contour for I as a zero level set function. The
+    shape of this contour depends on typeC.
 
-   Args:
+    Args:
         I (array_like): one canal image
         typeC (string): type of contour to draw. It can be 'circle',
         or 'set_of_points' (still in development).
@@ -95,10 +95,8 @@ def initiateContour(I, typeC='circle', pointIni = None, setPoints = None):
     Returns:
         array_like ofsame size than I. The initial contour is caracterized by zero values
         in the array.
-
-   """
+    """
     initialPhi = np.zeros(I.shape)
-    
     if typeC=='circle':
         if pointIni is None:
             raise TypeError('Missing center point to draw circle')
