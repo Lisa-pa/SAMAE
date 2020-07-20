@@ -193,7 +193,7 @@ def apoLocation(I, thresh):
 "*****************************************************************************"
 "*********************************TEST****************************************"
 "*****************************************************************************"
-image = cv2.imread('cropped_Kevin_jamon_20181002_154401_image.jpg', -1)
+image = cv2.imread('skmuscle.jpg', -1)
 imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
 aponeuroses_Linear, apon1, apon2 = apoLocation(image, 220.)
