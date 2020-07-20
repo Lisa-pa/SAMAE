@@ -148,60 +148,61 @@ def apoLocation(I, thresh):
 
     if len(I.shape) > 2:
         I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
-        
-
+    
     #working with a square because radon function working on a circle only
     if I.shape[0] != I.shape[1]:
         mini = np.min(I.shape)
         I = I[0:mini,0:mini]
-        
+    
     I_radon = radon(I, circle = True)
     I_radon2 = I_radon/np.max(I_radon)*255 #spreading values between 0 and 255 to enhance white points
     I_radon3 = cv2.threshold(I_radon2, thresh, 255, cv2.THRESH_BINARY)[1].astype(np.uint8) #keeping whitest regions
 
-    contours = cv2.findContours(I_radon3,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0] #find white regions
+    contours = cv2.findContours(I_radon3,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0] #find white objects
     contours_tuples = [(i, contours[i][:,0,:], contours[i].size) for i in range(len(contours))]
 
     if len(contours_tuples)<2:
         raise TypeError('Less than two aponeuroses have been located. Try a lower threshold for binarization.')
-    elif len(contours_tuples)>2: #remove smaller white points, that do not correspond to aponeuroses
+    elif len(contours_tuples)>2: #sort according to contour's size -> aponeuroses = bigger contour's size
         contours_tuples.sort(key=lambda contours: contours[2])
-        for x in range(len(contours_tuples)-2):
-            #change smaller white points into black points
-            center, radius = cv2.minEnclosingCircle(contours_tuples[x][1])
-            cv2.circle(I_radon3, (int(center[0]), int(center[1])), int(np.ceil(radius)+1), 0, thickness=cv2.FILLED, lineType=8, shift=0)
     
-    I_reconstructed = (iradon(I_radon3)>0)*255.   
+    'Keep middle point of white objects to have a single line in inverse radon transform'
+    I_radon4 = np.zeros(I_radon3.shape)
+    for x in range(len(contours_tuples)-2, len(contours_tuples)):
+        center, radius = cv2.minEnclosingCircle(contours_tuples[x][1])
+        I_radon4[int(center[1]), int(center[0])] = I_radon3[int(center[1]), int(center[0])]
     
-    #find locations of aponeuroses
+    linearApo = (iradon(I_radon4)>0)*255.
+    
+    'Horizontal bands containing aponeuroses'
     j=0
-    while I_reconstructed[j,int(I_reconstructed.shape[1]/2)]==0:
+    while linearApo[j,int(linearApo.shape[1]/2)]==0:
         j = j+1
-    upLine1 = max(0, j-20)
+    upLine1 = max(0, j-30)
     
     j=0
-    while I_reconstructed[I_reconstructed.shape[0]-1-j,int(I_reconstructed.shape[1]/2)]==0:
+    while linearApo[linearApo.shape[0]-1-j,int(linearApo.shape[1]/2)]==0:
         j=j+1
-    downLine2 = min(I_reconstructed.shape[0]-1-j + 20, I_reconstructed.shape[0])
+    downLine2 = min(linearApo.shape[0]-1-j + 30, linearApo.shape[0])
     
-    loc1 = (upLine1,upLine1+50)
-    loc2 = (downLine2-50,downLine2)  
+    loc1 = (upLine1,upLine1+60)
+    loc2 = (downLine2-60,downLine2)  
   
-    return I_reconstructed, loc1, loc2
+    return linearApo, loc1, loc2
 
 "*****************************************************************************"
 "*********************************TEST****************************************"
 "*****************************************************************************"
-image = cv2.imread('skmuscle.jpg', -1)
-imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)  
+image = cv2.imread('cropped_Kevin_jamon_20181002_154401_image.jpg', -1)
+imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
 aponeuroses_Linear, apon1, apon2 = apoLocation(image, 220.)
 
-#color in green to see what has been spotted
+#color in orange to see what has been spotted
 for x in range(aponeuroses_Linear.shape[0]):
     for y in range(aponeuroses_Linear.shape[1]):
         if aponeuroses_Linear[x,y] >0:
-            image[x,y,:] = [0,255,0]
+            image[x,y,:] = [0,127,255]
 
 #cv2.imwrite('Radon_cropped_Kevin_jamon_20181002_153734_image.jpg', image);
 cv2.imshow('image ini',image)
