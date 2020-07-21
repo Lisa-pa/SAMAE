@@ -173,7 +173,7 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     'recurrence'
     step = 1
     stop_criterion = thresh + 1.
-    while stop_criterion > thresh and step <= 100000:
+    while stop_criterion > thresh and step <= 1000:
         
         c1, c2, f1, f2, GIF, LIF = intensities(I, previousPhi, eps, s, l1, l2)
 
