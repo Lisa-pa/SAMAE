@@ -74,6 +74,7 @@ def MVEF_2D(I, scales, thresholds):
     References:
         Based on [ Automatic detection of skeletal muscle architecture 
         features, Frida Elen Jalborg, Master’s Thesis Spring 2016 ]
+                [Frangi, 1998, Multiscale Vessel Enhancement filtering]
                 [ Rana et al., 2009, Automated tracking of muscle fascicle
                 orientation in B-mode ultrasound images]
                 [ Rana et al., 2011, In-vivo determination of 3D muscle
