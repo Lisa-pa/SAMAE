@@ -26,7 +26,9 @@ def autocropping(I, thresholdCol_low, thresholdCol_high, thresholdRaw_low, thres
         features, Frida Elen Jalborg, Master’s Thesis Spring 2016 ]
 
     Example:
-        > RGB_image = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
+        > RGB_image = cv2.imread('AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
+          #change this example: should use the function simpleimg() to load the image simple_echo, 
+          #instead of using cv2.imread with a path
           cropped_img = autocropping(RGB_image, 10., 15., 12., 25.)
           cv2.imshow('image',cropped_img)
           cv2.waitKey(0) & 0xFF
