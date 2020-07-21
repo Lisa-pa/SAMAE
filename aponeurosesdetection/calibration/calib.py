@@ -29,29 +29,29 @@ def autoCalibration(I):
           #results simple_echo: 0.06097560975609756 0.06097560975609756
     """
     
-    'Check if I is a 1-canal image'
+    #Check if I is a 1-canal image
     if len(I.shape) > 2:
         I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
     length, width = I.shape[0], I.shape[1]
     
-    'Segmentation of the scale: cropping with empirical percentages and       '
-    'binarization of the selection                                            '
+    #Segmentation of the scale: cropping with empirical percentages and
+    #binarization of the selection
     TCP = 0.1 #Top cropping percentage - #empirical percentage
     LCP = 0.5 #Left cropping percentage
     BCP = 0.7 #Bottom cropping percentage
     RCP = 0.1 #Right cropping percentage
     Scale_image = I[int(TCP * length):length-int(BCP * length),\
-                    int(LCP * width):width-int(RCP * width)];                   
+                    int(LCP * width):width-int(RCP * width)]                 
     Binar_I = cv2.threshold(Scale_image, 220., 255, cv2.THRESH_BINARY)[1]                
     
-#    cv2.imshow('image',Binar_I);
-#    cv2.waitKey(0) & 0xFF;
-#    cv2.destroyAllWindows();    
+#    cv2.imshow('image',Binar_I)
+#    cv2.waitKey(0) & 0xFF
+#    cv2.destroyAllWindows()   
     
-    'Selection of the biggest dashes: contours of white objects are found as  '
-    'well as minimal rectangles encapsulating each object. Conditions on the  '
-    'size of these contours/bounding rectangles enable the removal of objects '
-    'that are not the biggest dashes                                          '
+    #Selection of the biggest dashes: contours of white objects are found as
+    #well as minimal rectangles encapsulating each object. Conditions on the
+    #size of these contours/bounding rectangles enable the removal of objects
+    #that are not the biggest dashes
     contours = cv2.findContours(Binar_I, cv2.RETR_EXTERNAL, \
                                            cv2.CHAIN_APPROX_NONE)[0]
     contours_size = [contours[i].size for i in range (len(contours))]
@@ -64,8 +64,8 @@ def autoCalibration(I):
     MeanPerim = np.mean([BoundingRectangles[i][2] for i in range(len(BoundingRectangles))])
     Dashes = [BoundingRectangles[i] for i in range(len(BoundingRectangles)) if BoundingRectangles[i][2]>MeanPerim] #removal of points and small dashes
    
-    'Calculation of the minimal distances between two horizontal dashes and   '
-    'two vertical dashes                                                      '
+    #Calculation of the minimal distances between two horizontal dashes and
+    #two vertical dashes
     horiz = 10000000.
     vertic = 10000000.
     for i in range (0, len(Dashes)-1):
@@ -75,10 +75,9 @@ def autoCalibration(I):
             if len(set(list(range(Dashes[j][1][0],Dashes[j][1][0]+Dashes[j][1][2])))\
                    .intersection(list(range(ref_Dash[0],ref_Dash[0]+ref_Dash[2]))))>2:
                 
-                 h = abs(ref_Dash[1]+ref_Dash[3]-Dashes[j][1][1]-Dashes[j][1][3])
-                                            
-                 if h<vertic:
-                     vertic = h
+                h = abs(ref_Dash[1]+ref_Dash[3]-Dashes[j][1][1]-Dashes[j][1][3])
+                if h<vertic:
+                    vertic = h
                                 
             if len(set(list(range(Dashes[j][1][1],Dashes[j][1][1]+Dashes[j][1][3])))\
                    .intersection(list(range(ref_Dash[1],ref_Dash[1]+ref_Dash[3]))))>2:
@@ -88,7 +87,7 @@ def autoCalibration(I):
                 if h<horiz:
                     horiz = h             
 
-    'Factors to convert distance in pixels into distance in millimeters       '
+    #Factors to convert distance in pixels into distance in millimeters
     if horiz == 10000000.:
         calibFactorX = False
     else:
