@@ -42,11 +42,20 @@ def circle():
 
 
 def skmuscimg():
-    """[summary]
+    """Cropped US image of a musculoskeletal muscle
     """
 
     return _load(os.path.join(data_dir, "skmuscle.jpg"))
 
+def panoimg():
+    """Panoramic US image of a musculoskeletal muscle
+    """
+    return _load(os.path.join(data_dir, "panoramic_echo.jpg"))
+
+def simpleimg():
+    """Simple US image of a musculoskeletal muscle
+    """
+    return _load(os.path.join(data_dir, "simple_echo.jpg"))
 
 def downloadFromDropbox(tok, path2file):
     """Download an image from a Dropbox account.
@@ -69,14 +78,13 @@ def downloadFromDropbox(tok, path2file):
                 It should look like a random string of letters and figures,
                 as below. (!!!This access token can be used to access your
                 account via the API. Don’t share your access token with anyone!!!) 
-        > token = 'Q8yhHQ4wquAAAAAAAAABRPb9LYdKAr2WGcmhhJ8egiX4_Qak6YZwBw4GUpX9DVeb'
+        > token = 'Q8yhHQ4wquAAAAAAAAABRPb9LYdKAr2WGcmhhJ8egiX4_Qak6YZwBw4GUpX9DVeb' //token not available anymore
         > path = '/cropped_20181002_153426_image.jpg'
         > dt = downloadFromDropbox(token, path);
     """
     import dropbox
     import numpy as np
     import cv2
-
     dbx  = dropbox.Dropbox(tok)
     try:
         metadata, file = dbx.files_download(path2file)
