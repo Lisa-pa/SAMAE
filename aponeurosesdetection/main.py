@@ -3,10 +3,12 @@ from preprocessing.cropping import autocropping
 from preprocessing.preprocessing import preprocessingApo
 import aponeurosesdetection as apoD
 import aponeuroses_contours as apoC
+
 import cv2
 import numpy as np
 import tkinter.messagebox as tkbox
-
+import tkinter as tk
+from PIL import ImageTk, Image
 ###################################FOR SIMPLE US IMAGES###################################
 
 
@@ -59,41 +61,55 @@ lowerApo = USimage[apon2[0]:apon2[1],:]
 #Pre-process the sub-images of upper and lower aponeuroses
 upperApo_pp = preprocessingApo(upperApo, 'localmean', 0, 41)
 lowerApo_pp = preprocessingApo(lowerApo, 'localmean', 0, 41)
-# cv2.imshow('Full ultrasound image', USimage)
-# cv2.imshow('Upper aponeurosis', upperApo)
-# cv2.imshow('Preprocessed upper aponeurosis', upperApo_pp)
-# cv2.imshow('Lower aponeurosis', lowerApo)
-# cv2.imshow('Preprocessed lower aponeurosis', lowerApo_pp)
-# cv2.waitKey(0) & 0xFF
-# cv2.destroyAllWindows()
 
 #################################################
 
 # Get exact contour of each aponeurosis
-# NB - we ask the user to click on points to get an initial contour
+# First - we ask the user to click on points to get an initial contour
 #close to the real boundary of each aponeurosis (faster convergence)
-# pointsUp = np.array()
+points = []
+def _pickCoordinates(event):
+    xe = event.x
+    ye = event.y
+    points.append((ye,xe))
+window = tk.Tk()
+canvas = tk.Canvas(window, width = upperApo_pp.shape[1], height = upperApo_pp.shape[0])      
+canvas.pack()      
+displayI = ImageTk.PhotoImage(image = Image.fromarray(upperApo_pp), master = window)     
+canvas.create_image(0,0, anchor='nw', image=displayI) 
+window.bind('<Button-1>',_pickCoordinates) 
+window.mainloop()
+points = np.array(points)
+print(points)
+ini_upApo = apoC.initiateContour(upperApo_pp, typeC = 'set_of_points', setPoints = points)
+contourUp,nUp=apoC.activeContour(upperApo_pp,ini_upApo,0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
+contourUpimage, contourPointsUp = apoC.extractContour(contourUp, upperApo)
+print('Upper aponeurosis contour found in ', nUp, ' steps')
 
-
-# ini_upApo = initiateContour(upperApo_pp, typeC = 'set_of_points', setPoints = pointsUp)
-# contourUp, nUp = activeContour(upperApo_pp, ini_upApo, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-# contourUpimage, contourPointsUp = extractContour(contourUp, upperApo)
-
-# pointsLow = np.array()
-# ini_lowApo = initiateContour(lowerApo_pp, typeC = 'set_of_points', setPoints = pointsLow)
-# contourLow, nLow = activeContour(lowerApo_pp, ini_lowApo, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-# contourLowimage, contourPointsLow = extractContour(contourLow, lowerApo)
-
+points = []
+window = tk.Tk()
+canvas = tk.Canvas(window, width = lowerApo_pp.shape[1], height = lowerApo_pp.shape[0])      
+canvas.pack()      
+displayI = ImageTk.PhotoImage(image = Image.fromarray(lowerApo_pp), master = window)     
+canvas.create_image(0,0, anchor='nw', image=displayI) 
+window.bind('<Button-1>',_pickCoordinates) 
+window.mainloop()
+points = np.array(points)
+ini_lowApo = apoC.initiateContour(lowerApo_pp, typeC = 'set_of_points', setPoints = points)
+contourLow, nLow = \
+    apoC.activeContour(lowerApo_pp, ini_lowApo, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+contourLowimage, contourPointsLow = apoC.extractContour(contourLow, lowerApo)
+print('Lower aponeurosis contour found in ', nLow, ' steps')
 
 #################################################
 
 #validation of the contours
 #if not validated, linear approximation is used
-# cv2.imshow('Upper aponeurosis contour', contourUpimage)
-# cv2.imshow('Lower aponeurosis contour', contourUpimage)
-# valid = tkbox.askyesno('Need user validation', 'Do you validate the contours ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
-# cv2.waitKey(0) & 0xFF
-# cv2.destroyAllWindows()
+cv2.imshow('Upper aponeurosis contour', contourUpimage)
+cv2.imshow('Lower aponeurosis contour', contourLowimage)
+valid = tkbox.askyesno('Need user validation', 'Do you validate the contours ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+cv2.waitKey(0) & 0xFF
+cv2.destroyAllWindows()
 
 #################################################
 #B-spline to approximate each aponeurosis if contours suited

@@ -1,5 +1,5 @@
 import cv2
-import math as m
+import math
 import numpy as np
 
 def gaussianKernel(sigma):
@@ -52,7 +52,7 @@ def intensities(I, previousPhi, eps, s, l1, l2):
         application to brain MR image segmentation" Computerized Medical Imaging 
         and Graphics 33 (2009) 520–531 ]
     """
-
+    import scipy.signal as signal
     Id = np.ones(I.shape)
     K = gaussianKernel(s)
     H = (1 + np.arctan(previousPhi/eps)*2/math.pi)/2
@@ -85,36 +85,39 @@ def initiateContour(I, typeC, setPoints):
 
     Args:
         I (array_like): one canal image
+
         typeC (string): type of contour to draw. It can be 'circle',
         or 'set_of_points'.
             'circle' : draws a circle centered on the first point
             of setPoints, and which diameter is 3 pixels.
             'set_of_points': draws a convex hull containing all 
-            points from setPoints.
+            points from setPoints. If setPoints is None, an error
+            is raised.
+
         setPoints (array or list): list of points drawing a closed 
         curve if typeC is 'set_of_points'; or list containing one 
         single point if typeC is 'circle' (center of the circle). 
         If option is 'circle' and setPoints has more than one point, 
         the first one is considered as the center of the circle.
         If option is 'set_of_points', considering that x-axis goes
-        downwards and y-axis goes right, points must be given in a non
-        clockwise manner
+        downwards and y-axis goes right, points must be given
+        in a non clockwise manner
 
     Returns:
         array_like of same size than I. Pixels on the contour are zeros,
         pixels inside the contour are negative, pixels outside the
         contour are positive.
     """
-    initialPhi = np.zeros(I.shape)
     if setPoints is None:
-        raise TypeError('Missing list setPoints')
+        raise ValueError('Missing setPoints list.')
+    initialPhi = np.zeros(I.shape)
             
     if typeC =='circle':
         for i in range(I.shape[0]):
             for j in range(I.shape[1]):
                 initialPhi[i,j] = -3 + np.sqrt((setPoints[0][0]-i)**2\
-                                   + (setPoints[0][1]-j)**2)
-   
+                                + (setPoints[0][1]-j)**2)
+
     if typeC == 'set_of_points':
         contour = cv2.convexHull(setPoints,  clockwise = False)
         for i in range(I.shape[0]):
@@ -172,7 +175,8 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     step = 1
     stop_criterion = thresh + 1.
     while stop_criterion > thresh and step <= 1000:
-        
+        if step%10 ==0:
+            print('Current tens for step : ', step)
         c1, c2, f1, f2, GIF, LIF = intensities(I, previousPhi, eps, s, l1, l2)
 
         w = 0.01
