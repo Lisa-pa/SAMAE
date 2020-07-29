@@ -79,54 +79,50 @@ def intensities(I, previousPhi, eps, s, l1, l2):
     
     return c1, c2, f1, f2, LIF, GIF
 
-def initiateContour(I, typeC='circle', pointIni = None, setPoints = None):
-    """Create an initial contour for I as a zero level set function. The
+def initiateContour(I, typeC, setPoints):
+    """Create an initial contour for I, as a zero level set function. The
     shape of this contour depends on typeC.
 
     Args:
         I (array_like): one canal image
         typeC (string): type of contour to draw. It can be 'circle',
-        or 'set_of_points' (still in development).
-        pointIni (tuple or list, optional): center of the circle if
-        'circle' is chosen
-        setPoints (array or list, optional): list of points to interpolate
-        so that to draw a closed curve from the points (if 'set_of_points' is chosen)
+        or 'set_of_points'.
+            'circle' : draws a circle centered on the first point
+            of setPoints, and which diameter is 3 pixels.
+            'set_of_points': draws a convex hull containing all 
+            points from setPoints.
+        setPoints (array or list): list of points drawing a closed 
+        curve if typeC is 'set_of_points'; or list containing one 
+        single point if typeC is 'circle' (center of the circle). 
+        If option is 'circle' and setPoints has more than one point, 
+        the first one is considered as the center of the circle.
+        If option is 'set_of_points', considering that x-axis goes
+        downwards and y-axis goes right, points must be given in a non
+        clockwise manner
 
     Returns:
-        array_like ofsame size than I. The initial contour is caracterized by zero values
-        in the array.
+        array_like of same size than I. Pixels on the contour are zeros,
+        pixels inside the contour are negative, pixels outside the
+        contour are positive.
     """
     initialPhi = np.zeros(I.shape)
-    if typeC=='circle':
-        if pointIni is None:
-            raise TypeError('Missing center point to draw circle')
-        else:
-            for i in range(I.shape[0]):
-                for j in range(I.shape[1]):
-                    initialPhi[i,j] = -3 + np.sqrt((pointIni[0]-i)**2\
-                                       + (pointIni[1]-j)**2)
+    if setPoints is None:
+        raise TypeError('Missing list setPoints')
+            
+    if typeC =='circle':
+        for i in range(I.shape[0]):
+            for j in range(I.shape[1]):
+                initialPhi[i,j] = -3 + np.sqrt((setPoints[0][0]-i)**2\
+                                   + (setPoints[0][1]-j)**2)
    
     if typeC == 'set_of_points':
-        print('not ready')
-
-        # if setPoints is None:
-        #     raise TypeError('Missing list setPoints')
-        # else:
-            
-        #     pad = 3
-        #     setPoints = np.pad(setPoints, [(pad,pad), (0,0)], mode='wrap')
-        #     x, y = setPoints.T
-        #     i = np.arange(0, len(setPoints))
-            
-        #     interp_i = np.linspace(pad, i.max() - pad + 1, 5 * (i.size - 2*pad))
-        #     xi = interp1d(i, x, kind='cubic')(interp_i) #ou interp2D
-        #     yi = interp1d(i, y, kind='cubic')(interp_i)
-        #     contour = np.array([])#np array 2D where a line is a point from the contour
-        #     for i in range(I.shape[0]):
-        #         for j in range(I.shape[1]):
-        #             initialPhi[i,j] = cv2.pointPolygonTest(contour, [i,j], True)
-
+        contour = cv2.convexHull(setPoints,  clockwise = False)
+        for i in range(I.shape[0]):
+            for j in range(I.shape[1]):
+                initialPhi[i,j] = - cv2.pointPolygonTest(contour, (i,j), True)
+    
     return initialPhi
+
 
 def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     """Determines the contour of an object in image I by recurrence. This function
@@ -138,6 +134,7 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     The evolution of the contour is provided by :
             dC/dt = dirac(C) * (F1 + F2) + nu * dirac(C) * div( grad(C)/|grad(C)|)
                     + mu * (lap(C) - div( grad(C)/|grad(C)|) )
+    See reference articles in References for the further detailed approach.
 
     Args:
         I (array_like): one-canal image
@@ -148,7 +145,8 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
         s (double): standard deviation for gaussian kernels 
         mu (double): stricly positive constant that weights the level set regularization term
         nu (double): stricly positive constant that weights the length term
-        dt (double): time step
+        dt (double): time step. It must be small enough to avoid numerical issues
+        but big enough to reach a reasonable computational time
         eps (double): strictly positive constant
         thresh (double): stopping condition for the recurrence
 

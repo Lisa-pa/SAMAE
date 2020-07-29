@@ -145,10 +145,10 @@ def MVEF_2D(I, scales, thresholds):
     return I2
 '-----------------------------------------------------------------------------'
 def apoLocation(I, thresh):
-    """Function that segments the radon transform of image I
+    """Function that determines the radon transform of image I and segments it
     to detect the two aponeuroses as the two largest white lines.
     It returns the inverse transform of the segmented radon transform as
-    well as location of two horizontal bands containing aponeuroses
+    well as location of two horizontal bands containing aponeuroses.
     
     Args:
         I (array): one canal image
@@ -157,12 +157,12 @@ def apoLocation(I, thresh):
         and remove gray areas.
     
     Returns:
-        I_reconstructed (array): array of same size than I, where the lines detected
-        equal 1, otherwise pixels equal 0.
-        loc1 (tuple): indicates two lines (distant of 50 pixels) of I between 
-        which the upper aponeurosis is.
-        loc2 (tuple): indicates two lines (distant of 50 pixels) of I between 
-        which the lower aponeurosis is.
+        linearApo (array): array of same size than I, where the lines detected
+        equal 1, otherwise pixels equal 0: linear approximation of aponeuroses
+        loc1 (tuple): indicates two indices (distant of 50 pixels) corresponding 
+        to the lines  of I between which the upper aponeurosis is.
+        loc2 (tuple): indicates two indices (distant of 50 pixels) corresponding 
+        to the lines  of I between which the lower aponeurosis is.
     """
 
     if len(I.shape) > 2:
@@ -209,29 +209,29 @@ def apoLocation(I, thresh):
   
     return linearApo, loc1, loc2
 
-"*****************************************************************************"
-"*********************************TEST****************************************"
-"*****************************************************************************"
-image = cv2.imread('skmuscle.jpg', -1)
-imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+# "*****************************************************************************"
+# "*********************************TEST****************************************"
+# "*****************************************************************************"
+# image = cv2.imread('skmuscle.jpg', -1)
+# imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-aponeuroses_Linear, apon1, apon2 = apoLocation(image, 220.)
+# aponeuroses_Linear, apon1, apon2 = apoLocation(image, 220.)
 
-#color in orange to see what has been spotted
-for x in range(aponeuroses_Linear.shape[0]):
-    for y in range(aponeuroses_Linear.shape[1]):
-        if aponeuroses_Linear[x,y] >0:
-            image[x,y,:] = [0,127,255]
+# #color in orange to see what has been spotted
+# for x in range(aponeuroses_Linear.shape[0]):
+#     for y in range(aponeuroses_Linear.shape[1]):
+#         if aponeuroses_Linear[x,y] >0:
+#             image[x,y,:] = [0,127,255]
 
-#cv2.imwrite('Radon_cropped_Kevin_jamon_20181002_153734_image.jpg', image);
-cv2.imshow('image ini',image)
-cv2.imshow('Trasnformed I',aponeuroses_Linear)
-cv2.imshow('apo1', image[apon1[0]:apon1[1],:])
-cv2.imshow('apo2', image[apon2[0]:apon2[1],:])
-cv2.waitKey(0) & 0xFF
-cv2.destroyAllWindows()
+# #cv2.imwrite('Radon_cropped_Kevin_jamon_20181002_153734_image.jpg', image);
+# cv2.imshow('image ini',image)
+# cv2.imshow('Trasnformed I',aponeuroses_Linear)
+# cv2.imshow('apo1', image[apon1[0]:apon1[1],:])
+# cv2.imshow('apo2', image[apon2[0]:apon2[1],:])
+# cv2.waitKey(0) & 0xFF
+# cv2.destroyAllWindows()
 
 
-"*****************************************************************************"
-"*****************************************************************************"
-"*****************************************************************************"
+# "*****************************************************************************"
+# "*****************************************************************************"
+# "*****************************************************************************"
