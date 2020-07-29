@@ -194,7 +194,7 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     
         step = step+1
     
-    return previousPhi
+    return previousPhi, step-1
 
 def extractContour(levelSet, image):
     listC=[]
