@@ -159,6 +159,9 @@ def apoLocation(I, thresh):
     Returns:
         linearApo (array): array of same size than I, where the lines detected
         equal 1, otherwise pixels equal 0: linear approximation of aponeuroses
+        (a1, b1), (a2, b2): parameters of the line equation of each
+        aponeurosis: x = a * y + b where x = coordinate along axis 0 and y =
+        coordinate along axis 1
         loc1 (tuple): indicates two indices (distant of 50 pixels) corresponding 
         to the lines  of I between which the upper aponeurosis is.
         loc2 (tuple): indicates two indices (distant of 50 pixels) corresponding 
@@ -192,31 +195,48 @@ def apoLocation(I, thresh):
         I_radon4[int(center[1]), int(center[0])] = I_radon3[int(center[1]), int(center[0])]
     
     linearApo = (iradon(I_radon4)>0)*255.
-    
+
     'Horizontal bands containing aponeuroses'
     j=0
     while linearApo[j,int(linearApo.shape[1]/2)]==0:
         j = j+1
-    upLine1 = max(0, j-30)
+    upLine = max(0, j-30)
     
     j=0
     while linearApo[linearApo.shape[0]-1-j,int(linearApo.shape[1]/2)]==0:
         j=j+1
-    downLine2 = min(linearApo.shape[0]-1-j + 30, linearApo.shape[0])
+    lowLine = min(linearApo.shape[0]-1-j + 30, linearApo.shape[0])
     
-    loc1 = (upLine1,upLine1+60)
-    loc2 = (downLine2-60,downLine2)  
-  
-    return linearApo, loc1, loc2
+    loc1 = (upLine,upLine+60)
+    loc2 = (lowLine-60,lowLine)  
+
+    #equation of each line ay+b=x where x is the coordinate along axis 0 and y along axis 1
+    line1 = [[u,v] for u in range(linearApo[loc1[0]:loc1[1],:].shape[0])\
+        for v in range(linearApo.shape[1]) if linearApo[loc1[0]:loc1[1],:][u,v]>0]
+    line1.sort()
+    a1 = (line1[-1][0]-line1[0][0]) / (line1[-1][1]-line1[0][1])
+    b1 = -a1 * line1[0][1] + line1[0][0] + loc1[0]
+
+    line2 = [[i,j] for i in range(linearApo[loc2[0]:loc2[1],:].shape[0])\
+         for j in range(linearApo.shape[1]) if linearApo[loc2[0]:loc2[1],:][i,j]>0]
+    line2.sort()
+    a2 = (line2[-1][0]-line2[0][0]) / (line2[-1][1]-line2[0][1])
+    b2 = -a2 * line2[0][1] + line2[0][0] + loc2[0]
+
+    return linearApo, (a1, b1), (a2, b2), loc1, loc2
 
 # "*****************************************************************************"
 # "*********************************TEST****************************************"
 # "*****************************************************************************"
-# image = cv2.imread('skmuscle.jpg', -1)
+# image = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/skmuscle.jpg', -1)
 # imageG = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-# aponeuroses_Linear, apon1, apon2 = apoLocation(image, 220.)
-
+# aponeuroses_Linear, equ1, equ2, apon1, apon2 = apoLocation(image, 220.)
+# ypoints = np.arange(0,image.shape[1]-1,1)
+# xpoints = np.int32((ypoints-equ1[1])/equ1[0])
+# for ind in range(ypoints.shape[0]):
+#     if xpoints[ind]<image.shape[0] and xpoints[ind]>=0:
+#         image[xpoints[ind],ypoints[ind],:] = [0,127,255]
 # #color in orange to see what has been spotted
 # for x in range(aponeuroses_Linear.shape[0]):
 #     for y in range(aponeuroses_Linear.shape[1]):
