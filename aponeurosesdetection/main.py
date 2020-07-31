@@ -12,7 +12,7 @@ from PIL import ImageTk, Image
 ###################################FOR SIMPLE US IMAGES###################################
 
 
-#Opening the image
+#Open the image
 RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
 
 #################################################
@@ -52,9 +52,9 @@ while ok == False:
 #################################################
 
 #Locate aponeuroses and find linear approximation of aponeuroses
-aponeuroses_Linear, apon1, apon2 = apoD.apoLocation(USimage, 220.)
-upperApo = USimage[apon1[0]:apon1[1],:]
-lowerApo = USimage[apon2[0]:apon2[1],:]
+aponeuroses_Linear, paramUp, paramLow, apoUp, apoLow = apoD.apoLocation(USimage, 220.)
+upperApo = np.copy(USimage[apoUp[0]:apoUp[1],:])
+lowerApo = np.copy(USimage[apoLow[0]:apoLow[1],:])
 
 #################################################
 
@@ -80,7 +80,6 @@ canvas.create_image(0,0, anchor='nw', image=displayI)
 window.bind('<Button-1>',_pickCoordinates) 
 window.mainloop()
 points = np.array(points)
-print(points)
 ini_upApo = apoC.initiateContour(upperApo_pp, typeC = 'set_of_points', setPoints = points)
 contourUp,nUp=apoC.activeContour(upperApo_pp,ini_upApo,0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
 contourUpimage, contourPointsUp = apoC.extractContour(contourUp, upperApo)
@@ -112,8 +111,28 @@ cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
 
 #################################################
+
 #B-spline to approximate each aponeurosis if contours suited
 # '''still in development'''
 # imgdenoised= preprocessingapo(image, 'localmean', 0, 51)
+if valid == True:
+    approxUp, xUp, yUp = apoC.approximate(contourPointsUp, 'upper', upperApo_pp, degree = 4)
+    approxLow, xLow, yLow = apoC.approximate(contourPointsLow, 'lower', lowerApo_pp, degree = 4)
+    #transform back to USimage coordinates:
+    xUp= xUp + apoUp[0]
+    xLow = xLow + apoLow[0]
 
+elif valid == False:
+    yUp = np.arange(0,USimage.shape[1]-1,1)
+    xUp = np.int32(yUp*paramUp[0]+paramUp[1])
+    yLow = np.arange(0,USimage.shape[1]-1,1)
+    xLow = np.int32(yLow*paramLow[0]+paramLow[1])
+
+#visualization:
+for index in range(yUp.shape[0]):
+    USimage[xUp[index],yUp[index],:] = [0,0,255]
+    USimage[xLow[index],yLow[index],:] = [0,0,255]
+cv2.imshow('interpolated aponeuroses', USimage)
+cv2.waitKey(0) & 0xFF
+cv2.destroyAllWindows()
 ###################################FOR PANORAMIC US IMAGES###################################
