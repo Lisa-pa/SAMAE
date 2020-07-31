@@ -201,6 +201,22 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     return previousPhi, step-1
 
 def extractContour(levelSet, image):
+    """
+    This function spots the border between neagtive and positive values of
+    the levelSet object (which represents a zero level set function).
+    This border represents the contour of an object in image I.
+    The function returns a image similar to I except that the contour is
+    green-lighted, and a list containing the points of the contour
+    
+    Args:
+        image (array): 3-canal image
+        levelSet (array): array of size (image.shape[0], image.shape[1])
+        representing a zero level set function
+    Returns:
+        I (array): array of same size than I, and same pixels value except
+        the contour which is green
+        listC (list): list of all pixels from the contour
+    """
     listC=[]
     I = image
     for x in range(1,levelSet.shape[0]-1):
@@ -226,3 +242,62 @@ def extractContour(levelSet, image):
                 I[x,y,:] = [0,255,0]
     
     return I, listC    
+
+def approximate(p, apoType, I, d):
+    """Function approximates aponeuroses shape.
+    More precisely, if apoType is 'upper', meaning an upper aponeurosis
+    is being processed, this function will approximate the lower boundary
+    of the upper aponeurosis with an interpolated curve of degree d. If apoType 
+    is 'lower', meaning a deep aponeurosis is being processed, this function 
+    will approximate the upper boundary of the deep aponeurosis with an 
+    interpolated curve of degree d.
+    The function returns the spline as well as two one-dimensional
+    arrays containing the x- and y- coordinates of the points
+    approximating the aponeurosis.
+
+    Args:
+        p (list): list containing the points of the aponeurosis' contour
+        apoType (string): aponeurosis type ('upper' or 'lower')
+        I (array) : image to which the processed aponeurosis belongs. It
+        can either have one canal or three canals.
+        d (integer): degree of the interpolated curve.
+    """
+    import scipy.interpolate as interpolate
+    p.sort() #x-coord sort
+    p.sort(key=lambda x:x[1]) #y-coord sort
+
+    if apoType == 'lower':
+        #from top to bottom, keep the first contour pixel of each column 
+        comparator = -1
+        line = []
+        for pt in p:
+            if pt[1] != comparator:
+                line.append(pt)
+                comparator = pt[1]
+        
+    elif apoType == 'upper':
+        #from bottom to top, keep the first contour pixel of each column 
+        comparator = -1
+        line = []
+        for pt in reversed(p):
+            if pt[1] != comparator:
+                line.append(pt)
+                comparator = pt[1]
+
+    line.sort(key=lambda x:x[1]) #y-coord sort
+    ycoord = [line[i][1] for i in range(len(line))]
+    xcoord = [line[i][0] for i in range(len(line))]
+
+    spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
+    
+    newy = np.arange(0,I.shape[1],1)
+    newx = np.int32(spline(newy))
+    
+    #to avoid out of range issues:
+    for x in newx:
+        if x>I.shape[0]:
+            x = I.shape[0]
+        elif x<0:
+            x = 0
+    
+    return spline, newx, newy
