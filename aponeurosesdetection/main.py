@@ -1,5 +1,5 @@
 from calibration.calib import autoCalibration
-from preprocessing.cropping import autocropping
+from preprocessing.cropping import autocropping, manualcropping
 from preprocessing.preprocessing import preprocessingApo
 import aponeurosesdetection as apoD
 import aponeuroses_contours as apoC
@@ -9,8 +9,9 @@ import numpy as np
 import tkinter.messagebox as tkbox
 import tkinter as tk
 from PIL import ImageTk, Image
-###################################FOR SIMPLE US IMAGES###################################
 
+"""
+###################################FOR SIMPLE US IMAGES###################################
 
 #Open the image
 RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
@@ -135,4 +136,34 @@ for index in range(yUp.shape[0]):
 cv2.imshow('interpolated aponeuroses', USimage)
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
+"""
+
 ###################################FOR PANORAMIC US IMAGES###################################
+
+#Open the image
+RGBpimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/post_20181210_110303_image_bfp.jpg', -1)
+
+#################################################
+
+#Calibrate the image
+calibX, calibY = autoCalibration(RGBpimage)
+
+#################################################
+
+#Crop the image thanks to manual preprocessing
+#(textfile containing points coordinates)
+USpimage = manualcropping(RGBpimage,'C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/post_20181210_110303_image_bfp.txt')
+
+#################################################
+
+#Pre-process the image
+# pppimage = preprocessingApo(USpimage, 'localmean', 0, 41)
+pppimage = cv2.cvtColor(USpimage, cv2.COLOR_RGB2GRAY)
+
+#################################################
+
+
+
+cv2.imshow('Manually cropped panoramic image', USpimage)
+cv2.waitKey(0) & 0xFF
+cv2.destroyAllWindows()
