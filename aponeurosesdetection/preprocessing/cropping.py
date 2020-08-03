@@ -118,7 +118,7 @@ def manualcropping(I, pointsfile):
     while (pointsfile[searchpoint] != '.') and (searchpoint>(-len(pointsfile))):
         searchpoint = searchpoint-1
     if (searchpoint == -len(pointsfile)):
-        raise TypeError('Input pointsfile name is not correct. Check extension.')
+        raise TypeError("Input pointsfile's name is not correct. Check extension.")
     else:
         imagetype = pointsfile[searchpoint-1]
     
@@ -130,10 +130,9 @@ def manualcropping(I, pointsfile):
         pickedPoints.append((x[1],x[2]))
 
     #keep aponeuroses points according to image type
-    if imagetype == 'p': #keep points 4 to 14 included
+    if imagetype == 'p': #keep points 3 to 13 included
         apos = np.asarray(pickedPoints[3:14], dtype=np.float64, order='C')
-        print(apos)
-    elif imagetype == 's': #keep points 4 to 11 included
+    elif imagetype == 's': #keep points 3 to 10 included
         apos = np.asarray(pickedPoints[3:11], dtype=np.float64, order='C')
     else:
         raise ValueError("pointsfile's name does not fulfill conditions. See docstrings")
