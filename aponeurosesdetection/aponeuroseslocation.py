@@ -61,7 +61,8 @@ def MVEF_2D(I, scales, thresholds):
     structures which can be regarded as tubular.
     
     Args:
-        I (2D array):       I is a grayscale image
+        I (2D array):       I is a grayscale image (otherwise it is 
+                            converted to grayscale)
         thresholds (list):  thresholds is a list of two thresholds that 
                             control the sensitivity of the line filter 
                             to the measures Fr and R.  
@@ -81,7 +82,8 @@ def MVEF_2D(I, scales, thresholds):
                 architecture of human muscle using free hand ultrasound]
 
     """
-    
+    if len(I.shape)>2:
+        I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
     vesselness = np.zeros((I.shape[0], I.shape[1], len(scales)))
     I2 = np.zeros((I.shape[0], I.shape[1]))
     

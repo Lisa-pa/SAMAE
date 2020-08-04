@@ -218,7 +218,7 @@ def extractContour(levelSet, image):
         listC (list): list of all pixels from the contour
     """
     listC=[]
-    I = image
+    I = np.copy(image)
     for x in range(1,levelSet.shape[0]-1):
         for y in range(1,levelSet.shape[1]-1):
             if levelSet[x,y]>0:
