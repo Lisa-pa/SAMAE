@@ -209,21 +209,28 @@ def apoLocation(I, thresh):
         j=j+1
     lowLine = min(linearApo.shape[0]-1-j + 30, linearApo.shape[0])
     
-    loc1 = (upLine,upLine+60)
-    loc2 = (lowLine-60,lowLine)  
+    loc1 = (upLine,min(upLine+60, linearApo.shape[0]))
+    loc2 = (max(0,lowLine-60),lowLine)
 
     #equation of each line ay+b=x where x is the coordinate along axis 0 and y along axis 1
     line1 = [[u,v] for u in range(linearApo[loc1[0]:loc1[1],:].shape[0])\
         for v in range(linearApo.shape[1]) if linearApo[loc1[0]:loc1[1],:][u,v]>0]
-    line1.sort()
-    a1 = (line1[-1][0]-line1[0][0]) / (line1[-1][1]-line1[0][1])
-    b1 = -a1 * line1[0][1] + line1[0][0] + loc1[0]
+    if line1:
+        line1.sort()
+        a1 = (line1[-1][0]-line1[0][0]) / (line1[-1][1]-line1[0][1])
+        b1 = -a1 * line1[0][1] + line1[0][0] + loc1[0]
+    else:
+        raise ValueError('it seems that upper aponeurosis linear approximation cannot be found')
 
     line2 = [[i,j] for i in range(linearApo[loc2[0]:loc2[1],:].shape[0])\
          for j in range(linearApo.shape[1]) if linearApo[loc2[0]:loc2[1],:][i,j]>0]
-    line2.sort()
-    a2 = (line2[-1][0]-line2[0][0]) / (line2[-1][1]-line2[0][1])
-    b2 = -a2 * line2[0][1] + line2[0][0] + loc2[0]
+    if line2:
+        line2.sort()
+        a2 = (line2[-1][0]-line2[0][0]) / (line2[-1][1]-line2[0][1])
+        b2 = -a2 * line2[0][1] + line2[0][0] + loc2[0]
+    else:
+        raise ValueError('it seems that upper aponeurosis linear approximation cannot be found')
+
 
     return linearApo, (a1, b1), (a2, b2), loc1, loc2
 
