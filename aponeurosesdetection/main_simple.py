@@ -1,7 +1,7 @@
 from calibration.calib import autoCalibration
 from preprocessing.cropping import autocropping, manualcropping
 from preprocessing.preprocessing import preprocessingApo
-import aponeurosesdetection as apoD
+import aponeuroseslocation as apoL
 import aponeuroses_contours as apoC
 
 import cv2
@@ -10,8 +10,13 @@ import tkinter.messagebox as tkbox
 import tkinter as tk
 from PIL import ImageTk, Image
 
-"""
-###################################FOR SIMPLE US IMAGES###################################
+#################################EVENT FUNCTION################################
+
+points = []
+def _pickCoordinates(event):
+    points.append((event.y,event.x))
+
+########################PROCESSING OF SIMPLE US IMAGES#########################
 
 #Open the image
 RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
@@ -40,20 +45,20 @@ while ok == False:
         entry3 = input("Please enter an integer between 0 and 255 for minimum threshold to test for raws' mean. Recommended value is 12.: ")
         entry4 = input("Please enter an integer between 0 and 255 for maximum threshold to test for raws' mean. Recommended value is 25.: ")
 
-        thresh1 = int(entry1)
-        thresh2 = int(entry2)
-        thresh3 = int(entry3)
-        thresh4 = int(entry4)
+        THRESH1 = int(entry1)
+        THRESH2 = int(entry2)
+        THRESH3 = int(entry3)
+        THRESH4 = int(entry4)
         print(f'You entered the following thresholds: {thresh1, thresh2, thresh3, thresh4}')
-        if thresh1>255 or thresh1<0 or thresh2>255 or thresh2<0 or thresh3>255 or thresh3<0 or\
-            thresh4>255 or thresh4<0:
+        if THRESH1>255 or THRESH1<0 or THRESH2>255 or THRESH2<0 or THRESH3>255 or THRESH3<0 or\
+            THRESH4>255 or THRESH4<0:
             raise ValueError('All thresholds must be integers between 0 and 255')
-        USimage = autocropping(RGBimage, thresh1, thresh2, thresh3, thresh4, calibY)
+        USimage = autocropping(RGBimage, THRESH1, THRESH2, THRESH3, THRESH4, calibY)
 
 #################################################
 
 #Locate aponeuroses and find linear approximation of aponeuroses
-aponeuroses_Linear, paramUp, paramLow, apoUp, apoLow = apoD.apoLocation(USimage, 220.)
+aponeuroses_Linear, paramUp, paramLow, apoUp, apoLow = apoL.apoLocation(USimage, 220.)
 upperApo = np.copy(USimage[apoUp[0]:apoUp[1],:])
 lowerApo = np.copy(USimage[apoLow[0]:apoLow[1],:])
 
@@ -69,10 +74,6 @@ lowerApo_pp = preprocessingApo(lowerApo, 'localmean', 0, 41)
 # First - we ask the user to click on points to get an initial contour
 #close to the real boundary of each aponeurosis (faster convergence)
 points = []
-def _pickCoordinates(event):
-    xe = event.x
-    ye = event.y
-    points.append((ye,xe))
 window = tk.Tk()
 canvas = tk.Canvas(window, width = upperApo_pp.shape[1], height = upperApo_pp.shape[0])      
 canvas.pack()      
@@ -113,12 +114,11 @@ cv2.destroyAllWindows()
 
 #################################################
 
-#B-spline to approximate each aponeurosis if contours suited
-# '''still in development'''
-# imgdenoised= preprocessingapo(image, 'localmean', 0, 51)
+#B-spline to approximate each aponeurosis if contours suit
+
 if valid == True:
-    approxUp, xUp, yUp = apoC.approximate(contourPointsUp, 'upper', upperApo_pp, degree = 4)
-    approxLow, xLow, yLow = apoC.approximate(contourPointsLow, 'lower', lowerApo_pp, degree = 4)
+    approxUp, xUp, yUp = apoC.approximate(contourPointsUp, 'upper', upperApo_pp, d = 4)
+    approxLow, xLow, yLow = apoC.approximate(contourPointsLow, 'lower', lowerApo_pp, d = 4)
     #transform back to USimage coordinates:
     xUp= xUp + apoUp[0]
     xLow = xLow + apoLow[0]
@@ -134,36 +134,5 @@ for index in range(yUp.shape[0]):
     USimage[xUp[index],yUp[index],:] = [0,0,255]
     USimage[xLow[index],yLow[index],:] = [0,0,255]
 cv2.imshow('interpolated aponeuroses', USimage)
-cv2.waitKey(0) & 0xFF
-cv2.destroyAllWindows()
-"""
-
-###################################FOR PANORAMIC US IMAGES###################################
-
-#Open the image
-RGBpimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/post_20181210_110303_image_bfp.jpg', -1)
-
-#################################################
-
-#Calibrate the image
-calibX, calibY = autoCalibration(RGBpimage)
-
-#################################################
-
-#Crop the image thanks to manual preprocessing
-#(textfile containing points coordinates)
-USpimage = manualcropping(RGBpimage,'C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/post_20181210_110303_image_bfp.txt')
-
-#################################################
-
-#Pre-process the image
-# pppimage = preprocessingApo(USpimage, 'localmean', 0, 41)
-pppimage = cv2.cvtColor(USpimage, cv2.COLOR_RGB2GRAY)
-
-#################################################
-
-
-
-cv2.imshow('Manually cropped panoramic image', USpimage)
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
