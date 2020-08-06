@@ -1,6 +1,6 @@
 from calibration.calib import autoCalibration
-from preprocessing.cropping import autocropping, manualcropping
-from preprocessing.preprocessing import preprocessingApo
+from preprocessing.cropping import manualcropping
+from preprocessing.preprocess import preprocessingApo
 import aponeuroseslocation as apoL
 import aponeuroses_contours as apoC
 
@@ -28,20 +28,24 @@ calibX_p, calibY_p = autoCalibration(RGBimage_p)
 
 #################################################
 
-#Crop the image thanks to manual preprocessing
-#(textfile containing points coordinates)
-USimage_p = manualcropping(RGBimage_p, 'C:/Users/Lisa Paillard/Desktop/Pour TFE/code/semi manuel/Romain_jamon_20181008_084851_image_bfp.txt')
+#Crop the image thanks to manual labelling
+#(need text file containing points coordinates)
+#pt_intersection is the point where aponeuroses meet
+USimage_p, pt_intersection = manualcropping(RGBimage_p, 'C:/Users/Lisa Paillard/Desktop/Pour TFE/code/semi manuel/Romain_jamon_20181008_084851_image_bfp.txt')
 
 #################################################
 
-#resize
+#resize and update calibration factors and pt_intersection's coordinates
 initialsize = (USimage_p.shape[1], USimage_p.shape[0])
 PERCENTAGE = 160
-newWidth = int(USimage_p.shape[1]*PERCENTAGE/100)
-newHeight = int(USimage_p.shape[0]*PERCENTAGE/100)
+newWidth = int(initialsize[0]*PERCENTAGE/100)
+newHeight = int(initialsize[1]*PERCENTAGE/100)
 USimage_p = cv2.resize(src = USimage_p, dsize = (newWidth, newHeight), interpolation = cv2.INTER_CUBIC)
-calibX_p = calibX_p * PERCENTAGE / 100
-calibY_p = calibY_p * PERCENTAGE / 100
+
+calibX_p = calibX_p / PERCENTAGE * 100
+calibY_p = calibY_p / PERCENTAGE * 100
+
+pt_intersection = (pt_intersection[0] * PERCENTAGE / 100, pt_intersection[1] * PERCENTAGE / 100)
 
 #################################################
 
@@ -49,7 +53,6 @@ calibY_p = calibY_p * PERCENTAGE / 100
 NBANDS = 6 #number of bands used to sample the image
 MAXBAND = 3 #last band to be analyzed (start counting from the left)
             #all bands cannot be analyzed because deep aponeurosis is not visible enough
-
 sampleSize = int(USimage_p.shape[1] / NBANDS)
         # sample1 = USimage_p[:,:sampleSize]
         # sample2 = USimage_p[:,sampleSize:2*sampleSize]
@@ -59,82 +62,111 @@ sampleSize = int(USimage_p.shape[1] / NBANDS)
 
 #Preprocessing, location of aponeuroses and linear approximation of aponeuroses
 
-splines = np.zeros((MAXBAND, 2, 2, sampleSize))
-for i in range(MAXBAND):
+contoursUp = []
+contoursDeep = []
+
+for i in range(NBANDS):
     #
-    apo_lin, paramUp, paramDeep, locUp, locDeep = apoL.apoLocation(USimage_p[:, i*sampleSize:(i+1)*sampleSize], 200.)
-
     #
-    UAi = np.copy(USimage_p[locUp[0]:locUp[1], i*sampleSize:(i+1)*sampleSize]) #upper aponeurosis in sample i
-    UAi_pp = preprocessingApo(UAi, 'localmidgrey', 0, 41)
-    points = []
-    window = tk.Tk()
-    canvas = tk.Canvas(window, width = UAi_pp.shape[1], height = UAi_pp.shape[0])      
-    canvas.pack()      
-    displayI = ImageTk.PhotoImage(image = Image.fromarray(UAi_pp), master = window)     
-    canvas.create_image(0,0, anchor='nw', image=displayI) 
-    window.bind('<Button-1>',_pickCoordinates) 
-    window.mainloop()
-    points = np.array(points)
-    print(points)
-    iniUpper_i = apoC.initiateContour(UAi_pp, typeC = 'set_of_points', setPoints = points)
-    contourUp_i, nUp_i = \
-        apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-    contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi)
-    print('Upper aponeurosis contour found in ', nUp_i, ' steps')
+    if i < MAXBAND:
+        apo_lin, paramUp, paramDeep, locUp, locDeep = apoL.apoLocation(USimage_p[:, i*sampleSize:(i+1)*sampleSize], 200.)
+        
+        UAi = np.copy(USimage_p[locUp[0]:locUp[1], i*sampleSize:(i+1)*sampleSize]) #upper aponeurosis in sample i
+        UAi_pp = preprocessingApo(UAi, 'localmidgrey', 0, 41)
+        DAi = np.copy(USimage_p[locDeep[0]:locDeep[1], i*sampleSize:(i+1)*sampleSize]) #deep aponeurosis in sample i
+        DAi_pp = preprocessingApo(DAi, 'localmidgrey', 0, 41)
 
-    #
-    DAi = np.copy(USimage_p[locDeep[0]:locDeep[1], i*sampleSize:(i+1)*sampleSize]) #deep aponeurosis in sample i
-    DAi_pp = preprocessingApo(DAi, 'localmidgrey', 0, 41)
-    points = []
-    window = tk.Tk()
-    canvas = tk.Canvas(window, width = DAi_pp.shape[1], height = DAi_pp.shape[0])      
-    canvas.pack()      
-    displayI = ImageTk.PhotoImage(image = Image.fromarray(DAi_pp), master = window)     
-    canvas.create_image(0,0, anchor='nw', image=displayI) 
-    window.bind('<Button-1>',_pickCoordinates) 
-    window.mainloop()
-    points = np.array(points)
-    print(points)
-    iniDeep_i = apoC.initiateContour(DAi_pp, typeC = 'set_of_points', setPoints = points)
-    contourDeep_i, nDeep_i = \
-        apoC.activeContour(DAi_pp, iniDeep_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-    contourDeepimage_i, contourPointsDeep_i = apoC.extractContour(contourDeep_i, DAi)
-    print('Deep aponeurosis contour found in ', nDeep_i, ' steps')
+        ### upper apo
+        points = []
+        window = tk.Tk()
+        canvas = tk.Canvas(window, width = UAi_pp.shape[1], height = UAi_pp.shape[0])      
+        canvas.pack()      
+        displayI = ImageTk.PhotoImage(image = Image.fromarray(UAi_pp), master = window)     
+        canvas.create_image(0,0, anchor='nw', image=displayI) 
+        window.bind('<Button-1>',_pickCoordinates) 
+        window.mainloop()
+        points = np.array(points)
+        print(points)
+        #
+        iniUpper_i = apoC.initiateContour(UAi_pp, typeC = 'set_of_points', setPoints = points)
+        contourUp_i, nUp_i = \
+            apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+        contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi, offSetX = locUp[0], offSetY = i * sampleSize)
+        print('Upper aponeurosis contour found in ', nUp_i, ' steps')
+        #
+        cv2.imshow('Upper aponeurosis contour on sample i', contourUpimage_i)
+        valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+        cv2.waitKey(0) & 0xFF
+        cv2.destroyAllWindows()
+        if valid == True:
+            #add contour_i to list 'contoursUp'
+            contoursUp.append(contourPointsUp_i)
 
-    #validation of the contours
-    #if not validated, linear approximation is used
-    cv2.imshow('Upper aponeurosis contour on sample i', contourUpimage_i)
-    cv2.imshow('Lower aponeurosis contour on sample i', contourDeepimage_i)
-    valid = tkbox.askyesno('Need user validation', 'Do you validate the contours ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
-    cv2.waitKey(0) & 0xFF
-    cv2.destroyAllWindows()
+        ### deep apo
+        points = []
+        window = tk.Tk()
+        canvas = tk.Canvas(window, width = DAi_pp.shape[1], height = DAi_pp.shape[0])      
+        canvas.pack()      
+        displayI = ImageTk.PhotoImage(image = Image.fromarray(DAi_pp), master = window)     
+        canvas.create_image(0,0, anchor='nw', image=displayI) 
+        window.bind('<Button-1>',_pickCoordinates) 
+        window.mainloop()
+        points = np.array(points)
+        print(points)
+        #
+        iniDeep_i = apoC.initiateContour(DAi_pp, typeC = 'set_of_points', setPoints = points)
+        contourDeep_i, nDeep_i = \
+            apoC.activeContour(DAi_pp, iniDeep_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+        contourDeepimage_i, contourPointsDeep_i = apoC.extractContour(contourDeep_i, DAi, offSetX = locDeep[0], offSetY = i * sampleSize)
+        print('Deep aponeurosis contour found in ', nDeep_i, ' steps')
+        #
+        cv2.imshow('Lower aponeurosis contour on sample i', contourDeepimage_i)
+        valid = tkbox.askyesno('Need user validation', 'Do you validate the contours ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+        cv2.waitKey(0) & 0xFF
+        cv2.destroyAllWindows()
+        if valid == True:
+            #add contour_i to contourDeep
+            contoursDeep.append(contourPointsDeep_i)
+    else:
+        ### we only consider upper aponeurosis
+        UAi = np.copy(USimage_p[:int(USimage_p.shape[0]/2), i*sampleSize:min((i+1)*sampleSize, pt_intersection[1])]) #upper aponeurosis in sample i
+        UAi_pp = preprocessingApo(UAi, 'localmidgrey', 0, 41)
+        #
+        points = []
+        window = tk.Tk()
+        canvas = tk.Canvas(window, width = UAi_pp.shape[1], height = UAi_pp.shape[0])      
+        canvas.pack()      
+        displayI = ImageTk.PhotoImage(image = Image.fromarray(UAi_pp), master = window)     
+        canvas.create_image(0,0, anchor='nw', image=displayI) 
+        window.bind('<Button-1>',_pickCoordinates) 
+        window.mainloop()
+        points = np.array(points)
+        print(points)
+        #
+        iniUpper_i = apoC.initiateContour(UAi_pp, typeC = 'set_of_points', setPoints = points)
+        contourUp_i, nUp_i = \
+            apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+        contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi, offSetX = 0, offSetY = i * sampleSize)
+        print('Upper aponeurosis contour found in ', nUp_i, ' steps')
+        #
+        cv2.imshow('Upper aponeurosis contour on sample i', contourUpimage_i)
+        valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+        cv2.waitKey(0) & 0xFF
+        cv2.destroyAllWindows()
+        if valid == True:
+            #add contour_i to list 'contoursUp'
+            contoursUp.append(contourPointsUp_i)
 
-    if valid == True:
-        approxUp_i, xUp_i, yUp_i = apoC.approximate(contourPointsUp_i, 'upper', UAi_pp, d = 4)
-        approxDeep_i, xDeep_i, yDeep_i = apoC.approximate(contourPointsDeep_i, 'lower', DAi_pp, d = 4)
-        #transform back to USimage coordinates:
-        xUp_i = xUp_i + locUp[0]
-        xDeep_i = xDeep_i + locDeep[0]
+contoursUp.append(pt_intersection)
+contoursDeep.append(pt_intersection)
 
-    elif valid == False:
-        yUp_i = np.arange(0,UAi.shape[1]-1,1)
-        xUp_i = np.int32(yUp_i*paramUp[0]+paramUp[1])
-        yDeep_i = np.arange(0,DAi.shape[1]-1,1)
-        xDeep_i = np.int32(yDeep_i*paramDeep[0]+paramDeep[1])
+spline_up, newX_up, newY_up = apoC.approximate(contoursUp, 'upper', USimage_p, d = 3)
+spline_deep, newX_deep, newY_deep = apoC.approximate(contoursDeep, 'lower', USimage_p, d = 3)
 
-    splines[i, 0, 0, :] = xUp_i
-    splines[i, 0, 1, :] = yUp_i
-    splines[i, 1, 0, :] = xDeep_i
-    splines[i, 1, 1, :] = yDeep_i
-
-    #Visualization
-    for index in range(yUp_i.shape[0]):
-        USimage_p[xUp_i[index], yUp_i[index] + i * sampleSize, :] = [0, 255, 0]
-        USimage_p[xDeep_i[index], yDeep_i[index] + i * sampleSize, :] = [0, 255, 0]
-
-#NOT FINISHED : MISSING LAST PART TO INTERPOLATE ENTIRE APONEUROSES 
-
+#Visualization
+for index in range(newY_up.shape[0]):
+    USimage_p[newX_up[index], newY_up[index], :] = [0, 255, 0]
+    USimage_p[newX_deep[index], newY_deep[index], :] = [0, 255, 0]
 
 cv2.imshow('interpolated aponeuroses', USimage_p)
 cv2.waitKey(0) & 0xFF
