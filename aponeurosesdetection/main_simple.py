@@ -1,5 +1,5 @@
 from calibration.calib import autoCalibration
-from preprocessing.cropping import autocropping, manualcropping
+from preprocessing.cropping import autocropping
 from preprocessing.preprocessing import preprocessingApo
 import aponeuroseslocation as apoL
 import aponeuroses_contours as apoC
