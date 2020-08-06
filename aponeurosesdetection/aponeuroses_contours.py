@@ -263,7 +263,7 @@ def approximate(p, apoType, I, d):
         d (integer): degree of the interpolated curve.
     """
     import scipy.interpolate as interpolate
-    p.sort() #x-coord sort
+    p.sort(key=lambda x:x[0]) #x-coord sort
     p.sort(key=lambda x:x[1]) #y-coord sort
 
     if apoType == 'lower':

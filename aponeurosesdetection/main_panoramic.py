@@ -100,7 +100,8 @@ for i in range(NBANDS):
         cv2.destroyAllWindows()
         if valid == True:
             #add contour_i to list 'contoursUp'
-            contoursUp.append(contourPointsUp_i)
+            for elem in contourPointsUp_i:
+                contoursUp.append(elem)
 
         ### deep apo
         points = []
@@ -126,10 +127,11 @@ for i in range(NBANDS):
         cv2.destroyAllWindows()
         if valid == True:
             #add contour_i to contourDeep
-            contoursDeep.append(contourPointsDeep_i)
+            for elem in contourPointsDeep_i:
+                contoursDeep.append(elem)
     else:
         ### we only consider upper aponeurosis
-        UAi = np.copy(USimage_p[:int(USimage_p.shape[0]/2), i*sampleSize:min((i+1)*sampleSize, pt_intersection[1])]) #upper aponeurosis in sample i
+        UAi = np.copy(USimage_p[:int(USimage_p.shape[0]/2), i*sampleSize:min((i+1)*sampleSize, int(pt_intersection[1]))]) #upper aponeurosis in sample i
         UAi_pp = preprocessingApo(UAi, 'localmidgrey', 0, 41)
         #
         points = []
@@ -155,7 +157,8 @@ for i in range(NBANDS):
         cv2.destroyAllWindows()
         if valid == True:
             #add contour_i to list 'contoursUp'
-            contoursUp.append(contourPointsUp_i)
+            for elem in contourPointsUp_i:
+                contoursUp.append(elem)
 
 contoursUp.append(pt_intersection)
 contoursDeep.append(pt_intersection)
