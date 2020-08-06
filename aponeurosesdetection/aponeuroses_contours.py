@@ -200,7 +200,7 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     
     return previousPhi, step-1
 
-def extractContour(levelSet, image):
+def extractContour(levelSet, image, offSetX = 0, offSetY = 0):
     """
     This function spots the border between neagtive and positive values of
     the levelSet object (which represents a zero level set function).
@@ -226,7 +226,7 @@ def extractContour(levelSet, image):
                 or levelSet[x+1,y+1]<0 or levelSet[x-1,y]<0\
                 or levelSet[x-1,y-1]<0 or levelSet[x-1,y+1]<0\
                 or levelSet[x,y-1]<0 or levelSet[x,y+1]<0):
-                    listC.append((x,y))
+                    listC.append((x + offSetX, y + offSetY))
                     I[x,y,:] = [0,255,0]
                 
             elif levelSet[x,y]<0:
@@ -234,11 +234,11 @@ def extractContour(levelSet, image):
                 or levelSet[x+1,y+1]>0 or levelSet[x-1,y]>0\
                 or levelSet[x-1,y-1]>0 or levelSet[x-1,y+1]>0\
                 or levelSet[x,y-1]>0 or levelSet[x,y+1]>0):
-                    listC.append((x,y))
+                    listC.append((x + offSetX, y + offSetY))
                     I[x,y,:] = [0,255,0]
                     
             else:
-                listC.append((x,y))
+                listC.append((x + offSetX, y + offSetY))
                 I[x,y,:] = [0,255,0]
     
     return I, listC    
