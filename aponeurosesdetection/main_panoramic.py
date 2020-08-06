@@ -70,14 +70,17 @@ for i in range(NBANDS):
     #
     #
     if i < MAXBAND:
+        #find where each aponeurosis is
         apo_lin, paramUp, paramDeep, locUp, locDeep = apoL.apoLocation(USimage_p[:, i*sampleSize:(i+1)*sampleSize], 200.)
         
+        #sub-images of each aponeurosis
         UAi = np.copy(USimage_p[locUp[0]:locUp[1], i*sampleSize:(i+1)*sampleSize]) #upper aponeurosis in sample i
         UAi_pp = preprocessingApo(UAi, 'localmidgrey', 0, 41)
         DAi = np.copy(USimage_p[locDeep[0]:locDeep[1], i*sampleSize:(i+1)*sampleSize]) #deep aponeurosis in sample i
         DAi_pp = preprocessingApo(DAi, 'localmidgrey', 0, 41)
 
         ### upper apo
+        #ask for initial contour
         points = []
         window = tk.Tk()
         canvas = tk.Canvas(window, width = UAi_pp.shape[1], height = UAi_pp.shape[0])      
@@ -88,13 +91,13 @@ for i in range(NBANDS):
         window.mainloop()
         points = np.array(points)
         print(points)
-        #
+        #Calculate contour with active contour model
         iniUpper_i = apoC.initiateContour(UAi_pp, typeC = 'set_of_points', setPoints = points)
         contourUp_i, nUp_i = \
             apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
         contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi, offSetX = locUp[0], offSetY = i * sampleSize)
         print('Upper aponeurosis contour found in ', nUp_i, ' steps')
-        #
+        #ask for manual validation of the contour
         cv2.imshow('Upper aponeurosis contour on sample i', contourUpimage_i)
         valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
         cv2.waitKey(0) & 0xFF
@@ -105,6 +108,7 @@ for i in range(NBANDS):
                 contoursUp.append(elem)
 
         ### deep apo
+        #ask for initial contour
         points = []
         window = tk.Tk()
         canvas = tk.Canvas(window, width = DAi_pp.shape[1], height = DAi_pp.shape[0])      
@@ -115,13 +119,13 @@ for i in range(NBANDS):
         window.mainloop()
         points = np.array(points)
         print(points)
-        #
+        #calculate contour with active contour model
         iniDeep_i = apoC.initiateContour(DAi_pp, typeC = 'set_of_points', setPoints = points)
         contourDeep_i, nDeep_i = \
             apoC.activeContour(DAi_pp, iniDeep_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
         contourDeepimage_i, contourPointsDeep_i = apoC.extractContour(contourDeep_i, DAi, offSetX = locDeep[0], offSetY = i * sampleSize)
         print('Deep aponeurosis contour found in ', nDeep_i, ' steps')
-        #
+        #ask for manual validation of the contour
         cv2.imshow('Lower aponeurosis contour on sample i', contourDeepimage_i)
         valid = tkbox.askyesno('Need user validation', 'Do you validate the contours ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
         cv2.waitKey(0) & 0xFF
@@ -131,10 +135,10 @@ for i in range(NBANDS):
             for elem in contourPointsDeep_i:
                 contoursDeep.append(elem)
     else:
-        ### we only consider upper aponeurosis
+        ### we only consider upper aponeurosis, and we know that it stands in the first half of the image
         UAi = np.copy(USimage_p[:int(USimage_p.shape[0]/2), i*sampleSize:min((i+1)*sampleSize, int(pt_intersection[1]))]) #upper aponeurosis in sample i
         UAi_pp = preprocessingApo(UAi, 'localmidgrey', 0, 41)
-        #
+        #ask for initial contour
         points = []
         window = tk.Tk()
         canvas = tk.Canvas(window, width = UAi_pp.shape[1], height = UAi_pp.shape[0])      
@@ -145,13 +149,13 @@ for i in range(NBANDS):
         window.mainloop()
         points = np.array(points)
         print(points)
-        #
+        #calculate contour with active contour model
         iniUpper_i = apoC.initiateContour(UAi_pp, typeC = 'set_of_points', setPoints = points)
         contourUp_i, nUp_i = \
             apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
         contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi, offSetX = 0, offSetY = i * sampleSize)
         print('Upper aponeurosis contour found in ', nUp_i, ' steps')
-        #
+        #ask for manual validation of the contour
         cv2.imshow('Upper aponeurosis contour on sample i', contourUpimage_i)
         valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
         cv2.waitKey(0) & 0xFF
