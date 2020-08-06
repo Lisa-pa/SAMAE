@@ -292,6 +292,7 @@ def approximate(p, apoType, I, d):
     
     newy = np.arange(0,I.shape[1],1)
     newx = np.int32(spline(newy))
+    newCoord = np.vstack((newx, newy)).T
     
     #to avoid out of range issues:
     for x in newx:
@@ -300,4 +301,4 @@ def approximate(p, apoType, I, d):
         elif x<0:
             x = 0
     
-    return spline, newx, newy
+    return spline, newCoord
