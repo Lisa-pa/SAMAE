@@ -1,8 +1,9 @@
-from calibration.calib import autoCalibration
+thfrom calibration.calib import autoCalibration
 from preprocessing.cropping import manualcropping
 from preprocessing.preprocess import preprocessingApo
 import aponeuroseslocation as apoL
 import aponeuroses_contours as apoC
+from MUFeaM import muscleThickness
 
 import cv2
 import numpy as np
@@ -152,7 +153,7 @@ for i in range(NBANDS):
         print('Upper aponeurosis contour found in ', nUp_i, ' steps')
         #
         cv2.imshow('Upper aponeurosis contour on sample i', contourUpimage_i)
-        valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+        valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
         if valid == True:
@@ -163,14 +164,20 @@ for i in range(NBANDS):
 contoursUp.append(pt_intersection)
 contoursDeep.append(pt_intersection)
 
-spline_up, newX_up, newY_up = apoC.approximate(contoursUp, 'upper', USimage_p, d = 3)
-spline_deep, newX_deep, newY_deep = apoC.approximate(contoursDeep, 'lower', USimage_p, d = 3)
+spline_up, coordUp = apoC.approximate(contoursUp, 'upper', USimage_p, d = 3)
+spline_deep, coordDeep = apoC.approximate(contoursDeep, 'lower', USimage_p, d = 3)
+
+#muscle thickness measurement
+a, thickness, thickness_spline = muscleThickness(USimage_p, coordUp, coordDeep, 0, int(pt_intersection[1]), calibX_p, calibY_p)
 
 #Visualization
-for index in range(newY_up.shape[0]):
-    USimage_p[newX_up[index], newY_up[index], :] = [0, 255, 0]
-    USimage_p[newX_deep[index], newY_deep[index], :] = [0, 255, 0]
-
+for index in range(coordUp.shape[0]):
+    USimage_p[coordUp[index][0], coordUp[index][1], :] = [0, 255, 0]
+    USimage_p[coordDeep[index][0], coordDeep[index][1], :] = [0, 255, 0]
 cv2.imshow('interpolated aponeuroses', USimage_p)
+import matplotlib.pyplot as plt
+plt.plot(a, thickness)
+plt.show()
+
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()

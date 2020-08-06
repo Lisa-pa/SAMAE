@@ -1,8 +1,9 @@
 from calibration.calib import autoCalibration
 from preprocessing.cropping import autocropping
-from preprocessing.preprocessing import preprocessingApo
+from preprocessing.preprocess import preprocessingApo
 import aponeuroseslocation as apoL
 import aponeuroses_contours as apoC
+from MUFeaM import muscleThickness
 
 import cv2
 import numpy as np
@@ -84,7 +85,7 @@ window.mainloop()
 points = np.array(points)
 ini_upApo = apoC.initiateContour(upperApo_pp, typeC = 'set_of_points', setPoints = points)
 contourUp,nUp=apoC.activeContour(upperApo_pp,ini_upApo,0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
-contourUpimage, contourPointsUp = apoC.extractContour(contourUp, upperApo)
+contourUpimage, contourPointsUp = apoC.extractContour(contourUp, upperApo, offSetX = apoUp[0], offSetY = 0)
 print('Upper aponeurosis contour found in ', nUp, ' steps')
 
 points = []
@@ -99,7 +100,7 @@ points = np.array(points)
 ini_lowApo = apoC.initiateContour(lowerApo_pp, typeC = 'set_of_points', setPoints = points)
 contourLow, nLow = \
     apoC.activeContour(lowerApo_pp, ini_lowApo, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-contourLowimage, contourPointsLow = apoC.extractContour(contourLow, lowerApo)
+contourLowimage, contourPointsLow = apoC.extractContour(contourLow, lowerApo, offSetX = apoLow[0], offSetY = 0)
 print('Lower aponeurosis contour found in ', nLow, ' steps')
 
 #################################################
@@ -117,22 +118,28 @@ cv2.destroyAllWindows()
 #B-spline to approximate each aponeurosis if contours suit
 
 if valid == True:
-    approxUp, xUp, yUp = apoC.approximate(contourPointsUp, 'upper', upperApo_pp, d = 4)
-    approxLow, xLow, yLow = apoC.approximate(contourPointsLow, 'lower', lowerApo_pp, d = 4)
-    #transform back to USimage coordinates:
-    xUp= xUp + apoUp[0]
-    xLow = xLow + apoLow[0]
+    approxUp, coordUp = apoC.approximate(contourPointsUp, 'upper', upperApo_pp, d = 4)
+    approxLow, coordLow = apoC.approximate(contourPointsLow, 'lower', lowerApo_pp, d = 4)
 
 elif valid == False:
     yUp = np.arange(0,USimage.shape[1]-1,1)
     xUp = np.int32(yUp*paramUp[0]+paramUp[1])
+    coordUp = np.vstack((xUp, yUp)).T
     yLow = np.arange(0,USimage.shape[1]-1,1)
     xLow = np.int32(yLow*paramLow[0]+paramLow[1])
+    coordLow = np.vstack((xLow, yLow)).T
+
+#Muscle thickness calculation
+a, thickness, spline_thickness = muscleThickness(USimage, coordUp, coordLow, 0, USimage.shape[1]-1, calibX, calibY)
 
 #visualization:
-for index in range(yUp.shape[0]):
-    USimage[xUp[index],yUp[index],:] = [0,0,255]
-    USimage[xLow[index],yLow[index],:] = [0,0,255]
+for index in range(coordUp.shape[0]):
+    USimage[coordUp[index][0], coordUp[index][1],:] = [0,0,255]
+    USimage[coordLow[index][0], coordLow[index][1], :] = [0,0,255]
 cv2.imshow('interpolated aponeuroses', USimage)
+import matplotlib.pyplot as plt
+plt.plot(a, thickness)
+plt.show()
+
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
