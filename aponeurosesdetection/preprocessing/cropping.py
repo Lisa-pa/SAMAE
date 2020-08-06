@@ -52,34 +52,34 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0):
     
     #vertical cropping
     while threshCmin < threshCmax and \
-    (len(LeftColumnsBelow)==1 or len(RightColumnsBelow)==1):
-        
+    (len(LeftColumnsBelow) == 1 or len(RightColumnsBelow) == 1):
+
         for col in range(int(grayI.shape[1]/2)):
-            if np.mean(grayI[:,col])<=threshCmin:
+            if np.mean(grayI[:, col]) <= threshCmin:
                 RightColumnsBelow.append(col)
-            if np.mean(grayI[:,grayI.shape[1]-1-col])<=threshCmin:
+            if np.mean(grayI[:, grayI.shape[1]-1-col]) <= threshCmin:
                 LeftColumnsBelow.append(grayI.shape[1]-1-col)
-        threshCmin+=1.
-        
+        threshCmin += 1.
+  
     #horizontal cropping
     while threshRmin < threshRmax and \
-    (len(UpRawsBelow)==1 or len(BottomRawsBelow)==1):
+    (len(UpRawsBelow) == 1 or len(BottomRawsBelow) == 1):
         
         for lig in range(int(grayI.shape[0]/2)):
-            if np.mean(grayI[lig,:])<=threshRmin:
+            if np.mean(grayI[lig, :]) <= threshRmin:
                 UpRawsBelow.append(lig)
-            if np.mean(grayI[grayI.shape[0]-1-lig,:])<=threshRmin:
+            if np.mean(grayI[grayI.shape[0]-1-lig, :]) <= threshRmin:
                 BottomRawsBelow.append(grayI.shape[0]-1-lig)
-        threshRmin+=2.  
-    
+        threshRmin += 2.
+
     if len(I.shape) == 3:
-        I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1],RightColumnsBelow[-1]:LeftColumnsBelow[-1],:]
+        I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1], RightColumnsBelow[-1]:LeftColumnsBelow[-1], :]
     elif len(I.shape) == 2:
-        I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1],RightColumnsBelow[-1]:LeftColumnsBelow[-1]]
+        I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1], RightColumnsBelow[-1]:LeftColumnsBelow[-1]]
     
     if calibV != 0:
         twomm = int(2 / calibV)
-        I2 = I2[twomm:,:]
+        I2 = I2[twomm:, :]
         
     return I2
 
@@ -107,46 +107,54 @@ def manualcropping(I, pointsfile):
             of the extension.
 
         Returns:
-            array of same type than I. It is the cropped image of I according
+            I2 (array) : array of same type than I. It is the cropped image of I according
             to the aponeuroses' points manually picked and stored in pointsfile.
+            point_of_intersect (tuple) : point which is the most at the right 
+            of the image and which should correspond to the point of intersection of deep 
+            and upper aponeuroses.
     """
     
     data = open(pointsfile, 'r')
     
     #finds whether the image is panoramic or simple
-    searchpoint = -1
-    while (pointsfile[searchpoint] != '.') and (searchpoint>(-len(pointsfile))):
-        searchpoint = searchpoint-1
-    if (searchpoint == -len(pointsfile)):
+    search_point = -1
+    while (pointsfile[search_point] != '.') and (search_point > (-len(pointsfile))):
+        search_point = search_point-1
+    if (search_point == -len(pointsfile)):
         raise TypeError("Input pointsfile's name is not correct. Check extension.")
     else:
-        imagetype = pointsfile[searchpoint-1]
+        imagetype = pointsfile[search_point-1]
     
     #extract points from the input file
-    pickedPoints= []
+    picked_points = []
     for line in data:
         line = line.strip('\n')
         x = line.split('\t')
-        pickedPoints.append((x[1],x[2]))
-
+        picked_points.append((x[1], x[2]))
+       
     #keep aponeuroses points according to image type
     if imagetype == 'p': #keep points 3 to 13 included
-        apos = np.asarray(pickedPoints[3:14], dtype=np.float64, order='C')
+        apos = np.asarray(picked_points[3:14], dtype=np.float64, order='C')
     elif imagetype == 's': #keep points 3 to 10 included
-        apos = np.asarray(pickedPoints[3:11], dtype=np.float64, order='C')
+        apos = np.asarray(picked_points[3:11], dtype=np.float64, order='C')
     else:
         raise ValueError("pointsfile's name does not fulfill conditions. See docstrings")
 
     #find max and min indexes for columns and raws to crop image I
-    minRaw = max(0, min(apos[:,1])-5)
-    maxRaw = min(I.shape[0], max(apos[:,1])+10)
-    minCol = max(0, np.min(apos[:,0])-10)
-    maxCol = min(I.shape[1], max(apos[:,0])+10)
+    #with a margin of 10 pixels (5 pixels for min_raw).
+    #Coordinates are inverted in apos
+    min_raw = max(0, np.min(apos[:, 1])-5)
+    max_raw = min(I.shape[0], np.max(apos[:, 1])+10)
+    min_col = max(0, np.min(apos[:, 0])-10)
+    max_col = min(I.shape[1], np.max(apos[:, 0])+10)
 
-    I2 = np.copy(I)
-    I2 = I2[int(minRaw):int(maxRaw),int(minCol):int(maxCol),:]
+    i_cropped = np.copy(I[int(min_raw):int(max_raw), int(min_col):int(max_col), :])
+    
+    index = np.argmax(apos[:, 0])
+
+    point_of_intersect = (apos[index][1] - min_raw, apos[index][0] - min_col)
 
     #close file
     data.close()
     
-    return I2
+    return i_cropped, point_of_intersect
