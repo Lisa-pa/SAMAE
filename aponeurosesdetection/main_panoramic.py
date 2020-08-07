@@ -1,4 +1,4 @@
-thfrom calibration.calib import autoCalibration
+from calibration.calib import autoCalibration
 from preprocessing.cropping import manualcropping
 from preprocessing.preprocess import preprocessingApo
 import aponeuroseslocation as apoL
