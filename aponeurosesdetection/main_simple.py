@@ -1,9 +1,9 @@
-from calibration.calib import autoCalibration
-from preprocessing.cropping import autocropping
-from preprocessing.preprocess import preprocessingApo
-import aponeuroseslocation as apoL
-import aponeuroses_contours as apoC
-from MUFeaM import muscleThickness
+from aponeurosesdetection.calibration.calib import autoCalibration
+from aponeurosesdetection.preprocessing.cropping import autocropping
+from aponeurosesdetection.preprocessing.preprocess import preprocessingApo
+import aponeurosesdetection.aponeuroseslocation as apoL
+import aponeurosesdetection.aponeuroses_contours as apoC
+from aponeurosesdetection.MUFeaM import muscleThickness
 
 import cv2
 import numpy as np
@@ -20,7 +20,11 @@ def _pickCoordinates(event):
 ########################PROCESSING OF SIMPLE US IMAGES#########################
 
 #Open the image
-RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
+
+import aponeurosesdetection.data as apodat
+
+#! RGBimage = apodat.simpleimg()
+RGBimage = cv2.imread('C:/Users/Antonio/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
 
 #################################################
 
