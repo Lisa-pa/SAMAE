@@ -57,7 +57,7 @@ def d2_gaussianMasks(s):
 
 def MVEF_2D(I, scales, thresholds):
     """Multiscale Vessel Enhancement Method for 2D images - based on Frangi's,
-    Rana's, and Jalborg's works. This method searches forr geometrical 
+    Rana's, and Jalborg's works. This method searches for geometrical 
     structures which can be regarded as tubular.
     
     Args:
@@ -97,13 +97,19 @@ def MVEF_2D(I, scales, thresholds):
         hessian_xx = cv2.filter2D(I, -1, mask_xx, anchor = (-1,-1))  
         hessian_xy = cv2.filter2D(I, -1, mask_xy, anchor = (-1,-1))
         hessian_yy = cv2.filter2D(I, -1, mask_yy, anchor = (-1,-1))
-        
-#        cv2.imshow('maskx',hessian_xx);
-#        cv2.imshow('maskxy',hessian_xy);
-#        cv2.imshow('masky',hessian_yy);
-#        cv2.waitKey(0) & 0xFF;
-#        cv2.destroyAllWindows();
-        
+
+        frobeniusnorm =  np.zeros(I.shape)
+        for u in range(frobeniusnorm.shape[0]):
+            for v in range(frobeniusnorm.shape[1]):
+                frobeniusnorm[u,v] = np.sqrt(hessian_xx[u,v]**2+\
+                    hessian_yy[u,v]**2+2*hessian_xy[u,v]**2)
+        b = thresholds[0]
+        c = thresholds[1]
+        if b == 0:
+            raise ValueError('first element of thresholds cannot be null')
+        if c == 0:
+            c = 1 / 2 * np.amax(frobeniusnorm)
+        print(b,c)
         for i in range(I.shape[0]):
             for j in range(I.shape[1]):
            
@@ -112,6 +118,7 @@ def MVEF_2D(I, scales, thresholds):
                 H = np.array([[hessian_xx[i,j], hessian_xy[i,j]],\
                               [hessian_xy[i,j], hessian_yy[i,j]]])
                 eigvals, eigvects = np.linalg.eig(H)
+
                 #reordering eigenvalues in increasing order if needed:
                 if abs(eigvals[0])>abs(eigvals[1]):
                     eigvals[0], eigvals[1] = eigvals[1], eigvals[0]
@@ -135,8 +142,6 @@ def MVEF_2D(I, scales, thresholds):
                     'Frobenius norm - for second order structureness'
                     Fr = m.sqrt(eigvals[0]*eigvals[0] + eigvals[1]*eigvals[1])
 
-                    b = thresholds[0]
-                    c = thresholds[1]
                     vesselness[i,j,sc]=scales[sc]*m.exp(-R*R/(2.*b*b))*(1.-m.exp(-Fr*Fr/(2*c*c)))
 
     'Keep the highest value of vesselness across all scales'
