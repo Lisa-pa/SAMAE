@@ -5,6 +5,8 @@ import aponeurosesdetection.aponeuroseslocation as apoL
 import aponeurosesdetection.aponeuroses_contours as apoC
 from aponeurosesdetection.MUFeaM import muscleThickness
 
+from aponeurosesdetection import data
+
 import cv2
 import numpy as np
 import tkinter.messagebox as tkbox
@@ -20,12 +22,17 @@ def _pickCoordinates(event):
 ########################PROCESSING OF SIMPLE US IMAGES#########################
 
 #Open the image
+<<<<<<< HEAD
 
 import aponeurosesdetection.data as apodat
 
 #! RGBimage = apodat.simpleimg()
 RGBimage = cv2.imread('C:/Users/Antonio/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
 
+=======
+#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
+RGBimage = data.simpleimg()
+>>>>>>> a4e54d1ec02b28b6957dc35818c6d50c144a174e
 #################################################
 
 #Calibrate the image
@@ -54,7 +61,7 @@ while ok == False:
         THRESH2 = int(entry2)
         THRESH3 = int(entry3)
         THRESH4 = int(entry4)
-        print(f'You entered the following thresholds: {thresh1, thresh2, thresh3, thresh4}')
+        print(f'You entered the following thresholds: {THRESH1, THRESH2, THRESH3, THRESH4}')
         if THRESH1>255 or THRESH1<0 or THRESH2>255 or THRESH2<0 or THRESH3>255 or THRESH3<0 or\
             THRESH4>255 or THRESH4<0:
             raise ValueError('All thresholds must be integers between 0 and 255')

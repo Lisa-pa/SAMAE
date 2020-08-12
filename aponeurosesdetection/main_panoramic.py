@@ -1,9 +1,9 @@
-from calibration.calib import autoCalibration
-from preprocessing.cropping import manualcropping
-from preprocessing.preprocess import preprocessingApo
-import aponeuroseslocation as apoL
-import aponeuroses_contours as apoC
-from MUFeaM import muscleThickness
+from aponeurosesdetection.calibration.calib import autoCalibration
+from aponeurosesdetection.preprocessing.cropping import manualcropping
+from aponeurosesdetection.preprocessing.preprocess import preprocessingApo
+import aponeurosesdetection.aponeuroseslocation as apoL
+import aponeurosesdetection.aponeuroses_contours as apoC
+from aponeurosesdetection.MUFeaM import muscleThickness
 
 import cv2
 import numpy as np
