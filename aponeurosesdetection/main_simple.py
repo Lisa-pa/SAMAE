@@ -1,9 +1,10 @@
-from calibration.calib import autoCalibration
-from preprocessing.cropping import autocropping
-from preprocessing.preprocess import preprocessingApo
-import aponeuroseslocation as apoL
-import aponeuroses_contours as apoC
-from MUFeaM import muscleThickness
+from aponeurosesdetection.calibration.calib import autoCalibration
+from aponeurosesdetection.preprocessing.cropping import autocropping
+from aponeurosesdetection.preprocessing.preprocess import preprocessingApo
+import aponeurosesdetection.aponeuroseslocation as apoL
+import aponeurosesdetection.aponeuroses_contours as apoC
+from aponeurosesdetection.MUFeaM import muscleThickness
+from aponeurosesdetection import data
 
 import cv2
 import numpy as np
@@ -20,8 +21,8 @@ def _pickCoordinates(event):
 ########################PROCESSING OF SIMPLE US IMAGES#########################
 
 #Open the image
-RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
-
+#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
+RGBimage = data.simpleimg()
 #################################################
 
 #Calibrate the image
@@ -50,7 +51,7 @@ while ok == False:
         THRESH2 = int(entry2)
         THRESH3 = int(entry3)
         THRESH4 = int(entry4)
-        print(f'You entered the following thresholds: {thresh1, thresh2, thresh3, thresh4}')
+        print(f'You entered the following thresholds: {THRESH1, THRESH2, THRESH3, THRESH4}')
         if THRESH1>255 or THRESH1<0 or THRESH2>255 or THRESH2<0 or THRESH3>255 or THRESH3<0 or\
             THRESH4>255 or THRESH4<0:
             raise ValueError('All thresholds must be integers between 0 and 255')
