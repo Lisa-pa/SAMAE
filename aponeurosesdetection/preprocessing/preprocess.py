@@ -91,11 +91,11 @@ def preprocessingApo(I, mode, margin, sizeContrast):
                     I2[x,y] = int(I2[x,y])
                     
     #-----morphological operations: opening-----#
-    SE = np.uint8(np.array([[1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.],[0.,0.,0.,0.,0.,0.]]))
+    SE = np.uint8(np.array([[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]]))
     #1) Erosion#
-    I2 = cv2.erode(src=I2, kernel = SE,anchor=(-1,-1),iterations= 3, borderType = cv2.BORDER_REPLICATE)
+    I2 = cv2.erode(src=I2, kernel = SE,anchor=(-1,-1), iterations= 3, borderType = cv2.BORDER_REPLICATE)
 
     #2) dilatation#
     I2 = cv2.dilate(src = I2, kernel = SE,anchor = (-1,-1), iterations=3, borderType= cv2.BORDER_REPLICATE)
-    
+
     return I2
