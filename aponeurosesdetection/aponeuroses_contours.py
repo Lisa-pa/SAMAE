@@ -79,7 +79,7 @@ def intensities(I, previousPhi, eps, s, l1, l2):
     
     return c1, c2, f1, f2, LIF, GIF
 
-def initiateContour(I, typeC, setPoints):
+def initiateContour(I, typeC, setPoints = None, param = None):
     """Create an initial contour for I, as a zero level set function. The
     shape of this contour depends on typeC.
 
@@ -108,23 +108,39 @@ def initiateContour(I, typeC, setPoints):
         pixels inside the contour are negative, pixels outside the
         contour are positive.
     """
-    if setPoints is None:
-        raise ValueError('Missing setPoints list.')
-    initialPhi = np.zeros(I.shape)
+
+    C = np.ones(I.shape)
             
     if typeC =='circle':
+        if setPoints is None:
+            raise ValueError('Missing setPoints list.')
         for i in range(I.shape[0]):
             for j in range(I.shape[1]):
-                initialPhi[i,j] = -3 + np.sqrt((setPoints[0][0]-i)**2\
+                C[i,j] = -3 + np.sqrt((setPoints[0][0]-i)**2\
                                 + (setPoints[0][1]-j)**2)
 
     if typeC == 'set_of_points':
+        if setPoints is None:
+            raise ValueError('Missing setPoints list.')
         contour = cv2.convexHull(setPoints,  clockwise = False)
         for i in range(I.shape[0]):
             for j in range(I.shape[1]):
-                initialPhi[i,j] = - cv2.pointPolygonTest(contour, (i,j), True)
+                C[i,j] = - cv2.pointPolygonTest(contour, (i,j), True)
     
-    return initialPhi
+    if typeC == 'quadrangle_param':
+        if param is None:
+            raise ValueError('Missing list containing line equation parameters.')
+        a = param[0]
+        b = param[1]
+        w = int(param[2]/2) # half width of the quadrangle, in pixels
+        setPoints = np.array([[int(a*10+b-w),10],[int(a*10+b+w),10],\
+                      [int(a*(I.shape[1]-10)+b+w),I.shape[1]-10],\
+                      [int(a*(I.shape[1]-10)+b-w),I.shape[1]-10]])
+        contour = cv2.convexHull(setPoints,  clockwise = False)
+        for i in range(I.shape[0]):
+            for j in range(I.shape[1]):
+                C[i,j] = - cv2.pointPolygonTest(contour, (i,j), True)
+    return C
 
 
 def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
@@ -197,7 +213,7 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
         previousPhi = newPhi
     
         step = step+1
-    
+
     return previousPhi, step-1
 
 def extractContour(levelSet, image, offSetX = 0, offSetY = 0):
@@ -217,31 +233,22 @@ def extractContour(levelSet, image, offSetX = 0, offSetY = 0):
         the contour which is green
         listC (list): list of all pixels from the contour
     """
-    listC=[]
-    I = np.copy(image)
-    for x in range(1,levelSet.shape[0]-1):
-        for y in range(1,levelSet.shape[1]-1):
-            if levelSet[x,y]>0:
-                if (levelSet[x+1,y]<0 or levelSet[x+1,y-1]<0\
-                or levelSet[x+1,y+1]<0 or levelSet[x-1,y]<0\
-                or levelSet[x-1,y-1]<0 or levelSet[x-1,y+1]<0\
-                or levelSet[x,y-1]<0 or levelSet[x,y+1]<0):
-                    listC.append((x + offSetX, y + offSetY))
-                    I[x,y,:] = [0,255,0]
-                
-            elif levelSet[x,y]<0:
-                if (levelSet[x+1,y]>0 or levelSet[x+1,y-1]>0\
-                or levelSet[x+1,y+1]>0 or levelSet[x-1,y]>0\
-                or levelSet[x-1,y-1]>0 or levelSet[x-1,y+1]>0\
-                or levelSet[x,y-1]>0 or levelSet[x,y+1]>0):
-                    listC.append((x + offSetX, y + offSetY))
-                    I[x,y,:] = [0,255,0]
-                    
-            else:
-                listC.append((x + offSetX, y + offSetY))
-                I[x,y,:] = [0,255,0]
     
-    return I, listC    
+    listC=[]
+    I = np.copy(image) 
+      
+    'If several contours detected in levelSet, keep only the biggest'
+    binar = np.uint8((levelSet>=0)*0. + (levelSet<0)*255.)
+    objects = cv2.findContours(binar, mode = cv2.RETR_EXTERNAL, method = cv2.CHAIN_APPROX_NONE)[0]
+    objects_size = [(i,objects[i].size) for i in range (len(objects))]
+    objects_size.sort(key=lambda x:x[1]) 
+    biggest = objects_size[-1][0]
+    
+    for point in objects[biggest]:
+        if point[0][0] < I.shape[1] and point[0][1] < I.shape[0]:
+            listC.append((point[0][1] + offSetX, point[0][0] + offSetY))
+            I[point[0][1],point[0][0],:] = [0,255,0]
+    return I, listC, objects
 
 def approximate(p, apoType, I, d):
     """Function approximates aponeuroses shape.
