@@ -5,13 +5,10 @@ import aponeurosesdetection.aponeuroseslocation as apoL
 import aponeurosesdetection.aponeuroses_contours as apoC
 from aponeurosesdetection.MUFeaM import muscleThickness
 
-from aponeurosesdetection import data
 
 import cv2
 import numpy as np
 import tkinter.messagebox as tkbox
-import tkinter as tk
-from PIL import ImageTk, Image
 
 #################################EVENT FUNCTION################################
 
@@ -22,17 +19,13 @@ def _pickCoordinates(event):
 ########################PROCESSING OF SIMPLE US IMAGES#########################
 
 #Open the image
-<<<<<<< HEAD
-
-import aponeurosesdetection.data as apodat
+#import aponeurosesdetection.data as apodat
 
 #! RGBimage = apodat.simpleimg()
-RGBimage = cv2.imread('C:/Users/Antonio/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
+#RGBimage = cv2.imread('C:/Users/Antonio/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
 
-=======
-#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
-RGBimage = data.simpleimg()
->>>>>>> a4e54d1ec02b28b6957dc35818c6d50c144a174e
+RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
+#RGBimage = data.simpleimg()
 #################################################
 
 #Calibrate the image
@@ -85,33 +78,16 @@ lowerApo_pp = preprocessingApo(lowerApo, 'localmean', 0, 41)
 # Get exact contour of each aponeurosis
 # First - we ask the user to click on points to get an initial contour
 #close to the real boundary of each aponeurosis (faster convergence)
-points = []
-window = tk.Tk()
-canvas = tk.Canvas(window, width = upperApo_pp.shape[1], height = upperApo_pp.shape[0])      
-canvas.pack()      
-displayI = ImageTk.PhotoImage(image = Image.fromarray(upperApo_pp), master = window)     
-canvas.create_image(0,0, anchor='nw', image=displayI) 
-window.bind('<Button-1>',_pickCoordinates) 
-window.mainloop()
-points = np.array(points)
-ini_upApo = apoC.initiateContour(upperApo_pp, typeC = 'set_of_points', setPoints = points)
-contourUp,nUp=apoC.activeContour(upperApo_pp,ini_upApo,0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
-contourUpimage, contourPointsUp = apoC.extractContour(contourUp, upperApo, offSetX = apoUp[0], offSetY = 0)
+
+ini_upApo = apoC.initiateContour(upperApo_pp, typeC = 'quadrangle_param', param = [paramUp[0], paramUp[1] - apoUp[0], 8])
+contourUp, nUp = apoC.activeContour(upperApo_pp,ini_upApo,0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
+contourUpimage, contourPointsUp, obU = apoC.extractContour(contourUp, upperApo, offSetX = apoUp[0], offSetY = 0)
 print('Upper aponeurosis contour found in ', nUp, ' steps')
 
-points = []
-window = tk.Tk()
-canvas = tk.Canvas(window, width = lowerApo_pp.shape[1], height = lowerApo_pp.shape[0])      
-canvas.pack()      
-displayI = ImageTk.PhotoImage(image = Image.fromarray(lowerApo_pp), master = window)     
-canvas.create_image(0,0, anchor='nw', image=displayI) 
-window.bind('<Button-1>',_pickCoordinates) 
-window.mainloop()
-points = np.array(points)
-ini_lowApo = apoC.initiateContour(lowerApo_pp, typeC = 'set_of_points', setPoints = points)
+ini_lowApo = apoC.initiateContour(lowerApo_pp, typeC = 'quadrangle_param', param = [paramLow[0], paramLow[1] - apoLow[0], 8])
 contourLow, nLow = \
     apoC.activeContour(lowerApo_pp, ini_lowApo, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-contourLowimage, contourPointsLow = apoC.extractContour(contourLow, lowerApo, offSetX = apoLow[0], offSetY = 0)
+contourLowimage, contourPointsLow, obL = apoC.extractContour(contourLow, lowerApo, offSetX = apoLow[0], offSetY = 0)
 print('Lower aponeurosis contour found in ', nLow, ' steps')
 
 #################################################
@@ -151,6 +127,36 @@ cv2.imshow('interpolated aponeuroses', USimage)
 import matplotlib.pyplot as plt
 plt.plot(a, thickness)
 plt.show()
+cv2.waitKey(0) & 0xFF
+cv2.destroyAllWindows()
 
+#Crop to focus in between aponeuroses
+#Erase information above superficial apo and below deep apo
+
+for col in range(USimage.shape[1]):
+    line = 0
+    while line != coordUp[col][0]:
+        USimage[line, col, :] = [0,0,0]
+        line = line + 1
+    line = USimage.shape[0] - 1
+    while line != coordLow[col][0]:
+        USimage[line, col, :] = [0,0,0]
+        line = line - 1
+crop1 = np.amin(coordUp[:,0])
+crop2 = np.amax(coordLow[:,0])
+USimage = USimage[crop1:crop2, :]
+cv2.imshow('Erased', USimage)
+cv2.waitKey(0) & 0xFF
+cv2.destroyAllWindows()
+
+#Enhance tube-like structures with MVEF method - Frangi
+#considering that fascicle diameter is between 0.15 mm and 0.5 mm,
+#the following list is the equivalent interval in pixels, with a step of 0.5 pixel
+sca = np.arange(round(0.3/calibX*2)/2, round(0.5/calibX*2)/2, 0.5)
+print(sca)
+#
+MVEF_image = apoL.MVEF_2D(255-USimage, sca, [0.5, 0])
+cv2.imshow('original', USimage)
+cv2.imshow('MVEF', MVEF_image)
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
