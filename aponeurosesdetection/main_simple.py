@@ -4,7 +4,7 @@ from aponeurosesdetection.preprocessing.preprocess import preprocessingApo
 import aponeurosesdetection.aponeuroseslocation as apoL
 import aponeurosesdetection.aponeuroses_contours as apoC
 from aponeurosesdetection.MUFeaM import muscleThickness
-
+import aponeurosesdetection.FaDe as FaDe
 
 import cv2
 import numpy as np
@@ -155,8 +155,8 @@ cv2.destroyAllWindows()
 sca = np.arange(round(0.3/calibX*2)/2, round(0.5/calibX*2)/2, 0.5)
 print(sca)
 #
-MVEF_image = apoL.MVEF_2D(255-USimage, sca, [0.5, 0])
-cv2.imshow('original', USimage)
-cv2.imshow('MVEF', MVEF_image)
+imgMVEF = FaDe.MVEF_2D(255-USimage, sca, [0.5, 0])
+cv2.imshow('MVEF', imgMVEF)
+cv2.imshow('img', USimage)
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
