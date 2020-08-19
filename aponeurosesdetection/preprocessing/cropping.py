@@ -1,12 +1,15 @@
 import cv2
 import numpy as np
 
-def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0):
+def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, additionalCrop1 = 0, additionalCrop2 = 0):
     """ Cropping of raw ultrasound image I to get region of interest: Removal 
     of lateral, top and bottom strips by thresholding the mean pixel value 
     of raws and columns.
-    If calibV is not zero, then 2 mm are removed from the top of I (this 
-    program assumes that it corresponds to the skin location).
+    If calibV is not zero, then 'additionalCrop1' millimeters are removed from 
+    the top of I (for example to remove the skin, additionalCrop1 should be around
+    2), and 'additionalCrop2' millimeters are removed from the bottom.
+    15 pixels are removed from the right border to make the white vertical
+    line disappear.
     
     Args:
         I (array): grayscale or RGB image (the function will convert it to 
@@ -20,8 +23,13 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0):
         threshRmax (double): between 0. and 255., maximum threshold value 
         for the bottom and top strips
         calibV (double): vertical calibration factor. Default value is 0.
-        If calibV is different from 0, then the equivalent of 2mm is
-        cropped at the top of I to remove skin from the image.
+        If calibV is different from 0, then the equivalent of 'additionalCrop1'
+        mm is cropped at the top of I to remove skin from the image, and 
+        'additionalCrop2' mm are removed from the bottom.
+        additionalCrop1, additionalCrop2 (floats): in millimeters, value to
+        remove from top and bottom respectively, in addition to the first
+        automatic cropping
+
 
     Returns:
         I2 (array): same dimension as I, containing only the region of interest
@@ -44,7 +52,7 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0):
         grayI = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
     elif len(I.shape) == 2:
         grayI = I
-
+    grayI = (grayI*1.05>255)*255. + (grayI*1.05<=255)*grayI*1.1
     RightColumnsBelow = [0]
     LeftColumnsBelow = [0]
     UpRawsBelow = [0]
@@ -78,8 +86,9 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0):
         I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1], RightColumnsBelow[-1]:LeftColumnsBelow[-1]]
     
     if calibV != 0:
-        twomm = int(2 / calibV)
-        I2 = I2[twomm:, :]
+        twomm = int(additionalCrop1 / calibV)
+        threemm = int(additionalCrop2 / calibV)
+        I2 = I2[twomm: - threemm, :-15]
         
     return I2
 
