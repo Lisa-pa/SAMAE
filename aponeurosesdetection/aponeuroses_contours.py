@@ -190,7 +190,7 @@ def activeContour(I, contourIni, thresh, l1, l2, s, eps, mu, nu, dt):
     'recurrence'
     step = 1
     stop_criterion = thresh + 1.
-    while stop_criterion > thresh and step <= 1000:
+    while stop_criterion > thresh and step <= 10000:
         if step%10 ==0:
             print('Current tens for step : ', step)
         c1, c2, f1, f2, GIF, LIF = intensities(I, previousPhi, eps, s, l1, l2)
@@ -240,6 +240,9 @@ def extractContour(levelSet, image, offSetX = 0, offSetY = 0):
     'If several contours detected in levelSet, keep only the biggest'
     binar = np.uint8((levelSet>=0)*0. + (levelSet<0)*255.)
     objects = cv2.findContours(binar, mode = cv2.RETR_EXTERNAL, method = cv2.CHAIN_APPROX_NONE)[0]
+    if len(objects) == 0 :
+        raise ValueError('No contour has been found. Please check: 1) that aponeuroses\
+                        have been correctly located. 2) that initial contour is correct')
     objects_size = [(i,objects[i].size) for i in range (len(objects))]
     objects_size.sort(key=lambda x:x[1]) 
     biggest = objects_size[-1][0]
