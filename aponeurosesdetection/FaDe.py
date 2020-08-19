@@ -167,3 +167,128 @@ def normalizedRadon(I):
 
     return R,I
 """
+def contourAverage(inputC):
+    """Function that approximate a closed contour by a line
+    inputC has the same dimensions as the contours output by
+    the cv2 function findContours
+
+    ouputL : list of points [line, column]
+    """
+    outputL = []
+
+    for i in range(inputC.shape[0]-1):
+        check = len(outputL)
+        for j in range(i+1, inputC.shape[0]):
+            if inputC[i,0,0] == inputC[j,0,0]: #if two points on the same column, make average
+                avera = [(inputC[i,0,1]+inputC[j,0,1])/2, (inputC[i,0,0]+inputC[j,0,0])/2]
+                outputL.append(avera)
+        if check == len(outputL): #if there is only one point on the column
+            outputL.append([inputC[i,0,1],inputC[i,0,0]])
+    return outputL
+
+
+def locateFascicle(I, xcalib, ycalib, USimage):
+    """
+    I (array): binary image (one canal)
+    """
+    
+    snippets = cv2.findContours(np.uint8(I), mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_NONE)[0]
+    if len(snippets) == 0:
+        raise ValueError('No fascicle could be found in I.')
+    
+    filtered_indices = [] # list which contains the ID of the filtered snippets
+    line_snip = [] #list which contains a linear approximation of the snippet filtered
+    for i in range(len(snippets)):
+        
+    
+        for u in range(snippets[i].shape[0]):
+            USimage[snippets[i][u,0,1],snippets[i][u,0,0],:] = [0,0,255] #see what has be spotted
+        
+        #condition 1 - on length : minimum 4 mm long
+        if snippets[i].shape[0]/2 > 4/m.sqrt(xcalib**2+ycalib**2):
+
+            left_points = [snippets[i][m,0,:] for m in range(snippets[i].shape[0])\
+                if snippets[i][m,0,0] == np.amin(snippets[i][:,0,0])]
+            right_points = [snippets[i][m,0,:] for m in range(snippets[i].shape[0])\
+                if snippets[i][m,0,0] == np.amax(snippets[i][:,0,0])]
+            if len(left_points)>1:
+                firstP = [int((left_points[0][0] + left_points[-1][0])/2),\
+                    int((left_points[0][1] + left_points[-1][1])/2)]
+            else:
+                firstP = left_points[0]
+            if len(right_points)>1:
+                endP = [int((right_points[0][0] + right_points[-1][0])/2), int((right_points[0][1] + right_points[-1][1])/2)]
+            else:
+                endP = right_points[0]
+            # firstP and endP are respectively the first left point
+            # and the first right point of the snippet i. They will be used to
+            # draw a line representative of the snippet.
+
+            y_list = np.arange(firstP[0], endP[0],1,dtype = np.int64) #create line (x_list, y_list) between firstP and endP
+            slope = (endP[1]-firstP[1])/(endP[0]-firstP[0])
+            x_list = np.uint64(slope*(y_list-firstP[0])+firstP[1])      
+            
+            #condition 2 - on area/length
+            area = cv2.contourArea(snippets[i])
+            if round(area/y_list.shape[0],1) > 5. and round(area/y_list.shape[0],1) < 9.:
+                
+                #condition 3 - on the angle with horizontal
+                if endP[0]-firstP[0] != 0:
+                    angle = m.atan((endP[1]-firstP[1])/(endP[0]-firstP[0]))*180/m.pi
+                    if abs(angle)>6 and abs(angle)<45:   
+                    #condition 4 - on alignment
+                        #count the number of white pixels on this line
+                        pix_white = 0
+                        for n in range(y_list.shape[0]):
+                            USimage[x_list[n], y_list[n],:] = [0,0,255]
+                            if I[x_list[n], y_list[n]] > 0 :
+                                pix_white = pix_white + 1
+                        if pix_white >0 and pix_white/y_list.shape[0] > 0.65:
+
+                            filtered_indices.append(i)
+                            line_snip.append([slope, firstP])
+
+
+    #Look for snippets that are part of the same fascicles
+    aligned_snip = [[j] for j in filtered_indices] # contains list of snippets indices part of same fascicle
+    for s in range(len(filtered_indices) - 1):
+        ylist_s = np.arange(0, I.shape[1],1, dtype = np.int64)
+        slope_s = line_snip[s][0] #slope
+        firstP_s = line_snip[s][1] #point on the line of the snippet s
+        xlist_s = (slope_s*(ylist_s-firstP_s[0])+firstP_s[1] - 2 )
+        yx_list = np.uint64(np.vstack((ylist_s, xlist_s))).T
+        
+        for n in range(s+1, len(filtered_indices)):
+            #check if the previous line intersect a snippet n different from s
+            intersection = set.intersection(set(map(tuple,yx_list)), set(map(tuple, snippets[filtered_indices[n]][:,0,:])))
+            slope_n = line_snip[n][0]
+            firstP_n = line_snip[n][1]
+            ylist_n = np.arange(0, I.shape[1],1, dtype = np.int64)
+            xlist_n = (slope_n*(ylist_n-firstP_n[0])+firstP_n[1] - 2 )
+            if intersection and abs(firstP_n[1]-xlist_s[firstP_n[0]])<20 and\
+            abs(firstP_s[1]-xlist_n[firstP_s[0]])<20: # if intersection not empty, then s and n are part of the same fascicle
+                aligned_snip[s].append(filtered_indices[n])
+    
+    #example : we obtain aligned_snip = [[1,2,3],[2,5],[3],[4,5],[5],[7],[8,10],[10]]
+    # we need to merge [1,2,3], [2,5], [3], [4,5] and [5]; and we need to merge
+    #[8,10] with [10].
+    # this is what is done below.
+    fascicles = [aligned_snip[0]]
+    for f in range(1, len(aligned_snip)):
+        test = 0
+        for ff in range(len(fascicles)):
+            if set.intersection(set(aligned_snip[f]), set(fascicles[ff])):
+                fascicles[ff] = list(set(fascicles[ff] + aligned_snip[f])) #conversion to set type removes duplicates
+                test = 1
+        if test == 0:
+            fascicles.append(aligned_snip[f])
+    print('final merged fascicles', fascicles)
+    
+    #outputs 
+    F = []
+    for fa in range(len(fascicles)):
+        fasc = snippets[fascicles[fa][0]][:,0,:]
+        for s in range(1,len(fascicles[fa])):
+            fasc = np.concatenate((fasc, snippets[fascicles[fa][s]][:,0,:]), axis = 0)
+        F.append(fasc)
+    return F, fascicles
