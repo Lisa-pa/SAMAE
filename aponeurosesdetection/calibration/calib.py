@@ -38,22 +38,20 @@ def autoCalibration(I):
     #binarization of the selection
     TCP = 0.1 #Top cropping percentage - #empirical percentage
     LCP = 0.5 #Left cropping percentage
-    BCP = 0.7 #Bottom cropping percentage
+    BCP = 0.65 #Bottom cropping percentage
     RCP = 0.1 #Right cropping percentage
     Scale_image = I[int(TCP * length):length-int(BCP * length),\
-                    int(LCP * width):width-int(RCP * width)]                 
+                    int(LCP * width):width-int(RCP * width)]  
+
     Binar_I = cv2.threshold(Scale_image, 220., 255, cv2.THRESH_BINARY)[1]                
-    
-#    cv2.imshow('image',Binar_I)
-#    cv2.waitKey(0) & 0xFF
-#    cv2.destroyAllWindows()   
-    
+
     #Selection of the biggest dashes: contours of white objects are found as
     #well as minimal rectangles encapsulating each object. Conditions on the
     #size of these contours/bounding rectangles enable the removal of objects
     #that are not the biggest dashes
     contours = cv2.findContours(Binar_I, cv2.RETR_EXTERNAL, \
                                            cv2.CHAIN_APPROX_NONE)[0]
+    
     contours_size = [contours[i].size for i in range (len(contours))]
     BoundingRectangles = []
     
