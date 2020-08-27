@@ -286,12 +286,22 @@ if process == True:
     fasc_length = MUFeaM.fasciclesLength(splines, intersecU, intersecL, calibX, calibY)
     print(fasc_length)
 
-
     #####
     #Visualization
     for index in range(coordUp.shape[0]):
-        USimageP[coordUp[index][0], coordUp[index][1], :] = [0, 255, 0]
-        USimageP[coordDeep[index][0], coordDeep[index][1], :] = [0, 255, 0]
+        if coordUp[index][0] >= 0 and coordUp[index][0] < USimageP.shape[0]:
+            USimageP[coordUp[index][0], coordUp[index][1], :] = [0, 255, 0]
+            if coordUp[index][0] +1 >= 0 and coordUp[index][0]+1 < USimageP.shape[0]:
+                USimageP[coordUp[index][0]+1, coordUp[index][1],:] = [0,255,0]
+            if coordUp[index][0]-1 >= 0 and coordUp[index][0]-1 < USimageP.shape[0]:
+                USimageP[coordUp[index][0]-1, coordUp[index][1],:] = [0,255,0]
+        if coordDeep[index][0] >= 0 and coordDeep[index][0] < USimageP.shape[0]:
+            USimageP[coordDeep[index][0], coordDeep[index][1], :] = [0, 255, 0]
+            if coordDeep[index][0]+1 >= 0 and coordDeep[index][0]+1 < USimageP.shape[0]:
+                USimageP[coordDeep[index][0]+1, coordDeep[index][1], :] = [0,255,0]
+            if coordDeep[index][0]-1 >= 0 and coordDeep[index][0]-1 < USimageP.shape[0]:
+                USimageP[coordDeep[index][0]-1, coordDeep[index][1], :] = [0,255,0]  
+
     
     for f in range(len(fasc)):
         for g in range(fasc[f].shape[0]):
