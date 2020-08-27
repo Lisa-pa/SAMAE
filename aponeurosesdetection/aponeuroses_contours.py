@@ -87,12 +87,14 @@ def initiateContour(I, typeC, setPoints = None, param = None):
         I (array_like): one canal image
 
         typeC (string): type of contour to draw. It can be 'circle',
-        or 'set_of_points'.
+        or 'set_of_points' or 'quardrangle_param'.
             'circle' : draws a circle centered on the first point
             of setPoints, and which diameter is 3 pixels.
             'set_of_points': draws a convex hull containing all 
             points from setPoints. If setPoints is None, an error
             is raised.
+            'quadrangle_param': draws a quadrangle of width w centered on a
+            line of equation x = ay+b ; x : rows of I, y : columns of I
 
         setPoints (array or list): list of points drawing a closed 
         curve if typeC is 'set_of_points'; or list containing one 
@@ -102,6 +104,12 @@ def initiateContour(I, typeC, setPoints = None, param = None):
         If option is 'set_of_points', considering that x-axis goes
         downwards and y-axis goes right, points must be given
         in a non clockwise manner
+        If option is 'quadrangle_param', this object is used to store
+        the four summets' coordinates, whatever its input value.
+        
+        param (1D array or list): a = param[0], b = param[1] are the
+        parameters for the line x = ay + b. param[2] defines the width of the
+        quadrangle
 
     Returns:
         array_like of same size than I. Pixels on the contour are zeros,
@@ -133,9 +141,29 @@ def initiateContour(I, typeC, setPoints = None, param = None):
         a = param[0]
         b = param[1]
         w = int(param[2]/2) # half width of the quadrangle, in pixels
-        setPoints = np.array([[int(a*10+b-w),10],[int(a*10+b+w),10],\
-                      [int(a*(I.shape[1]-10)+b+w),I.shape[1]-10],\
-                      [int(a*(I.shape[1]-10)+b-w),I.shape[1]-10]])
+        
+        y = np.arange(0, I.shape[1],1)
+        x_m = np.int64(a*y + b - w)
+        x_p = np.int64(a*y + b + w)
+        setPoints = []
+        
+        n1 = 10
+        while (x_m[n1]<0 or x_m[n1]>I.shape[0]) and n1 < I.shape[1]:
+            n1 = n1 + 1
+        
+        n2 = I.shape[1] - 1
+        while (x_m[n2]<0 or x_m[n2]>I.shape[0]) and n2 >= 0:
+            n2 = n2 - 1
+        
+        n3 = 10
+        while (x_p[n3]<0 or x_p[n3]>I.shape[0]) and n3 < I.shape[1]:
+            n3 = n3 + 1
+
+        n4 = I.shape[1] - 1
+        while (x_p[n4]<0 or x_p[n4]>I.shape[0]) and n4 >= 0:
+            n4 = n4 - 1
+
+        setPoints = np.array([[x_m[n1],n1],[x_p[n3],n3],[x_p[n4],n4],[x_m[n2],n2]])
         contour = cv2.convexHull(setPoints,  clockwise = False)
         for i in range(I.shape[0]):
             for j in range(I.shape[1]):
@@ -251,7 +279,7 @@ def extractContour(levelSet, image, offSetX = 0, offSetY = 0):
         if point[0][0] < I.shape[1] and point[0][1] < I.shape[0]:
             listC.append((point[0][1] + offSetX, point[0][0] + offSetY))
             I[point[0][1],point[0][0],:] = [0,255,0]
-    return I, listC, objects
+    return I, listC
 
 def approximate(p, apoType, I, d):
     """Function approximates aponeuroses shape.
@@ -299,15 +327,15 @@ def approximate(p, apoType, I, d):
     xcoord = [line[i][0] for i in range(len(line))]
 
     spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
-    
+
     newy = np.arange(0,I.shape[1],1)
     newx = np.int32(spline(newy))
     newCoord = np.vstack((newx, newy)).T
     
     #to avoid out of range issues:
     for x in newx:
-        if x>I.shape[0]:
-            x = I.shape[0]
+        if x>=I.shape[0]:
+            x = I.shape[0]-1
         elif x<0:
             x = 0
     
