@@ -96,6 +96,13 @@ if process == True:
             
             contourUp_i, nUp_i = apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
             print('Upper aponeurosis contour found in ', nUp_i, ' steps')
+
+
+            if np.amin(contourUp_i) > 0: #try a second time with a bigger initial contour if no contour has been found
+                iniUpper_i = apoC.initiateContour(UAi_pp, typeC = 'quadrangle_param', param = [paramUp[0], paramUp[1] - locUp[0], 40])
+                contourUp_i, nUp_i = apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+                print('Upper aponeurosis contour found in ', nUp_i, ' steps')
+
             if np.amin(contourUp_i)<=0: #if the contour exists, extract it
                 contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi, offSetX = locUp[0], offSetY = i * sampleSize)
 
@@ -105,14 +112,12 @@ if process == True:
                 cv2.waitKey(0) & 0xFF
                 cv2.destroyAllWindows()
                 
-                
                 if valid == False:
                     #try a second time with a new initial contour
                     points = np.array([[0, 0], [int(UAi_pp.shape[0]/2), 0], [int(UAi_pp.shape[0]/2), UAi_pp.shape[1]], [0, UAi_pp.shape[1]]])
                     iniUpper_i = apoC.initiateContour(UAi_pp, typeC = 'set_of_points', setPoints = points)
                     contourUp_i, nUp_i = apoC.activeContour(UAi_pp, iniUpper_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
                     print('Upper aponeurosis contour found in ', nUp_i, ' steps')
-                    
                     if np.amin(contourUp_i) <= 0 :
                         contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi, offSetX = locUp[0], offSetY = i * sampleSize)
                         #ask for manual validation of the contour
@@ -138,7 +143,12 @@ if process == True:
             contourDeep_i, nDeep_i = apoC.activeContour(DAi_pp, iniDeep_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
             print('Deep aponeurosis contour found in ', nDeep_i, ' steps')
             
-            if np.amin(contourDeep_i)<=0:
+            if np.amin(contourDeep_i) > 0: #try a second time with a bigger initial contour if no contour has been found
+                iniDeep_i = apoC.initiateContour(DAi_pp, typeC = 'quadrangle_param', param = [paramDeep[0], paramDeep[1] - locDeep[0], 40])
+                contourDeep_i, nDeep_i = apoC.activeContour(DAi_pp, iniDeep_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+                print('Upper aponeurosis contour found in ', nDeep_i, ' steps')
+
+            if np.amin(contourDeep_i)<=0: #if the contour exists, extract it
                 contourDeepimage_i, contourPointsDeep_i = apoC.extractContour(contourDeep_i, DAi, offSetX = locDeep[0], offSetY = i * sampleSize)
             
                 #ask for manual validation of the contour
@@ -146,7 +156,6 @@ if process == True:
                 valid = tkbox.askyesno('Need user validation', 'Do you validate the contours? After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
                 cv2.waitKey(0) & 0xFF
                 cv2.destroyAllWindows()
-                
                 
                 if valid == False:
                     #try a second time with a new initial contour
@@ -186,7 +195,6 @@ if process == True:
                 print('Upper aponeurosis contour found in ', nUp_i, ' steps')
                   
             if np.amin(contourUp_i) <= 0 :
-                
                 contourUpimage_i, contourPointsUp_i = apoC.extractContour(contourUp_i, UAi, offSetX = 0, offSetY = i * sampleSize)
                 
                 #ask for manual validation of the contour
@@ -217,12 +225,19 @@ if process == True:
     contoursUp.append(pt_intersection)
     contoursDeep.append(pt_intersection)
     
-    spline_up, coordUp = apoC.approximate(contoursUp, 'upper', USimageP, d = 1)
-    spline_deep, coordDeep = apoC.approximate(contoursDeep, 'lower', USimageP, d = 1)
+    #Interpolation and extrapolation
+    spline_up = apoC.approximateApo(contoursUp, 'upper', USimageP, d = 1)
+    spline_deep = apoC.approximateApo(contoursDeep, 'lower', USimageP, d = 1)
     
     
     #muscle thickness measurement
-    abscissa, thickness, thickness_spline = MUFeaM.muscleThickness(USimageP, coordUp, coordDeep, 0, int(pt_intersection[1]), calibX, calibY)
+    abscissa, thickness, thickness_spline = MUFeaM.muscleThickness(I = USimageP, spl1 = spline_up, spl2 = spline_deep, start = 0, end = int(pt_intersection[1]), calibV = calibX, calibH = calibY)
+
+
+    #Calculate coordinates of aponeuroses
+    coordUp = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_up, interval = [0, int(pt_intersection[1])])
+    coordDeep = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_deep, interval = [0, int(pt_intersection[1])])
+    
     
    #Fascicles detection
     all_snippets = []
@@ -266,25 +281,62 @@ if process == True:
     for i in range(len(fasc)):
         averages.append(FaDe.contourAverage(fasc[i]))
         
-               
     #interpolations to get fascicles' curve
-    interpolated_fasc = FaDe.approximateFascicle(USimageP, averages, d = 1)
+    splines_fasc = FaDe.approximateFasc(I = USimageP, typeapprox = 'Bspline', listF = averages, d = 1)
 
-    splines = [interpolated_fasc[i][0] for i in range(len(interpolated_fasc))]
+    #Location of fascicles: (in mm from aponeuroses intersection point)
+    loc_fasc = MUFeaM.locateFasc(splines_fasc, pt_intersection, calibY)
+    print(loc_fasc)
+
+    #intersections of fascicles with aponeuroses (in pixels)
+    intersecL = MUFeaM.findIntersections(spline_deep, splines_fasc, USimageP, typeI = 'panoramic')
+    intersecU = MUFeaM.findIntersections(spline_up, splines_fasc, USimageP, typeI = 'panoramic')
     
-    #intersections of fascicles with aponeuroses
-    intersecL = MUFeaM.findIntersections(spline_deep, splines, USimageP, typeI = 'simple')
-    intersecU = MUFeaM.findIntersections(spline_up, splines, USimageP, typeI = 'simple')
+    #Pennation angles calculation (in degree)
+    PA_up = MUFeaM.pennationAngles(spline_up, splines_fasc, intersecU, calibX, calibY)
+    PA_low = MUFeaM.pennationAngles(spline_deep, splines_fasc, intersecL, calibX, calibY)
     
-    #Pennation angles calculation
-    PA_up = MUFeaM.pennationAngles(spline_up, splines, intersecU, calibX, calibY)
-    PA_low = MUFeaM.pennationAngles(spline_deep, splines, intersecL, calibX, calibY)
-    print('angles up', PA_up)
-    print('angles low', PA_low)
-    
-    #Fascicles length calculation
-    fasc_length = MUFeaM.fasciclesLength(splines, intersecU, intersecL, calibX, calibY)
-    print(fasc_length)
+    #Fascicles length calculation (in mm)
+    fasc_length = MUFeaM.fasciclesLength(splines_fasc, intersecU, intersecL, calibX, calibY)
+
+    #Tuples containing info per fascicle
+    muscle_fascicles = []
+    for index in range(len(splines_fasc)):
+        typeIU = 'out of image'
+        typeIL = 'out of image'
+        typeFL = 'out of image'
+        if intersecU[index][0] >= 0 and\
+            intersecU[index][0] < USimageP.shape[0] and\
+            intersecU[index][1] >= 0 and\
+            intersecU[index][1] < USimageP.shape[1]:
+            typeIU = 'in image'
+        if intersecL[index][0] >= 0 and\
+            intersecL[index][0] < USimageP.shape[0] and\
+            intersecL[index][1] >= 0 and\
+            intersecL[index][1] < USimageP.shape[1]:
+            typeIL = 'in image'
+        if typeIU == 'in image' and typeIL == 'in image':
+            typeFL = 'in image'
+
+        tup = (index, loc_fasc[index], typeIU, intersecU[index], PA_up[index], typeIL, intersecL[index], PA_low[index], typeFL, fasc_length[index]) 
+        muscle_fascicles.append(tup)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     #####
     #Visualization
@@ -302,16 +354,37 @@ if process == True:
             if coordDeep[index][0]-1 >= 0 and coordDeep[index][0]-1 < USimageP.shape[0]:
                 USimageP[coordDeep[index][0]-1, coordDeep[index][1], :] = [0,255,0]  
 
-    
+    #snippets
     for f in range(len(fasc)):
         for g in range(fasc[f].shape[0]):
             USimageP[fasc[f][g,0], fasc[f][g,1], :] = [255,255,255]
+    
+    #fascicles
+    PAu = []
+    PAd = []
+    outPAu = []
+    outPAd = []
+    fasc_in = []
+    fasc_out = []
+    for n1 in range(len(splines_fasc)):
+        newy = np.arange(0, USimageP.shape[1], 1)
+        newx = np.int32(splines_fasc[n1](newy))
+        coord = np.vstack((newx, newy)).T
+        if muscle_fascicles[n1][8] == 'in image':
+            for n2 in range(coord.shape[0]):
+                if coord[n2][0]>=0 and coord[n2][0]<USimageP.shape[0]:
+                    USimageP[coord[n2][0], coord[n2][1], :] = [0,255,0]
+            PAu.append(muscle_fascicles[n1][4])
+            PAd.append(muscle_fascicles[n1][7])
+            fasc_in.append(muscle_fascicles[n1][9])
             
-    for n1 in range(len(interpolated_fasc)):
-        coord = interpolated_fasc[n1][1]
-        for n2 in range(coord.shape[0]):
-            if coord[n2][0]>=0 and coord[n2][0]<USimageP.shape[0]:
-                USimageP[coord[n2][0], coord[n2][1], :] = [0,0,255]
+        else:
+            outPAu.append(muscle_fascicles[n1][4])
+            outPAd.append(muscle_fascicles[n1][7])
+            fasc_out.append(muscle_fascicles[n1][9])
+            for n2 in range(coord.shape[0]):
+                if coord[n2][0]>=0 and coord[n2][0]<USimageP.shape[0]:
+                    USimageP[coord[n2][0], coord[n2][1], :] = [0,0,255]
 #                if coord[n2][0]+1>=0 and coord[n2][0]+1<USimageP.shape[0]:
 #                    USimageP[coord[n2][0]+1, coord[n2][1], :] = [0,0,255]
 #                if coord[n2][0]-1>=0 and coord[n2][0]-1<USimageP.shape[0]:  
@@ -323,7 +396,6 @@ if process == True:
 
     #FEATURES
     import matplotlib.pyplot as plt
-    listAbs = [1 for ab in range(len(splines))]
     fig, (ax1, ax2, ax3) = plt.subplots(1,3,sharex = False, sharey = False, figsize =(15,15))
     
     #muscle thickness
@@ -334,7 +406,9 @@ if process == True:
     ax1.set_ybound(0,30)
     
     #pennation angle
-    ax2.plot(PA_up, PA_low, 'r+', markersize = 5)
+    ax2.plot(PAu, PAd, 'g+', markersize = 5, label = 'inside image')
+    ax2.plot(outPAu, outPAd, 'r+', markersize = 5, label = 'extrapolated')
+    plt.legend(loc = 'upper left', prop={'size': 6})
     ax2.set_title('Pennation angles')
     ax2.set_xlabel('Angle (degrees) / upper apo')
     ax2.set_ylabel('Angle (degrees) / deep apo')
@@ -342,9 +416,10 @@ if process == True:
     ax2.set_ybound(0,30)
 
     #fascicles length
-    ax3.plot(fasc_length, listAbs, 'k+', markersize = 5)
+    ax3.plot(fasc_in, [1] * len(fasc_in), 'g+', markersize = 5, label = 'inside image')
+    ax3.plot(fasc_out, [1] * len(fasc_out), 'r+', markersize = 5, label = 'extrapolated')
+    plt.legend(loc = 'upper left', prop={'size': 6})
     ax3.set_title('Fascicles length')
     ax3.set_xlabel('length (mm)')
     
     plt.show()
-    

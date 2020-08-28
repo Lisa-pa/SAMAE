@@ -10,11 +10,6 @@ import cv2
 import numpy as np
 import tkinter.messagebox as tkbox
 
-#################################EVENT FUNCTION################################
-
-points = []
-def _pickCoordinates(event):
-    points.append((event.y,event.x))
 
 ########################PROCESSING OF SIMPLE US IMAGES#########################
 
@@ -29,18 +24,30 @@ RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/31_romain/ar
 #RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/fam_1/architecture/Julien_jamon_20180720_170728_image_bfs.jpg', -1)
 #RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/34_nicolas/architecture/Nicolas_post_20181210_105644_image_bfs.jpg', -1)
 #RGBimage = data.simpleimg()
-#################################################
+
+
+
+
+#Validate the image processing start
 cv2.imshow('Image to process', RGBimage)
 process = tkbox.askyesno('Need user approval', 'Do you accept to process this image?\
     Close all windows after clicking yes or no.', default = 'yes', icon='question')
 cv2.waitKey(0) & 0xFF
 cv2.destroyAllWindows()
 
+
 if process == True:
+    
+    
+    
+    
     #Calibrate the image
     # calibX, calibY are the calibration factors in X and Y directions
     calibX, calibY = autoCalibration(RGBimage)
-    #################################################
+    
+
+
+
 
     #Crop the image to keep essential US data
     USimage = autocropping(RGBimage, 10., 15., 12., 25., calibY, additionalCrop1 = 2., additionalCrop2 = 6.)
@@ -72,7 +79,9 @@ if process == True:
                 raise ValueError('All thresholds must be integers between 0 and 255')
             USimage = autocropping(RGBimage, THRESH1, THRESH2, THRESH3, THRESH4, calibY, CROP1, CROP2)
 #    cv2.imwrite('C:/Users/Lisa Paillard/Desktop/julien728cropped.jpg', USimage)
-    #################################################
+
+
+
 
     #Locate aponeuroses and find linear approximation of aponeuroses
 
@@ -104,8 +113,8 @@ if process == True:
     upperApo_pp = np.copy(USimage_pp[apoUp[0]:apoUp[1],:])
     lowerApo_pp = np.copy(USimage_pp[apoLow[0]:apoLow[1],:])
     
-    #################################################
     
+        
     # Get exact contour of each aponeurosis
    
     ini_upApo = apoC.initiateContour(upperApo_pp, typeC = 'quadrangle_param', param = [paramUp[0], paramUp[1] - apoUp[0], 8])
@@ -117,13 +126,9 @@ if process == True:
         ini_upApo = apoC.initiateContour(upperApo_pp, typeC = 'quadrangle_param', param = [paramUp[0], paramUp[1] - apoUp[0], 40])
         contourUp, nUp = apoC.activeContour(upperApo_pp, ini_upApo, 0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
         print('Upper aponeurosis contour found in ', nUp, ' steps')
-
         #if min(contourUp) still positive
         #use linear approximation because it means active contour model failed again
-        if np.min(contourUp)>0:
-            yUp = np.arange(0,USimage.shape[1],1)
-            xUp = np.int32(yUp*paramUp[0]+paramUp[1])
-            coordUp = np.vstack((xUp, yUp)).T
+        type_approx_UA = 'linear'
 
     if np.min(contourUp)<=0: #ask for validation of the contour
         contourUpimage, contourPointsUp = apoC.extractContour(contourUp, upperApo, offSetX = apoUp[0], offSetY = 0)
@@ -132,12 +137,13 @@ if process == True:
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
         
-        if valid == True: #B-spline to approximate aponeurosis if contour suits
-            approxUp, coordUp = apoC.approximate(contourPointsUp, 'upper', upperApo_pp, d = 1)
+        if valid == True:   #B-spline to approximate aponeurosis if contour suits
+                            #replace paramUp coefficients by the spline
+            type_approx_UA = 'spline'
+            paramUp = apoC.approximateApo(contourPointsUp, 'upper', upperApo_pp, d = 1)
         elif valid == False: #use linear approximation from radon transform
-            yUp = np.arange(0,USimage.shape[1],1)
-            xUp = np.int32(yUp*paramUp[0]+paramUp[1])
-            coordUp = np.vstack((xUp, yUp)).T
+            type_approx_UA = 'linear'
+
 
 
     ini_lowApo = apoC.initiateContour(lowerApo_pp, typeC = 'quadrangle_param', param = [paramLow[0], paramLow[1] - apoLow[0], 8])
@@ -149,13 +155,9 @@ if process == True:
         ini_lowApo = apoC.initiateContour(lowerApo_pp, typeC = 'quadrangle_param', param = [paramLow[0], paramLow[1] - apoLow[0], 40])
         contourLow, nLow = apoC.activeContour(lowerApo_pp, ini_lowApo, 0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
         print('Lower aponeurosis contour found in ', nUp, ' steps')
-
         #if min(contourLow) still positive
         #use linear approximation because it means active contour model failed again
-        if np.min(contourLow)>0:
-            yLow = np.arange(0,USimage.shape[1],1)
-            xLow = np.int32(yLow*paramLow[0]+paramLow[1])
-            coordLow = np.vstack((xLow, yLow)).T    
+        type_approx_LA = 'linear'
 
     if np.min(contourLow)<=0: #ask for validation of the contour
         contourLowimage, contourPointsLow = apoC.extractContour(contourLow, lowerApo, offSetX = apoLow[0], offSetY = 0)
@@ -164,22 +166,31 @@ if process == True:
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()    
         
-        if valid == True: #B-spline to approximate aponeurosis if contour suits
-            approxLow, coordLow = apoC.approximate(contourPointsLow, 'lower', lowerApo_pp, d = 1)
+        if valid == True:   #B-spline to approximate aponeurosis if contour suits
+                            #replace paramUp coefficients by the spline
+            type_approx_LA = 'spline'
+            paramLow = apoC.approximateApo(contourPointsLow, 'lower', lowerApo_pp, d = 1)
         elif valid == False:#else linear approximation from Radon transform is used
-            yLow = np.arange(0,USimage.shape[1],1)
-            xLow = np.int32(yLow*paramLow[0]+paramLow[1])
-            coordLow = np.vstack((xLow, yLow)).T
+            type_approx_LA = 'linear'
     
     
+   
     #Muscle thickness calculation
-    absc, thickness, spline_thickness = MUFeaM.muscleThickness(USimage, coordUp, coordLow, 0, USimage.shape[1]-1, calibX, calibY)
+    absc, thickness, spline_thickness = MUFeaM.muscleThickness(I = USimage, spl1 = paramUp, spl2 = paramLow, start = 0, end = USimage.shape[1]-1, calibV = calibX, calibH = calibY)
     
-    #Crop to focus in between aponeuroses
-    #ROI : region of interest
+    
+    #calculate coordinates of aponeuroses
+    #if aponeusosis linear, param is transformed from a list of parameters into a spline
+    coordUp = MUFeaM.pointsCoordinates(typeA = type_approx_UA, param = paramUp, interval = [0, USimage.shape[1]])
+    coordLow = MUFeaM.pointsCoordinates(typeA = type_approx_LA, param = paramLow, interval = [0, USimage.shape[1]])
+    
+        
+    #ROI : region of interest in between aponeuroses
     crop1 = np.amax(coordUp[:,0]) + 1 
     crop2 = np.amin(coordLow[:,0])
     ROI = np.copy(USimage[crop1:crop2, :, :])
+    
+    
     
     #Enhance tube-like structures with MVEF method - Frangi - 
     #let's consider that fascicle diameter is between 0.3 mm and 0.5 mm,
@@ -193,39 +204,72 @@ if process == True:
     threshMVEF = np.percentile(MVEF_image, threshMVEF_percent)
     MVEF_image2 = cv2.threshold(MVEF_image, threshMVEF, 255, cv2.THRESH_BINARY)[1]
 
+
+
+
     #locate snippets and filter them to locate muscle fascicles
     snippets, snip_lines = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
                                                minLength = 4, rangeAngles = [6,45],\
                                                percentageAlign = 0.70, offSetX = crop1)
     fasc = FaDe.combineSnippets(USimage, snippets, snip_lines, thresh_alignment = 10, thresh_length = 200)
 
+
+
     #transform the snippets, which are in fact the contours of the fascicles,
-    #into lines by taking the mean of the contour, that is the mean on each
-    #column of the contour. When branches exist, the mean is not computed (the
-    #region is ignored)
+    #into lines by taking the mean line inside the contour
+    #When branches exist, the mean is not computed (the region is ignored)
     averages = [] 
     for i in range(len(fasc)):
         averages.append(FaDe.contourAverage(fasc[i]))
     
+    
+    
     #interpolations to get fascicles' curve
-    interpolated_fasc = FaDe.approximateFascicle(USimage, averages, d = 1)
-    splines = [interpolated_fasc[i][0] for i in range(len(interpolated_fasc))]
+    splines_fasc = FaDe.approximateFasc(I = USimage, typeapprox = 'polyfit', listF = averages, d = 1)
     
-    #intersections of fascicles with aponeuroses
-    intersecL = MUFeaM.findIntersections(approxLow, splines, USimage, typeI = 'simple')
-    intersecU = MUFeaM.findIntersections(approxUp, splines, USimage, typeI = 'simple')
     
-    #Pennation angles calculation
-    PA_up = MUFeaM.pennationAngles(approxUp, splines, intersecU, calibX, calibY, USimage)
-    PA_low = MUFeaM.pennationAngles(approxLow, splines, intersecL, calibX, calibY, USimage)
-    print('angles up', PA_up)
-    print('angles low', PA_low)
     
-    #Fascicles length calculation
-    fasc_length = MUFeaM.fasciclesLength(splines, intersecU, intersecL, calibX, calibY)
+    #intersections of fascicles with aponeuroses (in pixels)
+    intersecL = MUFeaM.findIntersections(paramLow, splines_fasc, USimage, typeI = 'simple')
+    intersecU = MUFeaM.findIntersections(paramUp, splines_fasc, USimage, typeI = 'simple')
+    
+    
+    #Pennation angles calculation (in degrees)
+    PA_up = MUFeaM.pennationAngles(paramUp, splines_fasc, intersecU, calibX, calibY)
+    PA_low = MUFeaM.pennationAngles(paramLow, splines_fasc, intersecL, calibX, calibY)
+    
+    
+    #Fascicles length calculation (in millimeters)
+    fasc_length = MUFeaM.fasciclesLength(splines_fasc, intersecU, intersecL, calibX, calibY)
     print(fasc_length)
     
     
+    #Tuples containing all fascicles information
+    muscle_fascicles = []
+    for index in range(len(splines_fasc)):
+        typeIU = 'out of image'
+        typeIL = 'out of image'
+        typeFL = 'out of image'
+        if intersecU[index][0] >= 0 and\
+            intersecU[index][0] < USimage.shape[0] and\
+            intersecU[index][1] >= 0 and\
+            intersecU[index][1] < USimage.shape[1]:
+            typeIU = 'in image'
+        if intersecL[index][0] >= 0 and\
+            intersecL[index][0] < USimage.shape[0] and\
+            intersecL[index][1] >= 0 and\
+            intersecL[index][1] < USimage.shape[1]:
+            typeIL = 'in image'
+        if typeIU == 'in image' and typeIL == 'in image':
+            typeFL = 'in image'
+
+        tup = (index, typeIU, intersecU[index], PA_up[index], typeIL, intersecL[index], PA_low[index], typeFL, fasc_length[index]) 
+        muscle_fascicles.append(tup)
+    
+    
+
+
+
     ################
     #Visualization:
 
@@ -234,8 +278,8 @@ if process == True:
 
     #aponeuroses
     newy = np.arange(-2*USimage.shape[1], 3*USimage.shape[1], 1)
-    newx_u = np.int32(approxUp(newy))
-    newx_l = np.int32(approxLow(newy))
+    newx_u = np.int32(paramUp(newy))
+    newx_l = np.int32(paramLow(newy))
     newy = newy + 2*USimage.shape[1]
     coordUp = np.vstack((newx_u, newy)).T
     coordLow = np.vstack((newx_l, newy)).T
@@ -254,20 +298,39 @@ if process == True:
             if coordLow[index][0]-1 >= 0 and coordLow[index][0]-1 < ImF.shape[0]:
                 ImF[coordLow[index][0]-1, coordLow[index][1], :] = [255,0,0]  
 
-    #fascicles
+    #snippets
     for f in range(len(fasc)):
         for g in range(fasc[f].shape[0]):
             ImF[fasc[f][g,0], fasc[f][g,1] + 2*USimage.shape[1], :] = [255,255,255]
     
-    for a in range(len(interpolated_fasc)):
-#        coord = interpolated_fasc[a][1]
+
+    #fascicles
+    PAu = []
+    PAd = []
+    outPAu = []
+    outPAd = []
+    fasc_in = []
+    fasc_out = []
+    for a in range(len(splines_fasc)):
         newy = np.arange(-2*USimage.shape[1], 3*USimage.shape[1], 1)
-        newx = np.int32(interpolated_fasc[a][0](newy))
+        newx = np.int32(splines_fasc[a](newy))
         newy = newy + 2*USimage.shape[1]
         coord = np.vstack((newx, newy)).T
-        for b in range(coord.shape[0]):
-            if coord[b][0]>=0 and coord[b][0]<ImF.shape[0]:
-                ImF[coord[b][0], coord[b][1], :] = [0,255,0]
+        if muscle_fascicles[a][7] == 'in image':
+            for b in range(coord.shape[0]):
+                if coord[b][0]>=0 and coord[b][0]<ImF.shape[0]:
+                    ImF[coord[b][0], coord[b][1], :] = [0,255,0]
+            PAu.append(muscle_fascicles[a][3])
+            PAd.append(muscle_fascicles[a][6])
+            fasc_in.append(muscle_fascicles[a][8])
+
+        else:
+            outPAu.append(muscle_fascicles[a][3])
+            outPAd.append(muscle_fascicles[a][6])
+            fasc_out.append(muscle_fascicles[a][8])
+            for b in range(coord.shape[0]):
+                if coord[b][0]>=0 and coord[b][0]<ImF.shape[0]:
+                    ImF[coord[b][0], coord[b][1], :] = [0,0,255]
 #                if coord[b][0]+1>=0 and coord[b][0]+1<ImF.shape[0]:
 #                    ImF[coord[b][0]+1, coord[b][1], :] = [0,255,0]
 #                if coord[b][0]-1>=0 and coord[b][0]-1<ImF.shape[0]:  
@@ -275,7 +338,7 @@ if process == True:
     
        
     #intersection points
-    for i1 in range(len(splines)):
+    for i1 in range(len(splines_fasc)):
         xi = int(intersecL[i1][0])
         yi = int(intersecL[i1][1]) + 2*USimage.shape[1]
     
@@ -361,7 +424,6 @@ if process == True:
 
     #FEATURES
     import matplotlib.pyplot as plt
-    listAbs = [1 for ab in range(len(splines))]
     fig, (ax1, ax2, ax3) = plt.subplots(1,3,sharex = False, sharey = False, figsize =(15,15))
     
     #muscle thickness
@@ -372,7 +434,9 @@ if process == True:
     ax1.set_ybound(0,30)
     
     #pennation angle
-    ax2.plot(PA_up, PA_low, 'r+', markersize = 5)
+    ax2.plot(PAu, PAd, 'g+', markersize = 5, label = 'inside image')
+    ax2.plot(outPAu, outPAd, 'r+', markersize = 5, label = 'extrapolated')
+    ax2.legend(loc = 'upper left', prop={'size': 6})
     ax2.set_title('Pennation angles')
     ax2.set_xlabel('Angle (degrees) / upper apo')
     ax2.set_ylabel('Angle (degrees) / deep apo')
@@ -380,7 +444,9 @@ if process == True:
     ax2.set_ybound(0,30)
 
     #fascicles length
-    ax3.plot(fasc_length, listAbs, 'k+', markersize = 5)
+    ax3.plot(fasc_in, [1] * len(fasc_in), 'g+', markersize = 5, label = 'inside image')
+    ax3.plot(fasc_out, [1] * len(fasc_out), 'r+', markersize = 5, label = 'extrapolated')
+    ax3.legend(loc = 'upper left', prop={'size': 6})
     ax3.set_title('Fascicles length')
     ax3.set_xlabel('length (mm)')
     
