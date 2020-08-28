@@ -373,32 +373,43 @@ def contourAverage(inputC):
     return outputL
 
 
-def approximateFascicle(I, listF, d):
+def approximateFasc(I, typeapprox, listF, d):
     """listF is the list of fascicles.
     Each fascicle is a list of point defining its line
     
     points of each fascicle : array = [x y] where x is the line, y the column
     d : degree of the curve that will be interpolated
     """
-    
-    import scipy.interpolate as interpolate
     approx_fasc = []
-    for n in range(len(listF)):
-        if type(listF[n]) == list:
-            f = listF[n]
-        else:
-            f = list(listF[n])
+    
+    if typeapprox == 'Bspline':
+        import scipy.interpolate as interpolate
+        for n in range(len(listF)):
+            if type(listF[n]) == list:
+                f = listF[n]
+            else:
+                f = list(listF[n])
+                
+            f.sort(key = lambda x: x[1]) #sort according to columns
+            ycoord = [f[i][1] for i in range(len(f))]
+            xcoord = [f[i][0] for i in range(len(f))]               
+            
+            spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
+            approx_fasc.append(spline)
 
-        f.sort(key = lambda x: x[1]) #sort according to columns
-        ycoord = [f[i][1] for i in range(len(f))]
-        xcoord = [f[i][0] for i in range(len(f))]               
-        
-        spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
-    
-        newy = np.arange(0,I.shape[1],1)
-        newx = np.int32(spline(newy))
-        newCoord = np.vstack((newx, newy)).T
-    
-        approx_fasc.append([spline, newCoord])
+    if typeapprox == 'polyfit':
+        for n in range(len(listF)):
+            if type(listF[n]) == list:
+                f = listF[n]
+            else:
+                f = list(listF[n])
+                  
+            f.sort(key = lambda x: x[1]) #sort according to columns
+            ycoord = [f[i][1] for i in range(len(f))]
+            xcoord = [f[i][0] for i in range(len(f))]               
+            
+            p = np.polyfit(ycoord, xcoord, deg=d)
+            spline = np.poly1d(p)
+            approx_fasc.append(spline)
         
     return approx_fasc
