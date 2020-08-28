@@ -1,15 +1,44 @@
-def muscleThickness(I, points1, points2, start, end, calibV, calibH):
+import numpy as np
+import math
+
+def pointsCoordinates(typeA, param, interval):
+    """
+    """
+    
+    if typeA == 'linear':
+        
+        if len(param):
+            raise ValueError('Missing parameter for line equation. param should have 2 coefficients.')
+        
+        y = np.arange(int(interval[0]),int(interval[1]) + 1, 1)
+        x = np.int32(y*param[0]+param[1])
+        coord = np.vstack((x, y)).T
+        
+        #transform the equation parameters into a spline
+        import scipy.interpolate as interpolate
+        param = interpolate.UnivariateSpline(y, x, k=1, ext = 0)
+    
+    if typeA == 'spline':
+        y = np.arange(int(interval[0]),int(interval[1]) + 1, 1)
+        x = np.int32(param(y))
+        coord = np.vstack((x, y)).T        
+    
+    return coord
+
+def muscleThickness(I, start, end, calibV, calibH, spl1 = None, spl2 = None, points1 = None, points2 = None):
     """ Function that calculates muscle thickness  in mm on the 
     interval of columns [start, end] of a US muscle image I.
     
     Args:
         I (array): three-canal image
-        points1 (array): dimensions = (n,2)
-                        contains the interpolated points of one 
+        spl1 (scipy spline): dimensions = approximation of one 
                         aponeurosis in I.
-        points2 (array): dimensions = (n,2)
-                        contains the interpolated points of the 
+        spl2 (scipy spline): approximation of the 
                         other aponeurosis in I.
+                        
+        points1, points2 (optional): are array of dimension (n,2). 
+                they are aponeuroses' points. Default value is None for
+                each array (they are calculated from spl1 and spl2 in this case)
         start (int) : starting column to calculate muscle thickness. Its
                         value should be >= 0 and <I.shape[1]
         end (int): ending column to calculate muscle thickness. Its value
@@ -29,8 +58,16 @@ def muscleThickness(I, points1, points2, start, end, calibV, calibH):
 
     mt = []
     absc = []
+    
+    if (spl1 is None and points1 is None) or (spl2 is None and points2 is None):
+        raise ValueError('Missing value. Spline or array of points should be input for each aponeurosis.')
+    
+    if points1 is None:
+        points1 = pointsCoordinates('spline', spl1, [start, end])
+    if points2 is None:
+        points2 = pointsCoordinates('spline', spl2, [start, end])
+    
     for col in range(start, end + 1):
-
         #search if there exist points in each aponeurosis with abscissa col
         search1 = [pt for pt in points1 if pt[1]==col]
         search2 = [pt for pt in points2 if pt[1]==col]
@@ -50,7 +87,7 @@ def diffSpline(x, spl1, spl2):
 def findIntersections(spl1, listSpl, I, typeI):
     """Function that finds the intersection point between
     two curves respectively defined by the spline spl1
-    and the spline spl2
+    and the splines listed in listSpl
 
     Args:
         spl1: spline, as output by the scipy function 'univariateSpline'.
@@ -75,7 +112,7 @@ def findIntersections(spl1, listSpl, I, typeI):
         spl2 = listSpl[ind]
         y0 = int(scio.fsolve(diffSpline, x0 = x_ini, args = (spl1, spl2), xtol = t))
         x0 = int(spl2(y0))
-        listIntersections.append((x0,y0))
+        listIntersections.append([x0,y0])
 
     return listIntersections
 
@@ -94,8 +131,6 @@ def pennationAngles(spl_a, listS_f, listI, xcalib, ycalib, I = None):
     Outputs:
         listPA: list of angles in degrees
     """
-    import math
-    import numpy as np
     list_pa = []
 
     for index in range(len(listI)):
@@ -117,17 +152,16 @@ def pennationAngles(spl_a, listS_f, listI, xcalib, ycalib, I = None):
         A = abs(a1 - a0)
         list_pa.append(A)
 
-        """
-        #Visualize tangents
-        for ind in range(vect.shape[0]):
-            if vect[ind]>= 0 and vect[ind]<I.shape[1]\
-                and vect_f[ind]>=0 and vect_f[ind] < I.shape[0]:
-                    I[int(vect_f[ind]), int(vect[ind]), :] = [255,0,255]
+        if I is not None :
+            #Visualize tangents
+            for ind in range(vect.shape[0]):
+                if vect[ind]>= 0 and vect[ind]<I.shape[1]\
+                    and vect_f[ind]>=0 and vect_f[ind] < I.shape[0]:
+                        I[int(vect_f[ind]), int(vect[ind]), :] = [255,0,255]
 
-            if vect[ind]>= 0 and vect[ind]<I.shape[1]\
-                and vect_a[ind]>=0 and vect_a[ind] < I.shape[0]:
-                    I[int(vect_a[ind]), int(vect[ind]), :] = [255,0,255]
-        """
+                if vect[ind]>= 0 and vect[ind]<I.shape[1]\
+                    and vect_a[ind]>=0 and vect_a[ind] < I.shape[0]:
+                        I[int(vect_a[ind]), int(vect[ind]), :] = [255,0,255]
         
     return list_pa
 
@@ -135,8 +169,6 @@ def pennationAngles(spl_a, listS_f, listI, xcalib, ycalib, I = None):
 def fasciclesLength(listS_f, listIu, listId, xcalib, ycalib):
     """
     """
-    import numpy as np
-    import math
     
     listFL = []
     
@@ -156,3 +188,27 @@ def fasciclesLength(listS_f, listIu, listId, xcalib, ycalib):
         listFL.append(length)
         
     return listFL
+
+def locateFasc(listSpl, refPoint, ycalib):
+    """
+    Function that caracterizes each fascicle location by a float value
+    corresponding to its horizontal distance in mm from refPoint.
+    Ideally, refPoint is the intersection point between the two aponeuroses
+
+    listSpl: splines caracterizing fascicles
+    refPoint = (row = on axis 0, column = on axis 1)
+    """
+    listLoc = []
+
+    y = np.arange(0, refPoint[1] + 1, 1)
+
+    for index in range(len(listSpl)):
+        x = listSpl[index](y)
+        elem = 0
+        while (elem < x.shape[0] - 1) and int(x[elem]) != int(refPoint[0]):
+            elem = elem + 1
+
+        loc = abs(y[elem] - refPoint[1]) * ycalib
+        listLoc.append(loc)
+
+    return listLoc
