@@ -281,7 +281,7 @@ def extractContour(levelSet, image, offSetX = 0, offSetY = 0):
             I[point[0][1],point[0][0],:] = [0,255,0]
     return I, listC
 
-def approximate(p, apoType, I, d):
+def approximateApo(p, apoType, I, d):
     """Function approximates aponeuroses shape.
     More precisely, if apoType is 'upper', meaning an upper aponeurosis
     is being processed, this function will approximate the lower boundary
@@ -327,16 +327,5 @@ def approximate(p, apoType, I, d):
     xcoord = [line[i][0] for i in range(len(line))]
 
     spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
-
-    newy = np.arange(0,I.shape[1],1)
-    newx = np.int32(spline(newy))
-    newCoord = np.vstack((newx, newy)).T
     
-    #to avoid out of range issues:
-    for x in newx:
-        if x>=I.shape[0]:
-            x = I.shape[0]-1
-        elif x<0:
-            x = 0
-    
-    return spline, newCoord
+    return spline
