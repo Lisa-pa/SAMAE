@@ -81,7 +81,7 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, 
         threshRmin += 2.
 
     if len(I.shape) == 3:
-        I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1], RightColumnsBelow[-1]:LeftColumnsBelow[-1], :]
+        I2 = I[UpRawsBelow[-1]+5:BottomRawsBelow[-1]-5, RightColumnsBelow[-1]+5:LeftColumnsBelow[-1]-5, :]
     elif len(I.shape) == 2:
         I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1], RightColumnsBelow[-1]:LeftColumnsBelow[-1]]
     
@@ -152,8 +152,8 @@ def manualcropping(I, pointsfile):
     #find max and min indexes for columns and raws to crop image I
     #with a margin of 10 pixels (5 pixels for min_raw).
     #Coordinates are inverted in apos
-    min_raw = max(0, np.min(apos[:, 1])-5)
-    max_raw = min(I.shape[0], np.max(apos[:, 1])+10)
+    min_raw = max(0, np.min(apos[:, 1])-10)
+    max_raw = min(I.shape[0], np.max(apos[:, 1])+20)
     min_col = max(0, np.min(apos[:, 0])-10)
     max_col = min(I.shape[1], np.max(apos[:, 0])+10)
 
@@ -166,4 +166,4 @@ def manualcropping(I, pointsfile):
     #close file
     data.close()
     
-    return i_cropped, point_of_intersect
+    return i_cropped, point_of_intersect, int(min_raw), int(max_raw), int(min_col), int(max_col)

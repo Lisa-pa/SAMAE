@@ -148,19 +148,19 @@ def initiateContour(I, typeC, setPoints = None, param = None):
         setPoints = []
         
         n1 = 10
-        while (x_m[n1]<0 or x_m[n1]>I.shape[0]) and n1 < I.shape[1]:
+        while (x_m[n1]<0 or x_m[n1]>I.shape[0]-1) and n1 < I.shape[1]-1:
             n1 = n1 + 1
         
         n2 = I.shape[1] - 1
-        while (x_m[n2]<0 or x_m[n2]>I.shape[0]) and n2 >= 0:
+        while (x_m[n2]<0 or x_m[n2]>I.shape[0]-1) and n2 >= 0:
             n2 = n2 - 1
         
         n3 = 10
-        while (x_p[n3]<0 or x_p[n3]>I.shape[0]) and n3 < I.shape[1]:
+        while (x_p[n3]<0 or x_p[n3]>I.shape[0]-1) and n3 < I.shape[1]-1:
             n3 = n3 + 1
 
         n4 = I.shape[1] - 1
-        while (x_p[n4]<0 or x_p[n4]>I.shape[0]) and n4 >= 0:
+        while (x_p[n4]<0 or x_p[n4]>I.shape[0]-1) and n4 >= 0:
             n4 = n4 - 1
 
         setPoints = np.array([[x_m[n1],n1],[x_p[n3],n3],[x_p[n4],n4],[x_m[n2],n2]])
@@ -281,7 +281,7 @@ def extractContour(levelSet, image, offSetX = 0, offSetY = 0):
             I[point[0][1],point[0][0],:] = [0,255,0]
     return I, listC
 
-def approximateApo(p, apoType, I, d):
+def approximateApo(p, apoType, I, typeapprox, d):
     """Function approximates aponeuroses shape.
     More precisely, if apoType is 'upper', meaning an upper aponeurosis
     is being processed, this function will approximate the lower boundary
@@ -300,7 +300,7 @@ def approximateApo(p, apoType, I, d):
         can either have one canal or three canals.
         d (integer): degree of the interpolated curve.
     """
-    import scipy.interpolate as interpolate
+    
     p.sort(key=lambda x:x[0]) #x-coord sort
     p.sort(key=lambda x:x[1]) #y-coord sort
 
@@ -326,6 +326,13 @@ def approximateApo(p, apoType, I, d):
     ycoord = [line[i][1] for i in range(len(line))]
     xcoord = [line[i][0] for i in range(len(line))]
 
-    spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
+    if typeapprox == 'Bspline':
+        import scipy.interpolate as interpolate
+        spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0) 
+
+
+    elif typeapprox == 'polyfit':
+        polyn = np.polyfit(ycoord, xcoord, deg = d)
+        spline = np.poly1d(polyn)     
     
     return spline

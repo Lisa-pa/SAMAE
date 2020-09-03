@@ -82,7 +82,7 @@ def MVEF_2D(I, scales, thresholds):
     b = thresholds[0]
     c = thresholds[1]
     if b == 0:
-        raise ValueError('first element of thresholds cannot be null')
+         ValueError('first element of thresholds cannot be null')
         
     for sc in range(len(scales)): 
         H = hessian_matrix(image = I, sigma = scales[sc], order = 'rc')
@@ -176,7 +176,7 @@ def locateSnippets(I, xcalib, ycalib, minLength, rangeAngles, percentageAlign, o
     snippets = cv2.findContours(np.uint8(I), mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_NONE)[0]
     
     if len(snippets) == 0:
-        raise ValueError('No fascicle could be found in I.')
+        return 'error', 'error'
     
     filtered_indices = [] # list which contains the ID of the filtered snippets
     line_snip = [] #list which contains a linear approximation of the snippet filtered

@@ -1,17 +1,15 @@
 import numpy as np
 import cv2
 
-def preprocessingApo(I, mode, margin, sizeContrast):
+def preprocessingApo(I, typeI, mode, margin, sizeContrast):
     """This function aims at enhancing the image I -and particularly aponeuroses-
     before it is given to the active contour function.
     It applies a median filter to I, then enhances the contrast thanks to
     a chosen mode (global contrast enhancement or local contrast enhancement -
     mean, median or midgrey local contrast enhancement). Finally the image
     undergoes a morphological opening to remove small branches and irregularities
-    from the aponeurosis. The structuring element SE is as follows:
-                SE = 1  1  1  1  1  1
-                     1  1  1  1  1  1
-                     0  0  0  0  0  0
+    from the aponeurosis. The structuring element SE depends on the type of
+    image (simple or panoramic)
             
         Args:
                 I (np-array) : 1 canal or three-canal image. If the image has
@@ -91,11 +89,20 @@ def preprocessingApo(I, mode, margin, sizeContrast):
                     I2[x,y] = int(I2[x,y])
                     
     #-----morphological operations: opening-----#
-    SE = np.uint8(np.array([[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]]))
-    #1) Erosion#
-    I2 = cv2.erode(src=I2, kernel = SE,anchor=(-1,-1), iterations= 3, borderType = cv2.BORDER_REPLICATE)
+    if typeI == 'simple':
+        SE = np.uint8(np.array([[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.]]))
+        #1) Erosion#
+        I2 = cv2.erode(src=I2, kernel = SE,anchor=(-1,-1), iterations= 3, borderType = cv2.BORDER_REPLICATE)
+        #2) dilatation#
+        I2 = cv2.dilate(src = I2, kernel = SE,anchor = (-1,-1), iterations=3, borderType= cv2.BORDER_REPLICATE)
+       
+    elif typeI == 'panoramic':
+        SE = np.uint8(np.array([[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]]))
+        #SE = np.uint8(np.array([[0.,1.,0.,1.,0.,1.,0.,1.,0.,1.,0.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[0.,1.,0.,1.,0.,1.,0.,1.,0.,1.,0.]]))
 
-    #2) dilatation#
-    I2 = cv2.dilate(src = I2, kernel = SE,anchor = (-1,-1), iterations=3, borderType= cv2.BORDER_REPLICATE)
+        #1) Erosion#
+        I2 = cv2.erode(src=I2, kernel = SE,anchor=(-1,-1), iterations=3, borderType = cv2.BORDER_REPLICATE)
+        #2) dilatation#
+        I2 = cv2.dilate(src = I2, kernel = SE,anchor = (-1,-1), iterations=3, borderType= cv2.BORDER_REPLICATE)
 
     return I2

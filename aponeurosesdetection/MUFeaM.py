@@ -67,6 +67,7 @@ def muscleThickness(I, start, end, calibV, calibH, spl1 = None, spl2 = None, poi
     if points2 is None:
         points2 = pointsCoordinates('spline', spl2, [start, end])
     
+
     for col in range(start, end + 1):
         #search if there exist points in each aponeurosis with abscissa col
         search1 = [pt for pt in points1 if pt[1]==col]
@@ -79,6 +80,7 @@ def muscleThickness(I, start, end, calibV, calibH, spl1 = None, spl2 = None, poi
     
     import scipy.interpolate as interpolate
     spl = interpolate.UnivariateSpline(absc, mt, k=5, ext = 0) 
+
     return absc, mt, spl
 
 def diffSpline(x, spl1, spl2):
