@@ -20,9 +20,9 @@ import tkinter.messagebox as tkbox
 #RGBimage = cv2.imread('C:/Users/Antonio/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
 
 #RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/01_Kevin/POST/architecture/Kevin_jamon_20180927_142814_image_bfs.jpg', -1)
-RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/31_romain/architecture/Romain_jamon_20181008_084409_image_bfs.jpg', -1)
+#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/31_romain/architecture/Romain_jamon_20181008_084433_image_bfs.jpg', -1)
 #RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/fam_1/architecture/Julien_jamon_20180720_170728_image_bfs.jpg', -1)
-#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/34_nicolas/architecture/Nicolas_post_20181210_105644_image_bfs.jpg', -1)
+RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/34_nicolas/architecture/Nicolas_post_20181210_105644_image_bfs.jpg', -1)
 #RGBimage = data.simpleimg()
 
 
@@ -78,7 +78,7 @@ if process == True:
                 THRESH4>255 or THRESH4<0:
                 raise ValueError('All thresholds must be integers between 0 and 255')
             USimage = autocropping(RGBimage, THRESH1, THRESH2, THRESH3, THRESH4, calibY, CROP1, CROP2)
-#    cv2.imwrite('C:/Users/Lisa Paillard/Desktop/julien728cropped.jpg', USimage)
+    #cv2.imwrite('C:/Users/Lisa Paillard/Desktop/nicolascropped.jpg', USimage)
 
 
 
@@ -93,8 +93,8 @@ if process == True:
     # apoUp:        (l1,l2) are the two lines in between which the 
     #               upper aponeurosis spotted.
     # apoUp:        lines in between which deep aponeurosis was spotted
-    USimage_pp = preprocessingApo(USimage, 'localmean', 0, 41) #pre_processing
-    paramUp, paramLow, apoUp, apoLow = apoL.twoApoLocation(USimage_pp, thresh = None)
+    USimage_pp = preprocessingApo(I = USimage, typeI = 'simple', mode = 'localmean', margin = 0, sizeContrast = 41) #pre_processing
+    paramUp, paramLow, apoUp, apoLow = apoL.twoApoLocation(USimage_pp, angle1 = 80, angle2 = 100, thresh = None, calibV = calibX)
     
     '''USimage[apoUp[0], :,:] = [0,0,255]
     USimage[apoUp[1], :,:] = [0,0,255]
@@ -140,7 +140,7 @@ if process == True:
         if valid == True:   #B-spline to approximate aponeurosis if contour suits
                             #replace paramUp coefficients by the spline
             type_approx_UA = 'spline'
-            paramUp = apoC.approximateApo(contourPointsUp, 'upper', upperApo_pp, d = 1)
+            paramUp = apoC.approximateApo(p = contourPointsUp, apoType = 'upper', I = upperApo_pp, typeapprox = 'polyfit', d = 1)
         elif valid == False: #use linear approximation from radon transform
             type_approx_UA = 'linear'
 
@@ -169,21 +169,20 @@ if process == True:
         if valid == True:   #B-spline to approximate aponeurosis if contour suits
                             #replace paramUp coefficients by the spline
             type_approx_LA = 'spline'
-            paramLow = apoC.approximateApo(contourPointsLow, 'lower', lowerApo_pp, d = 1)
+            paramLow = apoC.approximateApo(p = contourPointsLow, apoType = 'lower', I = lowerApo_pp, typeapprox = 'polyfit', d = 1)
         elif valid == False:#else linear approximation from Radon transform is used
             type_approx_LA = 'linear'
     
-    
-   
-    #Muscle thickness calculation
-    absc, thickness, spline_thickness = MUFeaM.muscleThickness(I = USimage, spl1 = paramUp, spl2 = paramLow, start = 0, end = USimage.shape[1]-1, calibV = calibX, calibH = calibY)
-    
-    
+
     #calculate coordinates of aponeuroses
     #if aponeusosis linear, param is transformed from a list of parameters into a spline
     coordUp = MUFeaM.pointsCoordinates(typeA = type_approx_UA, param = paramUp, interval = [0, USimage.shape[1]])
     coordLow = MUFeaM.pointsCoordinates(typeA = type_approx_LA, param = paramLow, interval = [0, USimage.shape[1]])
-    
+
+   
+    #Muscle thickness calculation
+    absc, thickness, spline_thickness = MUFeaM.muscleThickness(I = USimage, spl1 = paramUp, spl2 = paramLow, start = 0, end = USimage.shape[1]-1, calibV = calibX, calibH = calibY)
+        
         
     #ROI : region of interest in between aponeuroses
     crop1 = np.amax(coordUp[:,0]) + 1 
@@ -237,7 +236,8 @@ if process == True:
     #Pennation angles calculation (in degrees)
     PA_up = MUFeaM.pennationAngles(paramUp, splines_fasc, intersecU, calibX, calibY)
     PA_low = MUFeaM.pennationAngles(paramLow, splines_fasc, intersecL, calibX, calibY)
-    
+    print(PA_up)
+    print(PA_low)
     
     #Fascicles length calculation (in millimeters)
     fasc_length = MUFeaM.fasciclesLength(splines_fasc, intersecU, intersecL, calibX, calibY)
