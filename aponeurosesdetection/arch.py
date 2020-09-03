@@ -115,7 +115,7 @@ def _calcula_arch(data):
 
     import fnmatch
     import numpy as np
-
+    import 
     for part in data.keys():
         for ntest in data[part].keys():
             for msc in data[part][ntest].keys():
@@ -135,36 +135,44 @@ def _calcula_arch(data):
                         
                         if echo == 'panoramic':
                             idx = data[part][ntest][msc]['panoramic'][img]['coords']
-                            architecture = idfascicles(coords=idx, img='pano')
-                            data[part][ntest][msc]['panoramic'][img]['architecture'] = architecture
+                            # manual processing
+                            architecture1 = idfascicles(coords=idx, img='pano')
+                            data[part][ntest][msc]['panoramic'][img]['architecture manual'] = architecture1
+                            #automatic processing
+                            architecture2 = autoP.panoprocessing(path 2 img, path 2 txt file)
+                            data[part][ntest][msc]['panoramic'][img]['architecture auto'] = architecture2
+                            
+                            '''
+                            for fsc in fnmatch.filter(architecture1.keys(), 'fsc_*'):
+                                fl = midelengthpano(fsc=architecture1[fsc]['coords'], calfct=architecture1['calfct'])
+                                data[part][ntest][msc]['panoramic'][img]['architecture manual'][fsc]['flength'] = fl
 
-                            for fsc in fnmatch.filter(architecture.keys(), 'fsc_*'):
-                                fl = midelengthpano(fsc=architecture[fsc]['coords'], calfct=architecture['calfct'])
-                                data[part][ntest][msc]['panoramic'][img]['architecture'][fsc]['flength'] = fl
-
-                                dist = localizafasc(ref=architecture['insertion']['coords'], fasc=architecture[fsc]['coords'], 
-                                                        calfct=architecture['calfct'])
-                                data[part][ntest][msc]['panoramic'][img]['architecture'][fsc]['dist'] = dist  
-
+                                dist = localizafasc(ref=architecture1['insertion']['coords'], fasc=architecture1[fsc]['coords'], 
+                                                        calfct=architecture1['calfct'])
+                                data[part][ntest][msc]['panoramic'][img]['architecture manual'][fsc]['dist'] = dist  
+                            '''
 
                         if echo == 'simple':
                             
                             idx = data[part][ntest][msc]['simple'][img]['coords']
-                            architecture = idfascicles(coords=idx, img='simple')
-                            data[part][ntest][msc]['simple'][img]['architecture'] = architecture
+                            architecture1 = idfascicles(coords=idx, img='simple')
+                            data[part][ntest][msc]['simple'][img]['architecture manual'] = architecture1
+                            architecture2 = 
+                            data[part][ntest][msc]['simple'][img]['architecture auto'] = architecture2
                             
+                            '''
                             for fsc in fnmatch.filter(architecture.keys(), 'fsc_*'):
-                                aposup = architecture['aposup']['coords']
-                                apoinf = architecture['apoinf']['coords']
-                                calfct = architecture['calfct']
-                                fasci = architecture[fsc]['coords']
+                                aposup = architecture1['aposup']['coords']
+                                apoinf = architecture1['apoinf']['coords']
+                                calfct = architecture1['calfct']
+                                fasci = architecture1[fsc]['coords']
 
                                 archres = analizearch(aposup=aposup, apoinf=apoinf, fsc=fasci, calfct=calfct)
-                                data[part][ntest][msc]['simple'][img]['architecture'][fsc]['flengths'] = archres['fls']
-                                data[part][ntest][msc]['simple'][img]['architecture'][fsc]['flengthc'] = archres['flc']
-                                data[part][ntest][msc]['simple'][img]['architecture'][fsc]['painf'] = archres['painf']
-                                data[part][ntest][msc]['simple'][img]['architecture'][fsc]['pasup'] = archres['pasup']
-
+                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['flengths'] = archres['fls']
+                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['flengthc'] = archres['flc']
+                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['painf'] = archres['painf']
+                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['pasup'] = archres['pasup']
+                            '''
     return data
 
 
