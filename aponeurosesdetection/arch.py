@@ -4,11 +4,14 @@ def dame_participants():
     Returns:
         list: list of strings
     """    
-
+    part = ['01_Kevin']
+    
+    '''
     part = ['01_Kevin', '02_rafaelopes', '03_charlesbarrand', '04_guilhem',
         '05_leandre', '06_thomasmartine', '10_victor', 
         '11_youssouf', '12_sufyan', '16_julien', '34_nicolas']
-
+    '''
+    
     # part = ['01_Kevin', '02_rafaelopes', '03_charlesbarrand', '04_guilhem',
     #         '05_leandre', '06_thomasmartine', '09_serge', '10_victor',
     #         '11_youssouf', '12_sufyan', '14_thomasFrancois',
@@ -67,7 +70,6 @@ def dame_arch_data(archpaths):
     import os
     import fnmatch
 
-
     archdata = dict()
     for participant in archpaths.keys():
         
@@ -82,19 +84,23 @@ def dame_arch_data(archpaths):
             bf_files = {'simple': fnmatch.filter(files, str('*_bfs.txt')),
                         'panoramic': fnmatch.filter(files, str('*_bfp.txt')),
                         'landmark': fnmatch.filter(files, str('*_bfpm.txt'))}
-
+            '''
             sm_files = {'simple': fnmatch.filter(files, str('*_sms.txt')),
                         'panoramic': fnmatch.filter(files, str('*_smp.txt')),
                         'landmark': fnmatch.filter(files, str('*_smpm.txt'))}
-
+            '''
             # get data
             bf_data = _organize_arch(fils=bf_files, pth=path)
+            '''
             sm_data = _organize_arch(fils=sm_files, pth=path)
-
+            '''
+            
             muscles = dict()
             muscles['BF'] = bf_data
+            '''
             muscles['SM'] = sm_data
-
+            '''
+            
             sessions[ntest] = muscles
             
         archdata[participant] = sessions
@@ -113,9 +119,12 @@ def _calcula_arch(data):
         dict -- Dict containing coordinates and architecture results for each participant/trial/image
     """
 
-    import fnmatch
     import numpy as np
-    import 
+    import autoP
+    import autoS
+    import manuP
+    import manuS
+    
     for part in data.keys():
         for ntest in data[part].keys():
             for msc in data[part][ntest].keys():
@@ -132,47 +141,34 @@ def _calcula_arch(data):
                     for img in data[part][ntest][msc][echo].keys():
 
                         print(part, ntest, msc, echo, img)
+
                         
                         if echo == 'panoramic':
+                            path_to_txt = data[part][ntest][msc][echo][img]['path']
+                            path_to_jpg = path_to_txt[:-3] + 'jpg'                            
                             idx = data[part][ntest][msc]['panoramic'][img]['coords']
                             # manual processing
                             architecture1 = idfascicles(coords=idx, img='pano')
+                            architecture1 = manuP.panoManu(architecture1)
                             data[part][ntest][msc]['panoramic'][img]['architecture manual'] = architecture1
                             #automatic processing
-                            architecture2 = autoP.panoprocessing(path 2 img, path 2 txt file)
+                            architecture2 = autoP.panoprocessing(path_to_jpg, path_to_txt)
                             data[part][ntest][msc]['panoramic'][img]['architecture auto'] = architecture2
                             
-                            '''
-                            for fsc in fnmatch.filter(architecture1.keys(), 'fsc_*'):
-                                fl = midelengthpano(fsc=architecture1[fsc]['coords'], calfct=architecture1['calfct'])
-                                data[part][ntest][msc]['panoramic'][img]['architecture manual'][fsc]['flength'] = fl
 
-                                dist = localizafasc(ref=architecture1['insertion']['coords'], fasc=architecture1[fsc]['coords'], 
-                                                        calfct=architecture1['calfct'])
-                                data[part][ntest][msc]['panoramic'][img]['architecture manual'][fsc]['dist'] = dist  
-                            '''
 
                         if echo == 'simple':
-                            
+                            path_to_txt = data[part][ntest][msc][echo][img]['path']
+                            path_to_jpg = path_to_txt[:-3] + 'jpg'                            
                             idx = data[part][ntest][msc]['simple'][img]['coords']
+                            #manual processing
                             architecture1 = idfascicles(coords=idx, img='simple')
+                            architecture1 = manuS.simpleManu(architecture1)
                             data[part][ntest][msc]['simple'][img]['architecture manual'] = architecture1
-                            architecture2 = 
+                            #automatic processing
+                            architecture2 = autoS.simpleprocessing(path_to_jpg)
                             data[part][ntest][msc]['simple'][img]['architecture auto'] = architecture2
                             
-                            '''
-                            for fsc in fnmatch.filter(architecture.keys(), 'fsc_*'):
-                                aposup = architecture1['aposup']['coords']
-                                apoinf = architecture1['apoinf']['coords']
-                                calfct = architecture1['calfct']
-                                fasci = architecture1[fsc]['coords']
-
-                                archres = analizearch(aposup=aposup, apoinf=apoinf, fsc=fasci, calfct=calfct)
-                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['flengths'] = archres['fls']
-                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['flengthc'] = archres['flc']
-                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['painf'] = archres['painf']
-                                data[part][ntest][msc]['simple'][img]['architecture manual'][fsc]['pasup'] = archres['pasup']
-                            '''
     return data
 
 
@@ -221,7 +217,7 @@ def idfascicles(coords, img):
     import numpy as np
 
     architecture = dict()
-    architecture['calfct'] = coords[1, 1] - coords[0, 1]  # 1 cm calibration factor for all panoramic and simple images
+    architecture['calfct in mm'] = 10/(coords[1, 1] - coords[0, 1])  # 1 cm calibration factor for all panoramic and simple images
 
     if img == 'pano':
         architecture['insertion'] = {'coords': coords[2,:]}
@@ -241,86 +237,86 @@ def idfascicles(coords, img):
             architecture['fsc_'+str(f+1)] = {'coords': coords[fsc_idx[f]:fsc_idx[f]+4, :]}
 
     return architecture
-
-def midelengthpano(fsc, calfct):
-    """Calculate fascicle length in the manually labelles panoramic images
-    
-    Arguments:
-        fsc {[type]} -- [description]
-        calfct {[type]} -- [description]
-    """
-
-    import numpy as np
-    d = np.diff(fsc, axis=0)
-    segdists = np.hypot(d[:,0], d[:,1])
-    fsclength = np.sum(segdists) / calfct
-
-    return fsclength
-
-def getanglepano(fsc, apo):
-
-    # calculate angle taking the points 1 and 3 of the fascicle
-
-    
-
-    return pangle
-
-def localizafasc(ref, fasc, calfct):
-    """This function calculates the distance (in mm) between the first point (bottom, close to the inferior aponeurosis) 
-    defining a given muscle fascicle and a point of reference. In the case of panoramic images of the BF muscle, 
-    the insertion of the long head aponeurosis has been taken (manually labeled).
-    
-    Arguments:
-        ref {array} -- coordinates of the reference point to which fascicles will be compared
-        fasc {array} -- x and y coordinates of a given fascicle
-        calfct {array} -- calibration factor previously calculated from two reference points in the scale of the US image
-    
-    Returns:
-        numpy.float64 -- distance in mm
-    """
-
-    distance = abs(fasc[0,0] - ref[0]) / calfct
-
-    return distance
-
-def dameangulo(seg1, seg2):
-
-    import numpy as np
-
-    x1, y1, x2, y2 = seg1[0,0], seg1[0,1], seg1[3,0], seg1[3,1]
-    x3, y3, x4, y4 = seg2[0,0], seg2[0,1], seg2[3,0], seg2[3,1]
-
-    seg1_ang = np.arctan2(x2 - x1, y2 - y1)
-    seg2_ang = np.arctan2(x4 - x3, y4 - y3)
-
-    ang = np.rad2deg(seg2_ang - seg1_ang)
-
-    return ang
-
-def analizearch(aposup, apoinf, fsc, calfct):
-
-
-    import numpy as np
-
-    thick = np.mean(abs(apoinf[:,1] - aposup[:,1]) / calfct)
-
-    # pennation angles
-    painf = dameangulo(apoinf, fsc)
-    pasup = dameangulo(aposup, fsc)
-
-    # fascicle lengths
-    fls = thick / np.sin(np.deg2rad(painf))
-
-    apoang = dameangulo(aposup, apoinf)
-    flc = ((np.sin(np.deg2rad(apoang + 90))) * (thick)) / np.sin(np.deg2rad(180 - (apoang + 180-painf)))
-
-    architecture = {'painf': painf,
-                    'pasup': pasup,
-                    'fls': fls,
-                    'flc': flc}
-
-    return architecture
-
+#
+#def midelengthpano(fsc, calfct):
+#    """Calculate fascicle length in the manually labelles panoramic images
+#    
+#    Arguments:
+#        fsc {[type]} -- [description]
+#        calfct {[type]} -- [description]
+#    """
+#
+#    import numpy as np
+#    d = np.diff(fsc, axis=0)
+#    segdists = np.hypot(d[:,0], d[:,1])
+#    fsclength = np.sum(segdists) / calfct
+#
+#    return fsclength
+#
+#def getanglepano(fsc, apo):
+#
+#    # calculate angle taking the points 1 and 3 of the fascicle
+#
+#    
+#
+#    return pangle
+#
+#def localizafasc(ref, fasc, calfct):
+#    """This function calculates the distance (in mm) between the first point (bottom, close to the inferior aponeurosis) 
+#    defining a given muscle fascicle and a point of reference. In the case of panoramic images of the BF muscle, 
+#    the insertion of the long head aponeurosis has been taken (manually labeled).
+#    
+#    Arguments:
+#        ref {array} -- coordinates of the reference point to which fascicles will be compared
+#        fasc {array} -- x and y coordinates of a given fascicle
+#        calfct {array} -- calibration factor previously calculated from two reference points in the scale of the US image
+#    
+#    Returns:
+#        numpy.float64 -- distance in mm
+#    """
+#
+#    distance = abs(fasc[0,0] - ref[0]) / calfct
+#
+#    return distance
+#
+#def dameangulo(seg1, seg2):
+#
+#    import numpy as np
+#
+#    x1, y1, x2, y2 = seg1[0,0], seg1[0,1], seg1[3,0], seg1[3,1]
+#    x3, y3, x4, y4 = seg2[0,0], seg2[0,1], seg2[3,0], seg2[3,1]
+#
+#    seg1_ang = np.arctan2(x2 - x1, y2 - y1)
+#    seg2_ang = np.arctan2(x4 - x3, y4 - y3)
+#
+#    ang = np.rad2deg(seg2_ang - seg1_ang)
+#
+#    return ang
+#
+#def analizearch(aposup, apoinf, fsc, calfct):
+#
+#
+#    import numpy as np
+#
+#    thick = np.mean(abs(apoinf[:,1] - aposup[:,1]) / calfct)
+#
+#    # pennation angles
+#    painf = dameangulo(apoinf, fsc)
+#    pasup = dameangulo(aposup, fsc)
+#
+#    # fascicle lengths
+#    fls = thick / np.sin(np.deg2rad(painf))
+#
+#    apoang = dameangulo(aposup, apoinf)
+#    flc = ((np.sin(np.deg2rad(apoang + 90))) * (thick)) / np.sin(np.deg2rad(180 - (apoang + 180-painf)))
+#
+#    architecture = {'painf': painf,
+#                    'pasup': pasup,
+#                    'fls': fls,
+#                    'flc': flc}
+#
+#    return architecture
+#
 def distsimpleimg(coords):
     """Return distance (cm) from muscle insertion point 
     to the place where the single image ultrasound was taken
