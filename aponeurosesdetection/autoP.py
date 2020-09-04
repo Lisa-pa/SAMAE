@@ -50,12 +50,12 @@ def panoprocessing(path_to_image, path_to_txtfile):
         #pt_intersection is the point where aponeuroses meet = insertion point
     
         USimageP, pt_intersection, l1,l2,c1,c2 = manualcropping(RGBimageP, path_to_txtfile)
-       
-        '''
+
+        
         cv2.imshow('Cropped image', USimageP)
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
-        '''
+        
         
         #################################################
         
@@ -66,7 +66,8 @@ def panoprocessing(path_to_image, path_to_txtfile):
         newWidth = int(initialsize[0]*PERCENTAGE/100)
         newHeight = int(initialsize[1]*PERCENTAGE/100)
         USimageP = cv2.resize(src = USimageP, dsize = (newWidth, newHeight), interpolation = cv2.INTER_CUBIC)
-        
+        cv2.imwrite(path_to_image[:-8]+'_cropped.jpg', USimageP)
+
         calibX = calibX / PERCENTAGE * 100
         calibY = calibY / PERCENTAGE * 100
         
@@ -91,7 +92,7 @@ def panoprocessing(path_to_image, path_to_txtfile):
         
         #Preprocessing
         USimageP_pp = preprocessingApo(I = USimageP, typeI = 'panoramic', mode = 'localmean', margin = 0, sizeContrast = 41)
-        
+        cv2.imwrite(path_to_image[:-8]+'_preprocessed.jpg', USimageP_pp)
         '''
         cv2.imshow('Pre-processed image',USimageP_pp)
         cv2.waitKey(0) & 0xFF
@@ -113,115 +114,113 @@ def panoprocessing(path_to_image, path_to_txtfile):
                 #find approximate locations and linear approximations
                 paramSup, paramInf, locSup, locInf = apoL.twoApoLocation(USimageP_pp[:, i*sampleSize:(i+1)*sampleSize], angle1 = 80, angle2 = 101, thresh = None, calibV = calibX)
                 
-                if paramSup[0] == 'error':
-                    archi_auto = dict()
-                    archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
-                    archi_auto['calfct_to_mm'] = {'vertical axis': calibX, 'horizontal axis': calibY}
-                    archi_auto['aposup'] = {'coords':'error'}
-                    archi_auto['apoinf'] = {'coords':'error'}
-                    return archi_auto
-                
-                #######################
-                #######################
-                ### upper apo processing
-                #sub-images of superficial aponeurosis
-                Sup_i = np.copy(USimageP[locSup[0]:locSup[1], i*sampleSize:(i+1)*sampleSize])
-                Sup_i_pp = np.copy(USimageP_pp[locSup[0]:locSup[1], i*sampleSize:(i+1)*sampleSize]) #upper aponeurosis in sample i
-        
-                #Initiate contour with linear approximation
-                iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [paramSup[0], paramSup[1]-locSup[0], 10])       
-                
-                #Calculate contour with active contour model
-                contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-                print('Upper aponeurosis contour found in ', nSup_i, ' steps')
-    
-                #verify contour has been detected and ask for validation
-                if np.amin(contourSup_i) > 0: #try a second time with a bigger initial contour if no contour has been found
-                    iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [paramSup[0], paramSup[1] - locSup[0], 40])
+                if paramSup[0] != 'error':
+
+                    #######################
+                    #######################
+                    ### upper apo processing
+                    #sub-images of superficial aponeurosis
+                    Sup_i = np.copy(USimageP[locSup[0]:locSup[1], i*sampleSize:(i+1)*sampleSize])
+                    Sup_i_pp = np.copy(USimageP_pp[locSup[0]:locSup[1], i*sampleSize:(i+1)*sampleSize]) #upper aponeurosis in sample i
+            
+                    #Initiate contour with linear approximation
+                    iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [paramSup[0], paramSup[1]-locSup[0], 10])       
+                    
+                    #Calculate contour with active contour model
                     contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
                     print('Upper aponeurosis contour found in ', nSup_i, ' steps')
-    
-                if np.amin(contourSup_i)<=0: #if the contour exists, extract it
-                    contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = locSup[0], offSetY = i * sampleSize)
-                    #ask for manual validation of the contour
-                    cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
-                    cv2.imshow('Pre-processed sample',Sup_i_pp)
-                    valid = tkbox.askyesno('Need user validation', 'Do you validate the contour? After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
-                    cv2.waitKey(0) & 0xFF
-                    cv2.destroyAllWindows()
-                    
-                    if valid == False:
-                        #try a second time with a new initial contour
-                        points = np.array([[0, 0], [int(Sup_i_pp.shape[0]/2), 0], [int(Sup_i_pp.shape[0]/2), Sup_i_pp.shape[1]], [0, Sup_i_pp.shape[1]]])
-                        iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'set_of_points', setPoints = points)
+        
+                    #verify contour has been detected and ask for validation
+                    if np.amin(contourSup_i) > 0: #try a second time with a bigger initial contour if no contour has been found
+                        iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [paramSup[0], paramSup[1] - locSup[0], 40])
                         contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
                         print('Upper aponeurosis contour found in ', nSup_i, ' steps')
-                        if np.amin(contourSup_i) <= 0 :
-                            contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = locSup[0], offSetY = i * sampleSize)
-                            #ask for manual validation of the contour
-                            cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
-                            cv2.imshow('Pre-processed sample',Sup_i_pp)
-                            valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
-                            cv2.waitKey(0) & 0xFF
-                            cv2.destroyAllWindows()                
+        
+                    if np.amin(contourSup_i)<=0: #if the contour exists, extract it
+                        contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = locSup[0], offSetY = i * sampleSize)
+                        #ask for manual validation of the contour
+                        cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
+                        cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                        cv2.imshow('Pre-processed sample',Sup_i_pp)
+                        valid = tkbox.askyesno('Need user validation', 'Do you validate the contour? After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+                        cv2.waitKey(0) & 0xFF
+                        cv2.destroyAllWindows()
+                        
+                        if valid == False:
+                            #try a second time with a new initial contour
+                            points = np.array([[0, 0], [int(Sup_i_pp.shape[0]/2), 0], [int(Sup_i_pp.shape[0]/2), Sup_i_pp.shape[1]], [0, Sup_i_pp.shape[1]]])
+                            iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'set_of_points', setPoints = points)
+                            contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+                            print('Upper aponeurosis contour found in ', nSup_i, ' steps')
+                            if np.amin(contourSup_i) <= 0 :
+                                contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = locSup[0], offSetY = i * sampleSize)
+                                #ask for manual validation of the contour
+                                cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
+                                cv2.imshow('Pre-processed sample',Sup_i_pp)
+                                cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                                valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+                                cv2.waitKey(0) & 0xFF
+                                cv2.destroyAllWindows()                
+                        
+                        
+                        if valid == True:
+                            #add contour_i to list 'contoursSup'
+                            for elem in contourSup_points_i:
+                                contoursSup.append(elem)
                     
                     
-                    if valid == True:
-                        #add contour_i to list 'contoursSup'
-                        for elem in contourSup_points_i:
-                            contoursSup.append(elem)
-                
-                
-                ####################
-                ####################
-                ### deep apo
-                #sub-images of deep aponeurosis
-                Inf_i = np.copy(USimageP[locInf[0]:locInf[1], i*sampleSize:(i+1)*sampleSize])
-                Inf_i_pp = np.copy(USimageP_pp[locInf[0]:locInf[1], i*sampleSize:(i+1)*sampleSize]) #deep aponeurosis in sample i
-                
-                #Initiate contour with linear approximation
-                iniInf_i = apoC.initiateContour(Inf_i_pp, typeC = 'quadrangle_param', param = [paramInf[0], paramInf[1]-locInf[0], 10])
-    
-                #Calculate contour with active contour model
-                contourInf_i, nInf_i = apoC.activeContour(Inf_i_pp, iniInf_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-                print('Deep aponeurosis contour found in ', nInf_i, ' steps')
-                
-                
-                #Verify contour has been detected and ask for validation
-                if np.amin(contourInf_i) > 0: #try a second time with a bigger initial contour if no contour has been found
-                    iniInf_i = apoC.initiateContour(Inf_i_pp, typeC = 'quadrangle_param', param = [paramInf[0], paramInf[1] - locInf[0], 40])
+                    ####################
+                    ####################
+                    ### deep apo
+                    #sub-images of deep aponeurosis
+                    Inf_i = np.copy(USimageP[locInf[0]:locInf[1], i*sampleSize:(i+1)*sampleSize])
+                    Inf_i_pp = np.copy(USimageP_pp[locInf[0]:locInf[1], i*sampleSize:(i+1)*sampleSize]) #deep aponeurosis in sample i
+                    
+                    #Initiate contour with linear approximation
+                    iniInf_i = apoC.initiateContour(Inf_i_pp, typeC = 'quadrangle_param', param = [paramInf[0], paramInf[1]-locInf[0], 10])
+        
+                    #Calculate contour with active contour model
                     contourInf_i, nInf_i = apoC.activeContour(Inf_i_pp, iniInf_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
                     print('Deep aponeurosis contour found in ', nInf_i, ' steps')
-    
-                if np.amin(contourInf_i)<=0: #if the contour exists, extract it
-                    contourInf_image_i, contourInf_points_i = apoC.extractContour(contourInf_i, Inf_i, offSetX = locInf[0], offSetY = i * sampleSize)
-                    #ask for manual validation of the contour
-                    cv2.imshow('Deep aponeurosis contour on sample i', contourInf_image_i)
-                    cv2.imshow('Pre-processed sample',Inf_i_pp)
-                    valid = tkbox.askyesno('Need user validation', 'Do you validate the contours? After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
-                    cv2.waitKey(0) & 0xFF
-                    cv2.destroyAllWindows()
                     
-                    if valid == False:
-                        #try a second time with a new initial contour
-                        points = np.array([[int(Inf_i_pp.shape[0]/2), 0], [Inf_i_pp.shape[0], 0], [Inf_i_pp.shape[0],Inf_i_pp.shape[1]], [int(Inf_i_pp.shape[0]/2), Inf_i_pp.shape[1]]])
-                        iniInf_i = apoC.initiateContour(Inf_i_pp, typeC = 'set_of_points', setPoints = points)
+                    
+                    #Verify contour has been detected and ask for validation
+                    if np.amin(contourInf_i) > 0: #try a second time with a bigger initial contour if no contour has been found
+                        iniInf_i = apoC.initiateContour(Inf_i_pp, typeC = 'quadrangle_param', param = [paramInf[0], paramInf[1] - locInf[0], 40])
                         contourInf_i, nInf_i = apoC.activeContour(Inf_i_pp, iniInf_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
                         print('Deep aponeurosis contour found in ', nInf_i, ' steps')
-                        if np.amin(contourInf_i) <= 0 :
-                            contourInf_image_i, contourInf_points_i = apoC.extractContour(contourInf_i, Inf_i, offSetX = locInf[0], offSetY = i * sampleSize)
-                            #ask for manual validation of the contour
-                            cv2.imshow('Deep aponeurosis contour on sample i', contourInf_image_i)
-                            cv2.imshow('Pre-processed sample',Inf_i_pp)
-                            valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
-                            cv2.waitKey(0) & 0xFF
-                            cv2.destroyAllWindows()                
-                    
-                    if valid == True:
-                        #add contour_i to contourInf
-                        for elem in contourInf_points_i:
-                            contoursInf.append(elem)
-            
+        
+                    if np.amin(contourInf_i)<=0: #if the contour exists, extract it
+                        contourInf_image_i, contourInf_points_i = apoC.extractContour(contourInf_i, Inf_i, offSetX = locInf[0], offSetY = i * sampleSize)
+                        #ask for manual validation of the contour
+                        cv2.imshow('Deep aponeurosis contour on sample i', contourInf_image_i)
+                        cv2.imshow('Pre-processed sample',Inf_i_pp)
+                        cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                        valid = tkbox.askyesno('Need user validation', 'Do you validate the contours? After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+                        cv2.waitKey(0) & 0xFF
+                        cv2.destroyAllWindows()
+                        
+                        if valid == False:
+                            #try a second time with a new initial contour
+                            points = np.array([[int(Inf_i_pp.shape[0]/2), 0], [Inf_i_pp.shape[0], 0], [Inf_i_pp.shape[0],Inf_i_pp.shape[1]], [int(Inf_i_pp.shape[0]/2), Inf_i_pp.shape[1]]])
+                            iniInf_i = apoC.initiateContour(Inf_i_pp, typeC = 'set_of_points', setPoints = points)
+                            contourInf_i, nInf_i = apoC.activeContour(Inf_i_pp, iniInf_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+                            print('Deep aponeurosis contour found in ', nInf_i, ' steps')
+                            if np.amin(contourInf_i) <= 0 :
+                                contourInf_image_i, contourInf_points_i = apoC.extractContour(contourInf_i, Inf_i, offSetX = locInf[0], offSetY = i * sampleSize)
+                                #ask for manual validation of the contour
+                                cv2.imshow('Deep aponeurosis contour on sample i', contourInf_image_i)
+                                cv2.imshow('Pre-processed sample',Inf_i_pp)
+                                cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                                valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+                                cv2.waitKey(0) & 0xFF
+                                cv2.destroyAllWindows()                
+                        
+                        if valid == True:
+                            #add contour_i to contourInf
+                            for elem in contourInf_points_i:
+                                contoursInf.append(elem)
+                
             
             ##################
             ##################
@@ -235,58 +234,66 @@ def panoprocessing(path_to_image, path_to_txtfile):
     
                 # find approximate location of aponeurosis
                 param, loc = apoL.oneApoLocation(Sup_i_pp, thresh = None, calibV = calibX, angle1 = int(50), angle2 = int(90))
+                
+                if param[0] != 'error':
+                    #initiate contour
+                    iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [param[0], param[1] - offS, 10])
 
-                #initiate contour
-                iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [param[0], param[1] - offS, 10])
-                
-                '''
-                cont_ini_im, ptini = apoC.extractContour(iniSup_i, Sup_i,offSetX = offS, offSetY = i * sampleSize)
-                cv2.imshow('initial contour', cont_ini_im)
-                cv2.waitKey(0) & 0xFF
-                cv2.destroyAllWindows()
-                '''
-    
-    
-                #calculate contour with active contour model
-                contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-                print('Upper aponeurosis contour found in ', nSup_i, ' steps')
-                
-                if np.amin(contourSup_i) > 0: #try a second time with a bigger initial contour if no contour has been found
-                    iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [param[0], param[1] - offS, 40])
-                    contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
-                    print('Upper aponeurosis contour found in ', nSup_i, ' steps')
-                      
-                if np.amin(contourSup_i) <= 0 :
-                    contourSup_image_i, contourSup_image_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = offS, offSetY = i * sampleSize)
-                    
-                    #ask for manual validation of the contour
-                    cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
-                    valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+                    '''
+                    cont_ini_im, ptini = apoC.extractContour(iniSup_i, Sup_i,offSetX = offS, offSetY = i * sampleSize)
+                    cv2.imshow('initial contour', cont_ini_im)
                     cv2.waitKey(0) & 0xFF
                     cv2.destroyAllWindows()
+                    '''
+        
+                    #calculate contour with active contour model
+                    contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+                    print('Upper aponeurosis contour found in ', nSup_i, ' steps')
                     
-                    if valid == False:
-                        #try a second time with a new initial contour
-                        points = np.array([[0, 0], [int(Sup_i_pp.shape[0]/2), 0],[int(Sup_i_pp.shape[0]/2), Sup_i_pp.shape[1]], [0, Sup_i_pp.shape[1]]])
-                        iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'set_of_points', setPoints = points)
+                    if np.amin(contourSup_i) > 0: #try a second time with a bigger initial contour if no contour has been found
+                        iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [param[0], param[1] - offS, 40])
                         contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
                         print('Upper aponeurosis contour found in ', nSup_i, ' steps')
-                        if np.amin(contourSup_i) <= 0 :
-                            contourSup_image_i, contourSup_image_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = offS, offSetY = i * sampleSize)
-                            #ask for manual validation of the contour
-                            cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
-                            cv2.imshow('Pre-processed sample',Sup_i_pp)
-                            valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
-                            cv2.waitKey(0) & 0xFF
-                            cv2.destroyAllWindows()
+                          
+                    if np.amin(contourSup_i) <= 0:
+                        contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = offS, offSetY = i * sampleSize)
+                        #ask for manual validation of the contour
+                        cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
+                        valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+                        cv2.waitKey(0) & 0xFF
+                        cv2.destroyAllWindows()
                         
-                    if valid == True:
-                        #add contour_i to list 'contoursSup'
-                        for elem in contourSup_points_i:
-                            contoursSup.append(elem)
+                        if valid == False:
+                            #try a second time with a new initial contour
+                            points = np.array([[0, 0], [int(Sup_i_pp.shape[0]/2), 0],[int(Sup_i_pp.shape[0]/2), Sup_i_pp.shape[1]], [0, Sup_i_pp.shape[1]]])
+                            iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'set_of_points', setPoints = points)
+                            contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
+                            print('Upper aponeurosis contour found in ', nSup_i, ' steps')
+                            if np.amin(contourSup_i) <= 0 :
+                                contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = offS, offSetY = i * sampleSize)
+                                #ask for manual validation of the contour
+                                cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
+                                cv2.imshow('Pre-processed sample',Sup_i_pp)
+                                valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
+                                cv2.waitKey(0) & 0xFF
+                                cv2.destroyAllWindows()
+                            
+                        if valid == True:
+                            #add contour_i to list 'contoursSup'
+                            for elem in contourSup_points_i:
+                                contoursSup.append(elem)
         
         contoursSup.append(pt_intersection)
         contoursInf.append(pt_intersection)
+        
+        if len(contoursSup) <=1 or len(contoursInf) <= 1:
+            archi_auto = dict()
+            archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
+            archi_auto['calfct_to_mm'] = {'vertical axis': calibX, 'horizontal axis': calibY}
+            archi_auto['aposup'] = {'coords':'error'}
+            archi_auto['apoinf'] = {'coords':'error'}
+            return archi_auto
+            
         
         #Interpolation and extrapolation
         spline_Sup = apoC.approximateApo(p = contoursSup, apoType = 'upper', I = USimageP, typeapprox = 'Bspline', d = 1)
@@ -294,12 +301,12 @@ def panoprocessing(path_to_image, path_to_txtfile):
         
         
         #muscle thickness measurement
-        abscissa, thickness, thickness_spline = MUFeaM.muscleThickness(I = USimageP, spl1 = spline_Sup, spl2 = spline_Inf, start = 0, end = MAXBAND*sampleSize, calibV = calibX, calibH = calibY)
+        abscissa, thickness, thickness_spline = MUFeaM.muscleThickness(spl1 = spline_Sup, spl2 = spline_Inf, start = 0, end = MAXBAND*sampleSize, calibV = calibX, calibH = calibY)
     
     
         #Calculate coordinates of aponeuroses
-        coordSup = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_Sup, interval = [0, int(pt_intersection[1])])
-        coordInf = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_Inf, interval = [0, int(pt_intersection[1])])
+        coordSup, spline_Sup = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_Sup, interval = [0, int(pt_intersection[1])])
+        coordInf, spline_Inf = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_Inf, interval = [0, int(pt_intersection[1])])
         
         
        #Fascicles detection
@@ -318,6 +325,8 @@ def panoprocessing(path_to_image, path_to_txtfile):
             print('MVEF running')
             sca = np.arange(round(0.3/calibX), round(0.7/calibX), 0.5)
             MVEF_image = FaDe.MVEF_2D(255-ROI, sca, [0.5, 0])
+            cv2.imwrite(path_to_image[:-8]+'__'+str(i)+'_mvef.jpg', MVEF_image)
+            
             '''
             cv2.imshow('MVEF',MVEF_image)
             cv2.waitKey(0) & 0xFF
@@ -328,7 +337,8 @@ def panoprocessing(path_to_image, path_to_txtfile):
             threshMVEF_percent = 85
             threshMVEF = np.percentile(MVEF_image, threshMVEF_percent)
             MVEF_image2 = cv2.threshold(MVEF_image, threshMVEF, 255, cv2.THRESH_BINARY)[1]
-          
+            cv2.imwrite(path_to_image[:-8]+'__'+str(i)+'_mvef2.jpg', MVEF_image2)
+            
             #locate muscle snippets and filter them
             snippets, snippets_line = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
                                                           minLength = 4, rangeAngles = [6,40],\
@@ -360,15 +370,15 @@ def panoprocessing(path_to_image, path_to_txtfile):
             averages.append(FaDe.contourAverage(fasc[i]))
             
         #interpolations to get fascicles' curve
-        splines_fasc = FaDe.approximateFasc(I = USimageP, typeapprox = 'Bspline', listF = averages, d = 1)
+        splines_fasc = FaDe.approximateFasc(typeapprox = 'Bspline', listF = averages, d = 1)
     
         #Location of fascicles: (in mm from aponeuroses intersection point)
         loc_fasc = MUFeaM.locateFasc(splines_fasc, pt_intersection, calibY)
         print(loc_fasc)
     
         #intersections of fascicles with aponeuroses (in pixels)
-        intersecL = MUFeaM.findIntersections(spline_Inf, splines_fasc, USimageP, typeI = 'panoramic')
-        intersecU = MUFeaM.findIntersections(spline_Sup, splines_fasc, USimageP, typeI = 'panoramic')
+        intersecL = MUFeaM.findIntersections(spline_Inf, splines_fasc, start = int(USimageP.shape[1]/4))
+        intersecU = MUFeaM.findIntersections(spline_Sup, splines_fasc, start = int(USimageP.shape[1]/4))
         
         #Pennation angles calculation (in degree)
         PA_Sup = MUFeaM.pennationAngles(spline_Sup, splines_fasc, intersecU, calibX, calibY)
@@ -386,6 +396,7 @@ def panoprocessing(path_to_image, path_to_txtfile):
         archi_auto['MT'] = {'coords': np.vstack((abscissa, thickness)).T, 'columns interval': [0, MAXBAND*sampleSize]}
         
         for index in range(len(splines_fasc)):
+            archi_auto['fasc' + str(index+1)] = {}
             typeIU = 'out of image'
             typeIL = 'out of image'
             typeFL = 'out of image'
@@ -415,7 +426,6 @@ def panoprocessing(path_to_image, path_to_txtfile):
             archi_auto['fasc' + str(index+1)]['FL'] = {'in/out of the image':typeFL,
                                                        'length in mm': fasc_length[index]}
  
-    
     
     
     
@@ -457,10 +467,12 @@ def panoprocessing(path_to_image, path_to_txtfile):
     #                    USimageP[coord[n2][0]+1, coord[n2][1], :] = [0,0,255]
     #                if coord[n2][0]-1>=0 and coord[n2][0]-1<USimageP.shape[0]:  
     #                    USimageP[coord[n2][0]-1, coord[n2][1], :] = [0,0,255]      
-            
+    
+        cv2.imwrite(path_to_image[:-8]+'_final.jpg', USimageP)
         cv2.imshow('full image', USimageP)
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
+        
         '''
         #FEATURES
         import matplotlib.pyplot as plt
