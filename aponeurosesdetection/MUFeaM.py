@@ -4,10 +4,14 @@ import math
 def pointsCoordinates(typeA, param, interval):
     """
     """
-    
+    if typeA == 'spline':
+        y = np.arange(int(interval[0]),int(interval[1]) + 1, 1)
+        x = np.int32(param(y))
+        coord = np.vstack((x, y)).T  
+        
     if typeA == 'linear':
         
-        if len(param):
+        if len(param)<2:
             raise ValueError('Missing parameter for line equation. param should have 2 coefficients.')
         
         y = np.arange(int(interval[0]),int(interval[1]) + 1, 1)
@@ -18,19 +22,14 @@ def pointsCoordinates(typeA, param, interval):
         import scipy.interpolate as interpolate
         param = interpolate.UnivariateSpline(y, x, k=1, ext = 0)
     
-    if typeA == 'spline':
-        y = np.arange(int(interval[0]),int(interval[1]) + 1, 1)
-        x = np.int32(param(y))
-        coord = np.vstack((x, y)).T        
     
-    return coord
+    return coord, param
 
-def muscleThickness(I, start, end, calibV, calibH, spl1 = None, spl2 = None, points1 = None, points2 = None):
+def muscleThickness(start, end, calibV, calibH, spl1 = None, spl2 = None, points1 = None, points2 = None):
     """ Function that calculates muscle thickness  in mm on the 
     interval of columns [start, end] of a US muscle image I.
     
     Args:
-        I (array): three-canal image
         spl1 (scipy spline): dimensions = approximation of one 
                         aponeurosis in I.
         spl2 (scipy spline): approximation of the 
@@ -52,10 +51,9 @@ def muscleThickness(I, start, end, calibV, calibH, spl1 = None, spl2 = None, poi
             mt (list) : muscle thickness in mm at the respecting abscissa
             spl (tuple): spline that interpolates the previous points (x,y)
     """
-    if start < 0 or end < 0  or end < start\
-        or start >= I.shape[1] or end >= I.shape[1]:
-        raise ValueError("start or end values go out of bounds of I's dimensions")
-
+    start = int(start)
+    end = int(end)
+    
     mt = []
     absc = []
     
@@ -63,9 +61,9 @@ def muscleThickness(I, start, end, calibV, calibH, spl1 = None, spl2 = None, poi
         raise ValueError('Missing value. Spline or array of points should be input for each aponeurosis.')
     
     if points1 is None:
-        points1 = pointsCoordinates('spline', spl1, [start, end])
+        points1, spl1 = pointsCoordinates('spline', spl1, [start, end])
     if points2 is None:
-        points2 = pointsCoordinates('spline', spl2, [start, end])
+        points2, spl2 = pointsCoordinates('spline', spl2, [start, end])
     
 
     for col in range(start, end + 1):
@@ -86,7 +84,7 @@ def muscleThickness(I, start, end, calibV, calibH, spl1 = None, spl2 = None, poi
 def diffSpline(x, spl1, spl2):
     return spl1(x) - spl2(x)
 
-def findIntersections(spl1, listSpl, I, typeI):
+def findIntersections(spl1, listSpl, start):
     """Function that finds the intersection point between
     two curves respectively defined by the spline spl1
     and the splines listed in listSpl
@@ -105,14 +103,10 @@ def findIntersections(spl1, listSpl, I, typeI):
     listIntersections = []
     
     t = 0.01
-    if typeI == 'simple':
-        x_ini = int(0)
-    if typeI == 'panoramic':
-        x_ini = int(I.shape[1]/4)
     
     for ind in range(len(listSpl)):
         spl2 = listSpl[ind]
-        y0 = int(scio.fsolve(diffSpline, x0 = x_ini, args = (spl1, spl2), xtol = t))
+        y0 = int(scio.fsolve(diffSpline, x0 = start, args = (spl1, spl2), xtol = t))
         x0 = int(spl2(y0))
         listIntersections.append([x0,y0])
 

@@ -373,7 +373,7 @@ def contourAverage(inputC):
     return outputL
 
 
-def approximateFasc(I, typeapprox, listF, d):
+def approximateFasc(typeapprox, listF, d):
     """listF is the list of fascicles.
     Each fascicle is a list of point defining its line
     

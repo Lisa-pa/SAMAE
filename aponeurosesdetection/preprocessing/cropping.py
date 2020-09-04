@@ -89,8 +89,11 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, 
         twomm = int(additionalCrop1 / calibV)
         threemm = int(additionalCrop2 / calibV)
         I2 = I2[twomm: - threemm, :-15]
+        UpRawsBelow[-1] = UpRawsBelow[-1] + int(additionalCrop1 / calibV)
+        BottomRawsBelow[-1] = BottomRawsBelow[-1] - int(additionalCrop2 / calibV)
+        RightColumnsBelow[-1] = RightColumnsBelow[-1] - 15
         
-    return I2
+    return I2, UpRawsBelow[-1], BottomRawsBelow[-1], LeftColumnsBelow[-1], RightColumnsBelow[-1]
 
 def manualcropping(I, pointsfile):
     """This function crops a copy of image I according to points stored 

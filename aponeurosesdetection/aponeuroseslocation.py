@@ -79,7 +79,6 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
     #find where are white regions and contour them
     contours_top = cv2.findContours(R_top,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0]
     contours_inf = cv2.findContours(R_inf,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0]
-    print('nb contours', len(contours_top), len(contours_inf))
     
     #find deep aponeurosis
     if len(contours_top) <1:
@@ -109,7 +108,6 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
             for cont0 in range(len(contours_top)):
                 if contours_top[cont0].shape[0] < mean_size_top - marg_size:
                     to_remove.append(cont0)
-                    print('cd on contour size')
                 #if maximum value of radon transform in the contour is too small compared to the
                 #others
 #                elif contours_top[cont0].shape[0] >= mean_size_top - marg_size and 
@@ -146,16 +144,11 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
             if min1 < min2  and  abs(min2-max1)*calibV < mini_dist_mm:
                 #skin and apo ; take the farthest to line 0
                 #recreate contours_top with only the right region
-                print('too close')
-                print('top', abs(min2-max1)*calibV)
                 contours_top = [region2]
             elif min2 < min1 and abs(min1-max2)*calibV < mini_dist_mm:
                 contours_top = [region1]
-                print('too close')
-                print('top', abs(min1-max2)*calibV)
             elif abs(min1-max2)*calibV >= mini_dist_mm and abs(min2-max1)*calibV >= mini_dist_mm: 
                 #take the closest to line 0
-                print('not too close')
                 if min1 < min2:
                     contours_top = [region1]
                 elif min2 < min1:
@@ -177,22 +170,18 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
             maximums = []
             
             for cont0 in range(len(contours_inf)):
-                print('shape contour', contours_inf[cont0].shape[0])
                 mean_size_inf = mean_size_inf + contours_inf[cont0].shape[0]
                 list_radonvalues = [I_radon[contours_inf[cont0][ind,0,1], contours_inf[cont0][ind,0,0]] for ind in range(contours_inf[cont0].shape[0])]
                 maximums.append(max(list_radonvalues))
-                print('maximums ', maximums)
                 
             mean_of_maxRadon = np.mean(maximums)
             mean_size_inf = mean_size_inf / len(contours_inf)
             marg_size = 5 #margin = 5 points in the contour 
-            print('max radon mean value', mean_of_maxRadon)
             
             
             for cont0 in range(len(contours_inf)):
                 if contours_inf[cont0].shape[0] < mean_size_inf - marg_size:
                     to_remove.append(cont0)
-                    print('cd on contour size')
                 #if maximum value of radon transform in the contour is too small compared to the
                 #others
 #                else:
@@ -231,16 +220,10 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
                 #skin and apo ; take the farthest to line 0
                 #recreate contours_inf with only the right region
                 contours_inf = [region1]
-                print('too close')
-                print('inf', abs(min2-max1)*calibV)
             elif max2 < max1 and abs(min1-max2)*calibV < mini_dist_mm:
-                print('too close')
-                print('inf', abs(min1-max2)*calibV)
                 contours_inf = [region2]
             elif abs(min1-max2)*calibV >= mini_dist_mm and abs(min2-max1)*calibV >= mini_dist_mm: 
                 #take the closest to line 0
-                print('not too close')
-                print('inf', abs(min2-max1)*calibV, abs(min1-max2)*calibV)
                 if max1 < max2:
                     contours_inf = [region2]
                 elif max2 < max1:
@@ -356,7 +339,6 @@ def oneApoLocation(I, calibV, angle1, angle2, thresh = None):
 
     #find where are white regions and contour them
     contours = cv2.findContours(I_radon3, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0]
-    print('nb contours', len(contours))
 
     
     #find  aponeurosis
@@ -382,7 +364,6 @@ def oneApoLocation(I, calibV, angle1, angle2, thresh = None):
             for cont0 in range(len(contours)):
                 if contours[cont0].shape[0] < mean_size - marg_size:
                     to_remove.append(cont0)
-                    print('cd on contour size')
 
 
             contours2 = [contours[ind] for ind in range(len(contours)) if ind not in to_remove]    
@@ -413,16 +394,11 @@ def oneApoLocation(I, calibV, angle1, angle2, thresh = None):
             if min1 < min2  and  abs(min2-max1)*calibV < mini_dist_mm:
                 #skin and apo ; take the farthest to line 0
                 #recreate contours with only the right region
-                print('too close')
-                print('top', abs(min2-max1)*calibV)
                 contours = [region1]
             elif min2 < min1 and abs(min1-max2)*calibV < mini_dist_mm:
                 contours = [region2]
-                print('too close')
-                print('top', abs(min1-max2)*calibV)
             elif abs(min1-max2)*calibV >= mini_dist_mm and abs(min2-max1)*calibV >= mini_dist_mm: 
                 #take the closest to line 0
-                print('not too close')
                 if min1 < min2:
                     contours = [region2]
                 elif min2 < min1:
