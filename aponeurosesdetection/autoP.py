@@ -1,8 +1,8 @@
 from calibration.calib import autoCalibration
 from preprocessing.cropping import manualcropping
 from preprocessing.preprocess import preprocessingApo
-import aponeuroseslocation as apoL
-import aponeuroses_contours as apoC
+import apoLoc as apoL
+import apoCont as apoC
 import MUFeaM
 import FaDe
 
@@ -43,7 +43,10 @@ def panoprocessing(path_to_image, path_to_txtfile):
         
         #Calibrate the image
         calibX, calibY = autoCalibration(RGBimageP)
-        
+        if calibX > 2 * calibY or calibY > 2 * calibX:
+            calibX = min(calibX, calibY)
+            calibY = min(calibX, calibY)
+            
         #################################################
         
         #Crop the image thanks to manual labelling
@@ -289,15 +292,16 @@ def panoprocessing(path_to_image, path_to_txtfile):
         if len(contoursSup) <=1 or len(contoursInf) <= 1:
             archi_auto = dict()
             archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
-            archi_auto['calfct_to_mm'] = {'vertical axis': calibX, 'horizontal axis': calibY}
+            archi_auto['calfct_to_mm before resize'] = {'vertical axis': calibX * PERCENTAGE / 100, 'horizontal axis': calibY* PERCENTAGE / 100}
+            archi_auto['calfct_to_mm after resize'] = {'vertical axis': calibX, 'horizontal axis': calibY}
             archi_auto['aposup'] = {'coords':'error'}
             archi_auto['apoinf'] = {'coords':'error'}
             return archi_auto
             
         
         #Interpolation and extrapolation
-        spline_Sup = apoC.approximateApo(p = contoursSup, apoType = 'upper', I = USimageP, typeapprox = 'Bspline', d = 1)
-        spline_Inf = apoC.approximateApo(p = contoursInf, apoType = 'lower', I = USimageP, typeapprox = 'Bspline', d = 1)
+        spline_Sup = apoC.approximateApo(p = contoursSup, apoType = 'upper', I = USimageP, typeapprox = 'polyfit', d = 3)
+        spline_Inf = apoC.approximateApo(p = contoursInf, apoType = 'lower', I = USimageP, typeapprox = 'polyfit', d = 2)
         
         
         #muscle thickness measurement
@@ -318,48 +322,51 @@ def panoprocessing(path_to_image, path_to_txtfile):
             minRow = np.amax(coordSup[i*sampleSize:(i+1)*sampleSize,0])
             maxRow = np.amin(coordInf[i*sampleSize:(i+1)*sampleSize,0])
             ROI = USimageP[minRow:maxRow, i*sampleSize:min((i+1)*sampleSize, pt_intersection[1]), :]
-            
-            #Enhance tube-like structures with MVEF method - Frangi -
-            #let's consider that fascicle diameter is between 0.3 mm and 0.5 mm,
-            #the following list is the equivalent interval in pixels, with a step of 0.5 pixel
-            print('MVEF running')
-            sca = np.arange(round(0.3/calibX), round(0.7/calibX), 0.5)
-            MVEF_image = FaDe.MVEF_2D(255-ROI, sca, [0.5, 0])
-            cv2.imwrite(path_to_image[:-8]+'__'+str(i)+'_mvef.jpg', MVEF_image)
-            
-            '''
-            cv2.imshow('MVEF',MVEF_image)
-            cv2.waitKey(0) & 0xFF
-            cv2.destroyAllWindows()
-            '''
-            #
-            #threshold
-            threshMVEF_percent = 85
-            threshMVEF = np.percentile(MVEF_image, threshMVEF_percent)
-            MVEF_image2 = cv2.threshold(MVEF_image, threshMVEF, 255, cv2.THRESH_BINARY)[1]
-            cv2.imwrite(path_to_image[:-8]+'__'+str(i)+'_mvef2.jpg', MVEF_image2)
-            
-            #locate muscle snippets and filter them
-            snippets, snippets_line = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
-                                                          minLength = 4, rangeAngles = [6,40],\
-                                                          percentageAlign = 0.80,\
-                                                          offSetX = minRow, offSetY = i*sampleSize)
-            if snippets == 'error':
-                archi_auto = dict()
-                archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
-                archi_auto['calfct_to_mm'] = {'vertical axis': calibX, 'horizontal axis': calibY}
-                archi_auto['aposup'] = {'coords':coordSup}
-                archi_auto['apoinf'] = {'coords':coordInf}
-                archi_auto['MT'] = {'coords': np.vstack((abscissa, thickness)).T, 'columns interval': [0, MAXBAND*sampleSize]}
-                return archi_auto
+            if ROI.size>0:
+                #Enhance tube-like structures with MVEF method - Frangi -
+                #let's consider that fascicle diameter is between 0.3 mm and 0.5 mm,
+                #the following list is the equivalent interval in pixels, with a step of 0.5 pixel
+                print('MVEF running')
+                sca = np.arange(round(0.3/calibX), round(0.7/calibX), 0.5)
+                MVEF_image = FaDe.MVEF_2D(255-ROI, sca, [0.5, 0])
+                cv2.imwrite(path_to_image[:-8]+'__'+str(i)+'_mvef.jpg', MVEF_image)
                 
+                '''
+                cv2.imshow('MVEF',MVEF_image)
+                cv2.waitKey(0) & 0xFF
+                cv2.destroyAllWindows()
+                '''
+                #
+                #threshold
+                threshMVEF_percent = 85
+                threshMVEF = np.percentile(MVEF_image, threshMVEF_percent)
+                MVEF_image2 = cv2.threshold(MVEF_image, threshMVEF, 255, cv2.THRESH_BINARY)[1]
+                cv2.imwrite(path_to_image[:-8]+'__'+str(i)+'_mvef2.jpg', MVEF_image2)
                 
-            all_snippets = all_snippets + snippets
-            all_snippets_line = all_snippets_line + snippets_line
+                #locate muscle snippets and filter them
+                snippets, snippets_line = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
+                                                              minLength = 4, rangeAngles = [6,40],\
+                                                              percentageAlign = 0.80,\
+                                                              offSetX = minRow, offSetY = i*sampleSize)
+                if snippets == 'error':
+                    archi_auto = dict()
+                    archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
+                    archi_auto['calfct_to_mm before resize'] = {'vertical axis': calibX * PERCENTAGE / 100, 'horizontal axis': calibY* PERCENTAGE / 100}
+                    archi_auto['calfct_to_mm after resize'] = {'vertical axis': calibX, 'horizontal axis': calibY}
+                    archi_auto['aposup'] = {'coords':coordSup}
+                    archi_auto['apoinf'] = {'coords':coordInf}
+                    archi_auto['MT'] = {'coords': np.vstack((abscissa, thickness)).T, 'columns interval': [0, MAXBAND*sampleSize]}
+                    return archi_auto
+                    
+                    
+                all_snippets = all_snippets + snippets
+                all_snippets_line = all_snippets_line + snippets_line
+            
+        print('snippets nb', len(all_snippets))
+        fasc, fasc2 = FaDe.combineSnippets(USimageP, all_snippets, all_snippets_line, min_nb_sn = 3, thresh_alignment = 5, thresh_length = 1000)
     
-        fasc = FaDe.combineSnippets(USimageP, all_snippets, all_snippets_line, thresh_alignment = 5, thresh_length = 1000)
-    
-          
+        print('fascicles poly deg 2', len(fasc))
+        print('fascicles poly deg 1', len(fasc2))
         #transform the snippets, which are in fact the contours of the fascicles,
         #into lines by taking the mean of the contour, that is the mean on each
         #column of the contour. When branches exist, the mean is not computed (the
@@ -369,16 +376,20 @@ def panoprocessing(path_to_image, path_to_txtfile):
         for i in range(len(fasc)):
             averages.append(FaDe.contourAverage(fasc[i]))
             
+        averages2 = []
+        for i in range(len(fasc2)):
+            averages2.append(FaDe.contourAverage(fasc2[i]))
+            
         #interpolations to get fascicles' curve
-        splines_fasc = FaDe.approximateFasc(typeapprox = 'Bspline', listF = averages, d = 1)
-    
-        #Location of fascicles: (in mm from aponeuroses intersection point)
-        loc_fasc = MUFeaM.locateFasc(splines_fasc, pt_intersection, calibY)
-        print(loc_fasc)
+        splines_fasc = FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages, d = 2)
+        splines_fasc = splines_fasc + FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages2, d = 1)
     
         #intersections of fascicles with aponeuroses (in pixels)
         intersecL = MUFeaM.findIntersections(spline_Inf, splines_fasc, start = int(USimageP.shape[1]/4))
         intersecU = MUFeaM.findIntersections(spline_Sup, splines_fasc, start = int(USimageP.shape[1]/4))
+        
+        #Location of fascicles: (in mm from aponeuroses intersection point)
+        loc_fasc = MUFeaM.locateFasc(intersecL, pt_intersection, calibY)
         
         #Pennation angles calculation (in degree)
         PA_Sup = MUFeaM.pennationAngles(spline_Sup, splines_fasc, intersecU, calibX, calibY)
@@ -390,13 +401,14 @@ def panoprocessing(path_to_image, path_to_txtfile):
         #Dict containing info per image
         archi_auto = dict()
         archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
-        archi_auto['calfct_to_mm'] = {'vertical axis': calibX, 'horizontal axis': calibY}
+        archi_auto['calfct_to_mm before resize'] = {'vertical axis': calibX * PERCENTAGE / 100, 'horizontal axis': calibY* PERCENTAGE / 100}
+        archi_auto['calfct_to_mm after resize'] = {'vertical axis': calibX, 'horizontal axis': calibY}
         archi_auto['aposup'] = {'coords':coordSup}
         archi_auto['apoinf'] = {'coords':coordInf}
         archi_auto['MT'] = {'coords': np.vstack((abscissa, thickness)).T, 'columns interval': [0, MAXBAND*sampleSize]}
         
         for index in range(len(splines_fasc)):
-            archi_auto['fasc' + str(index+1)] = {}
+            archi_auto['fsc_' + str(index+1)] = {}
             typeIU = 'out of image'
             typeIL = 'out of image'
             typeFL = 'out of image'
@@ -412,18 +424,18 @@ def panoprocessing(path_to_image, path_to_txtfile):
                 typeIL = 'in image'
             if typeIU == 'in image' and typeIL == 'in image':
                 typeFL = 'in image'
-            archi_auto['fasc' + str(index+1)] = {'dist from insertion in mm': loc_fasc[index]}
+            archi_auto['fsc_' + str(index+1)] = {'dist from insertion in mm': loc_fasc[index]}
             
  
-            archi_auto['fasc' + str(index+1)]['PAsup'] = {'in/out of the image': typeIU,
+            archi_auto['fsc_' + str(index+1)]['PAsup'] = {'in/out of the image': typeIU,
                                                           'value in degree' : PA_Sup[index],
                                                           'intersection with apo': intersecU[index]}
 
-            archi_auto['fasc' + str(index+1)]['PAinf'] = {'in/out of the image': typeIL,
+            archi_auto['fsc_' + str(index+1)]['PAinf'] = {'in/out of the image': typeIL,
                                                           'value in degree' : PA_Inf[index],
                                                           'intersection with apo': intersecL[index]}
             
-            archi_auto['fasc' + str(index+1)]['FL'] = {'in/out of the image':typeFL,
+            archi_auto['fsc_' + str(index+1)]['FL'] = {'in/out of the image':typeFL,
                                                        'length in mm': fasc_length[index]}
  
     
@@ -437,22 +449,23 @@ def panoprocessing(path_to_image, path_to_txtfile):
         #Visualization
         for index in range(coordSup.shape[0]):
             if coordSup[index][0] >= 0 and coordSup[index][0] < USimageP.shape[0]:
-                USimageP[coordSup[index][0], coordSup[index][1], :] = [0, 255, 0]
+                USimageP[coordSup[index][0], coordSup[index][1], :] = [255, 0, 0]
                 if coordSup[index][0] +1 >= 0 and coordSup[index][0]+1 < USimageP.shape[0]:
-                    USimageP[coordSup[index][0]+1, coordSup[index][1],:] = [0,255,0]
+                    USimageP[coordSup[index][0]+1, coordSup[index][1],:] = [255, 0, 0]
                 if coordSup[index][0]-1 >= 0 and coordSup[index][0]-1 < USimageP.shape[0]:
-                    USimageP[coordSup[index][0]-1, coordSup[index][1],:] = [0,255,0]
+                    USimageP[coordSup[index][0]-1, coordSup[index][1],:] = [255, 0, 0]
             if coordInf[index][0] >= 0 and coordInf[index][0] < USimageP.shape[0]:
-                USimageP[coordInf[index][0], coordInf[index][1], :] = [0, 255, 0]
+                USimageP[coordInf[index][0], coordInf[index][1], :] = [255, 0, 0]
                 if coordInf[index][0]+1 >= 0 and coordInf[index][0]+1 < USimageP.shape[0]:
-                    USimageP[coordInf[index][0]+1, coordInf[index][1], :] = [0,255,0]
+                    USimageP[coordInf[index][0]+1, coordInf[index][1], :] = [255, 0, 0]
                 if coordInf[index][0]-1 >= 0 and coordInf[index][0]-1 < USimageP.shape[0]:
-                    USimageP[coordInf[index][0]-1, coordInf[index][1], :] = [0,255,0]  
-    
+                    USimageP[coordInf[index][0]-1, coordInf[index][1], :] = [255, 0, 0]
+        """
         #snippets
         for f in range(len(fasc)):
             for g in range(fasc[f].shape[0]):
                 USimageP[fasc[f][g,0], fasc[f][g,1], :] = [255,255,255]
+        """
         
         #fascicles
         for n1 in range(len(splines_fasc)):
@@ -462,12 +475,11 @@ def panoprocessing(path_to_image, path_to_txtfile):
             for n2 in range(coord.shape[0]):
                 if coord[n2][0]>=0 and coord[n2][0]<USimageP.shape[0]:
                     USimageP[coord[n2][0], coord[n2][1], :] = [0,255,0]
-                
-    #                if coord[n2][0]+1>=0 and coord[n2][0]+1<USimageP.shape[0]:
-    #                    USimageP[coord[n2][0]+1, coord[n2][1], :] = [0,0,255]
-    #                if coord[n2][0]-1>=0 and coord[n2][0]-1<USimageP.shape[0]:  
-    #                    USimageP[coord[n2][0]-1, coord[n2][1], :] = [0,0,255]      
-    
+                    if coord[n2][1] - 1 >= 0 and coord[n2][1] - 1 < USimageP.shape[1]:
+                        USimageP[coord[n2][0], coord[n2][1] - 1, :] = [0,255,0]
+                    if coord[n2][1] + 1 >= 0 and coord[n2][1] + 1 < USimageP.shape[1]:
+                        USimageP[coord[n2][0], coord[n2][1] + 1, :] = [0,255,0]
+
         cv2.imwrite(path_to_image[:-8]+'_final.jpg', USimageP)
         cv2.imshow('full image', USimageP)
         cv2.waitKey(0) & 0xFF

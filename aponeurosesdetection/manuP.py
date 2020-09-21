@@ -37,6 +37,7 @@ def panoManu(manu_pts_dict):
     
     for fsc in fnmatch.filter(manu_pts_dict.keys(), 'fsc_*'):
         fasci = manu_pts_dict[fsc]['coords']        
+        fasci[:, [0,1]] = fasci[:,[1,0]] #change to structure (X,Y)        
         
         #Bspline
         spl = FaDe.approximateFasc(typeapprox = 'Bspline', listF = [fasci], d = 1)
@@ -48,15 +49,13 @@ def panoManu(manu_pts_dict):
         PA_inf = MUFeaM.pennationAngles(spl_a = spline_inf, listS_f = spl, listI = inters_inf, xcalib = calib, ycalib = calib)
         #calculate fascicle length
         FL = MUFeaM.fasciclesLength(listS_f = spl, listIu = inters_sup, listId = inters_inf, xcalib = calib, ycalib = calib)
-        loc = MUFeaM.locateFasc(listSpl = spl, refPoint = pt_inter, ycalib = calib)
+        loc = MUFeaM.locateFasc(inters_inf, refPoint = pt_inter, ycalib = calib)
         
-        manu_pts_dict[fsc]['dist from insertion in mm'] = loc
+        manu_pts_dict[fsc]['dist from insertion in mm'] = loc[0]
         manu_pts_dict[fsc]['PAsup'] = {'value in degree' : PA_sup[0],
                      'intersection with apo': inters_sup[0]}
-        
         manu_pts_dict[fsc]['PAinf'] = {'value in degree' : PA_inf[0],
                      'intersection with apo': inters_inf[0]}
-        
         manu_pts_dict[fsc]['FL'] = {'length in mm': FL[0]}
         
     return manu_pts_dict

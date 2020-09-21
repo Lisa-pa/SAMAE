@@ -185,26 +185,51 @@ def fasciclesLength(listS_f, listIu, listId, xcalib, ycalib):
         
     return listFL
 
-def locateFasc(listSpl, refPoint, ycalib):
+def locateFasc(intersections, refPoint, ycalib):
     """
     Function that caracterizes each fascicle location by a float value
-    corresponding to its horizontal distance in mm from refPoint.
+    corresponding to the horizontal distance between
+    refPoint and the intersection of the fascicles with deep aponeurosis
     Ideally, refPoint is the intersection point between the two aponeuroses
 
-    listSpl: splines caracterizing fascicles
+    intsections: dimensions nb(fasc)x2, list of nb(fasc) tuples
     refPoint = (row = on axis 0, column = on axis 1)
     """
     listLoc = []
 
-    y = np.arange(0, refPoint[1] + 1, 1)
-
-    for index in range(len(listSpl)):
-        x = listSpl[index](y)
-        elem = 0
-        while (elem < x.shape[0] - 1) and int(x[elem]) != int(refPoint[0]):
-            elem = elem + 1
-
-        loc = abs(y[elem] - refPoint[1]) * ycalib
+    for index in range(len(intersections)):
+        pt = intersections[index]
+        loc = abs(pt[1] - refPoint[1]) * ycalib
         listLoc.append(loc)
 
     return listLoc
+
+def curvature(c_points, spline = None):
+    """
+
+    inputs:
+        spline: function that represents the curve. Default is None
+        c_points ( 2D array): 
+            if spline is None: array with dimensions Nx2,
+            containing N points of the curve. First column is the x
+            coordinates (corresponds to the line in the image),
+            second column is the y-coordinates ( = columns in image)
+            if spline is not None: array of dimensions Nx1,
+            which corresponds to the interval of pixels on which 
+            curvature must be evaluated
+    """
+
+    if spline is None:
+        import numpy as np
+        y_prime = np.gradient(c_points[:,1], edge_order=1,axis=0)
+        x_prime = np.gradient(c_points[:,0], edge_order=1,axis=0)
+        y_prime2 = np.gradient(y_prime, edge_order=1,axis=0)
+        x_prime2 = np.gradient(x_prime, edge_order=1,axis=0)
+        curva = (x_prime*y_prime2 - y_prime*x_prime2)/((x_prime**2+y_prime**2)**(3/2))
+
+    elif spline is not None:
+        spl_prime = spline.derivative(n=1)
+        spl_prime2 = spline.derivative(n=2)
+        curva = spl_prime2(c_points) / ((1 + spl_prime(c_points)*spl_prime(c_points))**(3/2))
+
+    return curva

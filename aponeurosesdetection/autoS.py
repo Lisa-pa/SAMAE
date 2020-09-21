@@ -1,8 +1,8 @@
 from calibration.calib import autoCalibration
 from preprocessing.cropping import autocropping
 from preprocessing.preprocess import preprocessingApo
-import aponeuroseslocation as apoL
-import aponeuroses_contours as apoC
+import apoLoc as apoL
+import apoCont as apoC
 import MUFeaM
 import FaDe as FaDe
 
@@ -45,20 +45,25 @@ def simpleprocessing(path_to_img):
         #Calibrate the image
         # calibX, calibY are the calibration factors in X and Y directions
         calibX, calibY = autoCalibration(RGBimage)
-        
-    
+        if calibX > 2 * calibY or calibY > 2 * calibX:
+            calibX = min(calibX, calibY)
+            calibY = min(calibX, calibY)
+                    
         #Crop the image to keep essential US data
         USimage, l1, l2, c1, c2 = autocropping(RGBimage, 10., 15., 12., 25., calibY, additionalCrop1 = 2., additionalCrop2 = 6.)
-    
+
         #--------ask for validation; if cropping does not suit the user, ask the user for thresholds
         ok = False
-        while ok == False:
-            cv2.imshow('Cropped US image', USimage)
-            ok = tkbox.askyesno('Need user validation', 'Do you validate the cropping ? If no, we will ask you new thresholds in the command prompt. After clicking yes or no, please close the image window to continue.', default = 'yes', icon='question')
-            cv2.waitKey(0) & 0xFF
-            cv2.destroyAllWindows()
+        counter = 1
+        while ok == False and counter<=5:
+            if USimage.size>0:
+                cv2.imshow('Cropped US image', USimage)
+                ok = tkbox.askyesno('Need user validation', 'Do you validate the cropping ? If no, we will ask you new thresholds in the command prompt. After clicking yes or no, please close the image window to continue.', default = 'yes', icon='question')
+                cv2.waitKey(0) & 0xFF
+                cv2.destroyAllWindows()
     
             if ok == False:
+                counter = counter + 1
                 entry1 = input("Please enter an integer between 0 and 255 for minimum threshold to test for columns' mean. Recommended value is 10: ")
                 entry2 = input("Please enter an integer between 0 and 255 for maximum threshold to test for columns' mean. Recommended value is 15: ")
                 entry3 = input("Please enter an integer between 0 and 255 for minimum threshold to test for raws' mean. Recommended value is 12.: ")
@@ -76,9 +81,13 @@ def simpleprocessing(path_to_img):
                     THRESH4>255 or THRESH4<0:
                     raise ValueError('All thresholds must be integers between 0 and 255')
                 USimage, l1, l2, c1, c2 = autocropping(RGBimage, THRESH1, THRESH2, THRESH3, THRESH4, calibY, CROP1, CROP2)
-        cv2.imwrite(path_to_img[:-8]+'_cropped.jpg', USimage)
-    
-    
+
+        if counter > 5:
+            archi_auto = dict()
+            archi_auto['crop'] = {'lines': 'error', 'columns': 'error'}
+            return archi_auto
+        
+        cv2.imwrite(path_to_img[:-8]+'_cropped.jpg', USimage)    
 
         #Locate aponeuroses and find linear approximation of aponeuroses
     
@@ -213,8 +222,8 @@ def simpleprocessing(path_to_img):
             
             
         #ROI : region of interest in between aponeuroses
-        crop1 = np.amax(coordSup[:,0]) + 1 
-        crop2 = np.amin(coordInf[:,0])
+        crop1 = np.amax(coordSup[:,0]) + 30
+        crop2 = np.amin(coordInf[:,0]) - 30
         ROI = np.copy(USimage[crop1:crop2, :, :])
         cv2.imwrite(path_to_img[:-8]+'_ROI.jpg', ROI)
                 
@@ -251,8 +260,9 @@ def simpleprocessing(path_to_img):
             return archi_auto 
         
         
-        fasc = FaDe.combineSnippets(USimage, snippets, snip_lines, thresh_alignment = 10, thresh_length = 200)
-    
+        fasc, fasc2 = FaDe.combineSnippets(USimage, snippets, snip_lines, min_nb_sn = 2, thresh_alignment = 10, thresh_length = 300)
+        print('fascicles', len(fasc))
+        print ('fascicles2', len(fasc2))
     
     
         #transform the snippets, which are in fact the contours of the fascicles,
@@ -261,12 +271,15 @@ def simpleprocessing(path_to_img):
         averages = [] 
         for i in range(len(fasc)):
             averages.append(FaDe.contourAverage(fasc[i]))
-        
+
+        averages2 = [] 
+        for i in range(len(fasc2)):
+            averages2.append(FaDe.contourAverage(fasc2[i]))        
         
         
         #interpolations to get fascicles' curve
         splines_fasc = FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages, d = 1)
-        
+        splines_fasc = splines_fasc + FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages2, d = 1)
         
         
         #intersections of fascicles with aponeuroses (in pixels)
@@ -284,6 +297,8 @@ def simpleprocessing(path_to_img):
         fasc_length = MUFeaM.fasciclesLength(splines_fasc, intersecU, intersecL, calibX, calibY)
         print(fasc_length)
         
+        #fascicle location in the original RGB image
+        loc_fasc = MUFeaM.locateFasc(intersecL, [-l1,-c1], calibY)
         
         #Dict containing info per image
         archi_auto = dict()
@@ -294,7 +309,7 @@ def simpleprocessing(path_to_img):
         archi_auto['MT'] = {'coords': np.vstack((absc, thickness)).T, 'columns interval': [0, USimage.shape[1]-1]}
         
         for index in range(len(splines_fasc)):
-            archi_auto['fasc' + str(index+1)] = {}
+            archi_auto['fsc_' + str(index+1)] = {}
             typeIU = 'out of image'
             typeIL = 'out of image'
             typeFL = 'out of image'
@@ -310,16 +325,16 @@ def simpleprocessing(path_to_img):
                 typeIL = 'in image'
             if typeIU == 'in image' and typeIL == 'in image':
                 typeFL = 'in image'           
- 
-            archi_auto['fasc' + str(index+1)]['PAsup'] = {'in/out of the image': typeIU,
+            archi_auto['fsc_' + str(index+1)] = {'dist from (0,0) of RGB image, in mm': loc_fasc[index]}
+            archi_auto['fsc_' + str(index+1)]['PAsup'] = {'in/out of the image': typeIU,
                                                           'value in degree' : PASup[index],
                                                           'intersection with apo': intersecU[index]}
 
-            archi_auto['fasc' + str(index+1)]['PAinf'] = {'in/out of the image': typeIL,
+            archi_auto['fsc_' + str(index+1)]['PAinf'] = {'in/out of the image': typeIL,
                                                           'value in degree' : PA_Inf[index],
                                                           'intersection with apo': intersecL[index]}
             
-            archi_auto['fasc' + str(index+1)]['FL'] = {'in/out of the image':typeFL,
+            archi_auto['fsc_' + str(index+1)]['FL'] = {'in/out of the image':typeFL,
                                                        'length in mm': fasc_length[index]}   
     
     
@@ -359,12 +374,12 @@ def simpleprocessing(path_to_img):
                     ImF[coordInf[index][0]+1, coordInf[index][1], :] = [255,0,0]
                 if coordInf[index][0]-1 >= 0 and coordInf[index][0]-1 < ImF.shape[0]:
                     ImF[coordInf[index][0]-1, coordInf[index][1], :] = [255,0,0]  
-    
+        """
         #snippets
         for f in range(len(fasc)):
             for g in range(fasc[f].shape[0]):
                 ImF[fasc[f][g,0], fasc[f][g,1] + 2*USimage.shape[1], :] = [255,255,255]
-        
+        """
     
         #fascicles
         for a in range(len(splines_fasc)):
@@ -373,8 +388,13 @@ def simpleprocessing(path_to_img):
             newy = newy + 2*USimage.shape[1]
             coord = np.vstack((newx, newy)).T
             for b in range(coord.shape[0]):
-                if coord[b][0]>=0 and coord[b][0]<ImF.shape[0]:
+                if coord[b][0]>=0 and coord[b][0]>=intersecU[a][0]\
+                and coord[b][0]<=intersecL[a][0] and coord[b][0]<ImF.shape[0]:
                     ImF[coord[b][0], coord[b][1], :] = [0,255,0]
+                    if coord[b][1]-1>=0 and coord[b][1]-1<ImF.shape[1]:
+                        ImF[coord[b][0], coord[b][1]-1, :] = [0,255,0]
+                    if coord[b][1]+1>=0 and coord[b][1]+1<ImF.shape[1]:
+                        ImF[coord[b][0], coord[b][1]+1, :] = [0,255,0]
     
     #                if coord[b][0]+1>=0 and coord[b][0]+1<ImF.shape[0]:
     #                    ImF[coord[b][0]+1, coord[b][1], :] = [0,255,0]

@@ -182,32 +182,45 @@ def locateSnippets(I, xcalib, ycalib, minLength, rangeAngles, percentageAlign, o
     line_snip = [] #list which contains a linear approximation of the snippet filtered
     
     for i in range(len(snippets)):
-        
+        sn = list(snippets[i][:,0,:])
         #condition 1 - on length :
-        if snippets[i].shape[0]/2 > minLength/m.sqrt(xcalib**2+ycalib**2):
+        if len(sn)/2 > minLength/m.sqrt(xcalib**2+ycalib**2):
             
             
             # creation of a line representative of the snippet i
             # firstP and endP are are respectively
             # in the left part and in the right part of snippet i
-            left_points = [snippets[i][m,0,:] for m in range(snippets[i].shape[0])\
-            if snippets[i][m,0,0] == np.amin(snippets[i][:,0,0])]
+            third = 1/3.*len(sn)/2
+                        
+            sn.sort(key=lambda x:x[0]) #sort according to columns
             
-            right_points = [snippets[i][m,0,:] for m in range(snippets[i].shape[0])\
-            if snippets[i][m,0,0] == np.amax(snippets[i][:,0,0])]
-        
-            if len(left_points)>1:
+            
+            left_points = [sn[i] for i in range(len(sn)) if i == int(third)]
+            right_points = [sn[i] for i in range(len(sn)) if i == len(sn)-int(third)]
+            
+            
+            left_points.sort(key=lambda x:x[1]) #sort according to lines
+            right_points.sort(key = lambda x:x[1])
+            
+            
+            if len(left_points)==2:
                 firstP = [int((left_points[0][0] + left_points[-1][0])/2),\
                           int((left_points[0][1] + left_points[-1][1])/2)]
-            else:
+            elif len(left_points) == 1:
                 firstP = left_points[0]
+            elif len(left_points) > 2:
+                firstP = [sn[i] for i in range(len(sn))\
+                          if sn[i][0] == np.amin(snippets[i][:,0,0])][0]
             
             
-            if len(right_points)>1:
+            if len(right_points)==2:
                 endP = [int((right_points[0][0] + right_points[-1][0])/2),\
                         int((right_points[0][1] + right_points[-1][1])/2)]
-            else:
+            elif len(right_points)==1:
                 endP = right_points[0]
+            elif len(left_points) > 2:
+                endP = [sn[i] for i in range(len(sn))\
+                        if sn[i][0] == np.amax(snippets[i][:,0,0])][0]
                 
             y_list = np.arange(firstP[0], endP[0], 1, dtype = np.int64) #create line (x_list, y_list) between firstP and endP
 
@@ -228,7 +241,11 @@ def locateSnippets(I, xcalib, ycalib, minLength, rangeAngles, percentageAlign, o
                     
                     x_list = np.uint64(slope*(y_list-firstP[0])+firstP[1])  
                     
-
+                    ''' visual check
+                    for pt in range(y_list.shape[0]):
+                        I[int(x_list[pt]), int(y_list[pt])] = 150
+                    '''
+                        
                 #condition 4 - on alignment
                     #count the number of white pixels on this line
                     pix_white = 0
@@ -249,6 +266,12 @@ def locateSnippets(I, xcalib, ycalib, minLength, rangeAngles, percentageAlign, o
         fasc[:, 0] = fasc[:, 0] + offSetX
         fasc[:,1] = fasc[:, 1] + offSetY
         filtered_snippets.append(fasc)
+        
+    '''visual check
+    cv2.imshow('image', I)
+    cv2.waitKey(0) & 0xFF
+    cv2.destroyAllWindows()
+    '''
     
     return filtered_snippets, line_snip
 
@@ -257,13 +280,12 @@ def locateSnippets(I, xcalib, ycalib, minLength, rangeAngles, percentageAlign, o
 
 
 
-def combineSnippets(I, listS, listS_paramlines, thresh_alignment = 20, thresh_length = 200):
+def combineSnippets(I, listS, listS_paramlines, min_nb_sn, thresh_alignment = 20, thresh_length = 200):
     """listS contient les snippets en mode [x,y]"""
     #Look for snippets that are part of the same fascicles
 
     fascicles_points = []
-
-    
+    fascicles2_points = []    
     if len(listS) != 0:
         aligned_snip = [[j] for j in range(len(listS))] # contains list of snippets indices part of same fascicle
     
@@ -328,15 +350,20 @@ def combineSnippets(I, listS, listS_paramlines, thresh_alignment = 20, thresh_le
                 
                 if len(aligned_snip[f]) == 1 and len(listS[aligned_snip[f][0]]) > thresh_length:
                     grouped_snip.append(aligned_snip[f])
-                
+
         print('final merged fascicles', grouped_snip)
         
         #outputs 
         for fa in range(len(grouped_snip)):
             fasc = listS[grouped_snip[fa][0]]
-            for s in range(1,len(grouped_snip[fa])):
-                fasc = np.concatenate((fasc, listS[grouped_snip[fa][s]]), axis = 0)
-            fascicles_points.append(fasc)
+            if len(grouped_snip[fa]) < min_nb_sn:
+                fascicles2_points.append(fasc)
+            else:
+                for s in range(1,len(grouped_snip[fa])):
+                    fasc = np.concatenate((fasc, listS[grouped_snip[fa][s]]), axis = 0)
+                fascicles_points.append(fasc)
+
+
     """
     couleurs = [[255,0,0], [0,255,0], [0,0,255], [255,255,0],[255,0,255], [0,255,255],\
                 [255,255,255], [100,200,0],[100,200,100], [50,200,0],[50,100,50], [255,100,0],\
@@ -347,7 +374,7 @@ def combineSnippets(I, listS, listS_paramlines, thresh_alignment = 20, thresh_le
             I[pt[0], pt[1], :] = couleurs[t]
     """
 
-    return fascicles_points
+    return fascicles_points, fascicles2_points
 
 
 
@@ -391,8 +418,16 @@ def approximateFasc(typeapprox, listF, d):
                 f = list(listF[n])
                 
             f.sort(key = lambda x: x[1]) #sort according to columns
-            ycoord = [f[i][1] for i in range(len(f))]
-            xcoord = [f[i][0] for i in range(len(f))]               
+
+            #remove potential double points           
+            to_remove = []
+            for pt in range(len(f)-1):
+                if f[pt][1] == f[pt+1][1]:
+                    to_remove.append(pt+1)
+            fa = [f[ind] for ind in range(len(f)) if ind not in to_remove]
+            
+            ycoord = [fa[i][1] for i in range(len(fa))]
+            xcoord = [fa[i][0] for i in range(len(fa))]               
             
             spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
             approx_fasc.append(spline)
@@ -405,8 +440,16 @@ def approximateFasc(typeapprox, listF, d):
                 f = list(listF[n])
                   
             f.sort(key = lambda x: x[1]) #sort according to columns
-            ycoord = [f[i][1] for i in range(len(f))]
-            xcoord = [f[i][0] for i in range(len(f))]               
+            
+            #remove potential double points
+            to_remove = []
+            for pt in range(len(f)-1):
+                if f[pt][1] == f[pt+1][1]:
+                    to_remove.append(pt+1)
+            fa = [f[ind] for ind in range(len(f)) if ind not in to_remove]
+
+            ycoord = [fa[i][1] for i in range(len(fa))]
+            xcoord = [fa[i][0] for i in range(len(fa))]               
             
             p = np.polyfit(ycoord, xcoord, deg=d)
             spline = np.poly1d(p)

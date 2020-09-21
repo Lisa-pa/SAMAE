@@ -45,6 +45,8 @@ def autoCalibration(I):
 
     Binar_I = cv2.threshold(Scale_image, 220., 255, cv2.THRESH_BINARY)[1]                
 
+
+        
     #Selection of the biggest dashes: contours of white objects are found as
     #well as minimal rectangles encapsulating each object. Conditions on the
     #size of these contours/bounding rectangles enable the removal of objects
@@ -61,7 +63,8 @@ def autoCalibration(I):
             BoundingRectangles.append([i, (p1,p2,l1,l2), 2.*l1+2.*l2])
     MeanPerim = np.mean([BoundingRectangles[i][2] for i in range(len(BoundingRectangles))])
     Dashes = [BoundingRectangles[i] for i in range(len(BoundingRectangles)) if BoundingRectangles[i][2]>MeanPerim] #removal of points and small dashes
-   
+
+    
     #Calculation of the minimal distances between two horizontal dashes and
     #two vertical dashes
     horiz = 10000000.
@@ -90,9 +93,26 @@ def autoCalibration(I):
         calibFactorX = False
     else:
         calibFactorX = 10./horiz
+        
     if vertic == 10000000.:
         calibFactorY = False
     else:
         calibFactorY = 10./vertic
         
+    ''' visual check  
+    for d in range(len(Dashes)):
+        p1 = Dashes[d][1][0]
+        p2 = Dashes[d][1][1]
+        l1 = Dashes[d][1][2]
+        l2 = Dashes[d][1][3]
+        for l in range(p1,p1+l1+1):
+            Binar_I[p2,l] = 150
+            Binar_I[p2+l2,l] = 150
+        for c in range(p2,p2+l2+1):
+            Binar_I[c,p1] = 150
+            Binar_I[c,p1+l1] = 150            
+    cv2.imshow('Binary image', Binar_I)
+    cv2.waitKey(0) & 0xFF
+    cv2.destroyAllWindows()   
+    '''
     return calibFactorX, calibFactorY

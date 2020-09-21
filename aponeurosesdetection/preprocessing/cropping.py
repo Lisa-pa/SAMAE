@@ -86,9 +86,9 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, 
         I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1], RightColumnsBelow[-1]:LeftColumnsBelow[-1]]
     
     if calibV != 0:
-        twomm = int(additionalCrop1 / calibV)
-        threemm = int(additionalCrop2 / calibV)
-        I2 = I2[twomm: - threemm, :-15]
+        addcrop1 = int(additionalCrop1 / calibV)
+        addcrop2 = int(additionalCrop2 / calibV)
+        I2 = I2[addcrop1: - addcrop2, :-15]
         UpRawsBelow[-1] = UpRawsBelow[-1] + int(additionalCrop1 / calibV)
         BottomRawsBelow[-1] = BottomRawsBelow[-1] - int(additionalCrop2 / calibV)
         RightColumnsBelow[-1] = RightColumnsBelow[-1] - 15
