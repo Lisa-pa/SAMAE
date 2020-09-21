@@ -101,7 +101,6 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
                                             contours_top[cont0][ind,0,0]] for ind in range(contours_top[cont0].shape[0])]
                 maximums.append(max(list_radonvalues))
                 
-            mean_of_maxRadon = np.mean(maximums)
             mean_size_top = mean_size_top / len(contours_top)
             marg_size = 5 #margin = 5 points in the contour 
             
@@ -174,7 +173,6 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
                 list_radonvalues = [I_radon[contours_inf[cont0][ind,0,1], contours_inf[cont0][ind,0,0]] for ind in range(contours_inf[cont0].shape[0])]
                 maximums.append(max(list_radonvalues))
                 
-            mean_of_maxRadon = np.mean(maximums)
             mean_size_inf = mean_size_inf / len(contours_inf)
             marg_size = 5 #margin = 5 points in the contour 
             
