@@ -4,7 +4,7 @@ def dame_participants():
     Returns:
         list: list of strings
     """    
-    part = ['01_Kevin']
+    part = ['02_rafaelopes']
     
     '''
     part = ['01_Kevin', '02_rafaelopes', '03_charlesbarrand', '04_guilhem',
@@ -217,7 +217,7 @@ def idfascicles(coords, img):
     import numpy as np
 
     architecture = dict()
-    architecture['calfct in mm'] = 10/(coords[1, 1] - coords[0, 1])  # 1 cm calibration factor for all panoramic and simple images
+    architecture['calfct in mm'] = 10./(coords[1, 1] - coords[0, 1])  # 10 mm calibration factor for all panoramic and simple images
 
     if img == 'pano':
         architecture['insertion'] = {'coords': coords[2,:]}
@@ -237,86 +237,7 @@ def idfascicles(coords, img):
             architecture['fsc_'+str(f+1)] = {'coords': coords[fsc_idx[f]:fsc_idx[f]+4, :]}
 
     return architecture
-#
-#def midelengthpano(fsc, calfct):
-#    """Calculate fascicle length in the manually labelles panoramic images
-#    
-#    Arguments:
-#        fsc {[type]} -- [description]
-#        calfct {[type]} -- [description]
-#    """
-#
-#    import numpy as np
-#    d = np.diff(fsc, axis=0)
-#    segdists = np.hypot(d[:,0], d[:,1])
-#    fsclength = np.sum(segdists) / calfct
-#
-#    return fsclength
-#
-#def getanglepano(fsc, apo):
-#
-#    # calculate angle taking the points 1 and 3 of the fascicle
-#
-#    
-#
-#    return pangle
-#
-#def localizafasc(ref, fasc, calfct):
-#    """This function calculates the distance (in mm) between the first point (bottom, close to the inferior aponeurosis) 
-#    defining a given muscle fascicle and a point of reference. In the case of panoramic images of the BF muscle, 
-#    the insertion of the long head aponeurosis has been taken (manually labeled).
-#    
-#    Arguments:
-#        ref {array} -- coordinates of the reference point to which fascicles will be compared
-#        fasc {array} -- x and y coordinates of a given fascicle
-#        calfct {array} -- calibration factor previously calculated from two reference points in the scale of the US image
-#    
-#    Returns:
-#        numpy.float64 -- distance in mm
-#    """
-#
-#    distance = abs(fasc[0,0] - ref[0]) / calfct
-#
-#    return distance
-#
-#def dameangulo(seg1, seg2):
-#
-#    import numpy as np
-#
-#    x1, y1, x2, y2 = seg1[0,0], seg1[0,1], seg1[3,0], seg1[3,1]
-#    x3, y3, x4, y4 = seg2[0,0], seg2[0,1], seg2[3,0], seg2[3,1]
-#
-#    seg1_ang = np.arctan2(x2 - x1, y2 - y1)
-#    seg2_ang = np.arctan2(x4 - x3, y4 - y3)
-#
-#    ang = np.rad2deg(seg2_ang - seg1_ang)
-#
-#    return ang
-#
-#def analizearch(aposup, apoinf, fsc, calfct):
-#
-#
-#    import numpy as np
-#
-#    thick = np.mean(abs(apoinf[:,1] - aposup[:,1]) / calfct)
-#
-#    # pennation angles
-#    painf = dameangulo(apoinf, fsc)
-#    pasup = dameangulo(aposup, fsc)
-#
-#    # fascicle lengths
-#    fls = thick / np.sin(np.deg2rad(painf))
-#
-#    apoang = dameangulo(aposup, apoinf)
-#    flc = ((np.sin(np.deg2rad(apoang + 90))) * (thick)) / np.sin(np.deg2rad(180 - (apoang + 180-painf)))
-#
-#    architecture = {'painf': painf,
-#                    'pasup': pasup,
-#                    'fls': fls,
-#                    'flc': flc}
-#
-#    return architecture
-#
+
 def distsimpleimg(coords):
     """Return distance (cm) from muscle insertion point 
     to the place where the single image ultrasound was taken
