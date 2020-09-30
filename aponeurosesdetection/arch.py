@@ -4,7 +4,7 @@ def dame_participants():
     Returns:
         list: list of strings
     """    
-    part = ['02_rafaelopes']
+    part = ['01_Kevin','02_rafaelopes']
     
     '''
     part = ['01_Kevin', '02_rafaelopes', '03_charlesbarrand', '04_guilhem',
@@ -149,7 +149,7 @@ def _calcula_arch(data):
                             idx = data[part][ntest][msc]['panoramic'][img]['coords']
                             # manual processing
                             architecture1 = idfascicles(coords=idx, img='pano')
-                            architecture1 = manuP.panoManu(architecture1)
+                            architecture1 = manuP.panoManu(architecture1, None)
                             data[part][ntest][msc]['panoramic'][img]['architecture manual'] = architecture1
                             #automatic processing
                             architecture2 = autoP.panoprocessing(path_to_jpg, path_to_txt)
@@ -217,12 +217,12 @@ def idfascicles(coords, img):
     import numpy as np
 
     architecture = dict()
-    architecture['calfct in mm'] = 10./(coords[1, 1] - coords[0, 1])  # 10 mm calibration factor for all panoramic and simple images
+    architecture['calfct_to_mm'] = 10./(coords[1, 1] - coords[0, 1])  # 10 mm calibration factor for all panoramic and simple images
 
     if img == 'pano':
         architecture['insertion'] = {'coords': coords[2,:]}
-        architecture['aposup'] = {'coords': coords[3:8, :]}
-        architecture['apoinf'] = {'coords': coords[8:13, :]}
+        architecture['aposup'] = {'coords': coords[8:13, :]}
+        architecture['apoinf'] = {'coords': coords[3:8, :]}
 
         fsc_idx = np.arange(start=13, stop=len(coords), step=10)
         for f in np.arange(len(fsc_idx)):
