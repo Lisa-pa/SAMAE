@@ -345,9 +345,8 @@ def panoprocessing(path_to_image, path_to_txtfile):
                 
                 #locate muscle snippets and filter them
                 snippets, snippets_line = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
-                                                              minLength = 4, rangeAngles = [6,40],\
-                                                              percentageAlign = 0.80,\
-                                                              offSetX = minRow, offSetY = i*sampleSize)
+                                                              minLength = 5, \
+                                                              offSetX = minRow, offSetY = i*sampleSize, im = USimageP)
                 if snippets == 'error':
                     archi_auto = dict()
                     archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
@@ -363,7 +362,7 @@ def panoprocessing(path_to_image, path_to_txtfile):
                 all_snippets_line = all_snippets_line + snippets_line
             
         print('snippets nb', len(all_snippets))
-        fasc, fasc2 = FaDe.combineSnippets(USimageP, all_snippets, all_snippets_line, min_nb_sn = 3, thresh_alignment = 5, thresh_length = 1000)
+        fasc, fasc2 = FaDe.combineSnippets(USimageP, all_snippets, all_snippets_line, min_nb_sn = 3, thresh_alignment = 5)
     
         print('fascicles poly deg 2', len(fasc))
         print('fascicles poly deg 1', len(fasc2))
@@ -383,11 +382,10 @@ def panoprocessing(path_to_image, path_to_txtfile):
         #interpolations to get fascicles' curve
         splines_fasc = FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages, d = 2)
         splines_fasc = splines_fasc + FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages2, d = 1)
-    
+
         #intersections of fascicles with aponeuroses (in pixels)
-        intersecL = MUFeaM.findIntersections(spline_Inf, splines_fasc, start = int(USimageP.shape[1]/4))
-        intersecU = MUFeaM.findIntersections(spline_Sup, splines_fasc, start = int(USimageP.shape[1]/4))
-        
+        intersecL, intersecU, splines_fasc = MUFeaM.findIntersections(spl_inf = spline_Inf, spl_sup = spline_Sup, listSpl = splines_fasc, start = USimageP.shape[1]/2, insertion = pt_intersection[1])
+
         #Location of fascicles: (in mm from aponeuroses intersection point)
         loc_fasc = MUFeaM.locateFasc(intersecL, pt_intersection, calibY)
         
@@ -460,13 +458,21 @@ def panoprocessing(path_to_image, path_to_txtfile):
                     USimageP[coordInf[index][0]+1, coordInf[index][1], :] = [255, 0, 0]
                 if coordInf[index][0]-1 >= 0 and coordInf[index][0]-1 < USimageP.shape[0]:
                     USimageP[coordInf[index][0]-1, coordInf[index][1], :] = [255, 0, 0]
-        """
+      
         #snippets
+        couleurs = [[255,0,0], [0,255,0], [0,0,255], [255,255,0],[255,0,255], [0,255,255],\
+                    [100,200,0],[100,200,100], [50,200,0],[50,100,50], [255,100,0],\
+                    [120,120,255], [255,80,80],[0,100,200], [0,100,80], [255,255,255],\
+                    [120,120,120], [50,100,150],[100,50,150], [150,100,50], [50,150,100],
+                    [100,150,50],[150,50,100],[12,75,255],[40,140,40]]
         for f in range(len(fasc)):
             for g in range(fasc[f].shape[0]):
-                USimageP[fasc[f][g,0], fasc[f][g,1], :] = [255,255,255]
-        """
-        
+                USimageP[fasc[f][g,0], fasc[f][g,1], :] = couleurs[f]
+        for f in range(len(fasc2)):
+            for g in range(fasc2[f].shape[0]):
+                USimageP[fasc2[f][g,0], fasc2[f][g,1], :] = couleurs[-f]
+                
+                
         #fascicles
         for n1 in range(len(splines_fasc)):
             newy = np.arange(0, USimageP.shape[1], 1)
