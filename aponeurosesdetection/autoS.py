@@ -243,12 +243,10 @@ def simpleprocessing(path_to_img):
         MVEF_image2 = cv2.threshold(MVEF_image, threshMVEF, 255, cv2.THRESH_BINARY)[1]
         cv2.imwrite(path_to_img[:-8]+'_MVEF2.jpg', MVEF_image2)
     
-    
-    
         #locate snippets and filter them to locate muscle fascicles
         snippets, snip_lines = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
-                                                   minLength = 4, rangeAngles = [6,45],\
-                                                   percentageAlign = 0.70, offSetX = crop1)
+                                                   minLength = 4,\
+                                                   offSetX = crop1, im = USimage)
         
         if snippets == 'error':
             archi_auto = dict()
@@ -260,7 +258,7 @@ def simpleprocessing(path_to_img):
             return archi_auto 
         
         
-        fasc, fasc2 = FaDe.combineSnippets(USimage, snippets, snip_lines, min_nb_sn = 2, thresh_alignment = 10, thresh_length = 300)
+        fasc, fasc2 = FaDe.combineSnippets(USimage, snippets, snip_lines, min_nb_sn = 2, thresh_alignment = 20)
         print('fascicles', len(fasc))
         print ('fascicles2', len(fasc2))
     
@@ -281,21 +279,15 @@ def simpleprocessing(path_to_img):
         splines_fasc = FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages, d = 1)
         splines_fasc = splines_fasc + FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages2, d = 1)
         
-        
         #intersections of fascicles with aponeuroses (in pixels)
-        intersecL = MUFeaM.findIntersections(spl1 = paramInf, listSpl = splines_fasc, start = 0)
-        intersecU = MUFeaM.findIntersections(spl1 = paramSup, listSpl = splines_fasc, start = 0)
-        
+        intersecL, intersecU, splines_fasc = MUFeaM.findIntersections(spl_inf = paramInf, spl_sup = paramSup, listSpl = splines_fasc, start = USimage.shape[1]/2, insertion = 200/calibY)
         
         #Pennation angles calculation (in degrees)
         PASup = MUFeaM.pennationAngles(paramSup, splines_fasc, intersecU, calibX, calibY)
         PA_Inf = MUFeaM.pennationAngles(paramInf, splines_fasc, intersecL, calibX, calibY)
-        print(PASup)
-        print(PA_Inf)
         
         #Fascicles length calculation (in millimeters)
         fasc_length = MUFeaM.fasciclesLength(splines_fasc, intersecU, intersecL, calibX, calibY)
-        print(fasc_length)
         
         #fascicle location in the original RGB image
         loc_fasc = MUFeaM.locateFasc(intersecL, [-l1,-c1], calibY)
@@ -349,7 +341,19 @@ def simpleprocessing(path_to_img):
     
         ################
         #Visualization:
-    
+        #snippets
+        couleurs = [[255,0,0], [0,255,0], [0,0,255], [255,255,0],[255,0,255], [0,255,255],\
+                    [100,200,0],[100,200,100], [50,200,0],[50,100,50], [255,100,0],\
+                    [120,120,255], [255,80,80],[0,100,200], [0,100,80], [255,255,255],\
+                    [120,120,120], [50,100,150],[100,50,150], [150,100,50], [50,150,100],
+                    [100,150,50],[150,50,100],[12,75,255],[40,140,40]]
+        for f in range(len(fasc)):
+            for g in range(fasc[f].shape[0]):
+                USimage[fasc[f][g,0], fasc[f][g,1], :] = couleurs[f]
+        for f in range(len(fasc2)):
+            for g in range(fasc2[f].shape[0]):
+                USimage[fasc2[f][g,0], fasc2[f][g,1], :] = couleurs[-f]
+                
         Zerosvertic = np.uint8(np.zeros(USimage.shape))
         ImF = cv2.hconcat([Zerosvertic,Zerosvertic, USimage, Zerosvertic, Zerosvertic])
     
@@ -374,13 +378,8 @@ def simpleprocessing(path_to_img):
                     ImF[coordInf[index][0]+1, coordInf[index][1], :] = [255,0,0]
                 if coordInf[index][0]-1 >= 0 and coordInf[index][0]-1 < ImF.shape[0]:
                     ImF[coordInf[index][0]-1, coordInf[index][1], :] = [255,0,0]  
-        """
-        #snippets
-        for f in range(len(fasc)):
-            for g in range(fasc[f].shape[0]):
-                ImF[fasc[f][g,0], fasc[f][g,1] + 2*USimage.shape[1], :] = [255,255,255]
-        """
-    
+        
+                
         #fascicles
         for a in range(len(splines_fasc)):
             newy = np.arange(-2*USimage.shape[1], 3*USimage.shape[1], 1)
