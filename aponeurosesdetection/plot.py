@@ -1,134 +1,248 @@
 """plot"""
 
 
-def plotFeatures(participant, path_to_dict, name_dict):
+def plotFeatures(path_to_dict, name_dict):
 
     import fnmatch
     from dictmanager import load_obj
     
-    x_s_m = []
-    y_s_m = []
-    z1_s_m = []
-    z2_s_m = []
-    x_s_a = []
-    y_s_a = []
-    z1_s_a = []
-    z2_s_a = []
-    x_p_m = []
-    y_p_m = []
-    z1_p_m = []
-    z2_p_m = []
-    x_p_a = []
-    y_p_a = []
-    z1_p_a = []
-    z2_p_a = []
+    participants = ['01_Kevin', '02_rafaelopes']
+    
+    #d = list of distances from reference point
+    #fl = list of FL
+    #z1 = list of PA sup
+    #z2 = list of PA inf
+    #mt = list of arrays (absc, MT). One array per image
+    #_s : simple images
+    #_p : panoramic images
+    #_m : manual
+    #_a : automated
+    
+    d_s_m = [[] for par in range(len(participants))]
+    fl_s_m = [[] for par in range(len(participants))]
+    z1_s_m = [[] for par in range(len(participants))]
+    z2_s_m = [[] for par in range(len(participants))]
+    mt_s_m = [[] for par in range(len(participants))]
+    
+    d_s_a = [[] for par in range(len(participants))]
+    fl_s_a = [[] for par in range(len(participants))]
+    z1_s_a = [[] for par in range(len(participants))]
+    z2_s_a = [[] for par in range(len(participants))]
+    mt_s_a = [[] for par in range(len(participants))]
+    
+    d_p_m = [[] for par in range(len(participants))]
+    fl_p_m = [[] for par in range(len(participants))]
+    z1_p_m = [[] for par in range(len(participants))]
+    z2_p_m = [[] for par in range(len(participants))]
+    mt_p_m = [[] for par in range(len(participants))]
+    
+    d_p_a = [[] for par in range(len(participants))]
+    fl_p_a = [[] for par in range(len(participants))]
+    z1_p_a = [[] for par in range(len(participants))]
+    z2_p_a = [[] for par in range(len(participants))]
+    mt_p_a = [[] for par in range(len(participants))]
+
+    diff_calfct_p = []
+    diff_calfct_s = []
 
     dictio = load_obj(name_dict, path_to_dict)
     l2 = ['fasc*', 'fsc_*']
-    fam_folders = [str(d) for d in dictio[participant].keys()]
-
-    for fam in fam_folders:
-        # simple images
-        dictioS = dictio[participant][fam]['BF']['simple']
-        images = [str(im) for im in dictioS.keys()]
-        for i in images:
-            
-            # manual
-            dictioM = dictioS[i]['architecture manual']
-            fascicles = [str(fa) for fa in dictioM if any(fnmatch.fnmatch(fa, p) for p in l2)]
-            for f in fascicles:
-                dictioF = dictioM[f]
-                x_s_m.append(dictioF['dist from (0,0) of RGB image, in mm'])
-                y_s_m.append(dictioF['FL']['length in mm'])
-                z1_s_m.append(dictioF['PAsup']['value in degree'])
-                z2_s_m.append(dictioF['PAinf']['value in degree'])
-                
-            # automatic
-            dictioA = dictioS[i]['architecture auto']
-            if dictioA:
-                fascicles = [fa for fa in dictioA if any(fnmatch.fnmatch(fa, p) for p in l2)]
-                for f in fascicles:
-                    dictioF = dictioA[f]
-                    x_s_a.append(dictioF['dist from (0,0) of RGB image, in mm'])
-                    y_s_a.append(dictioF['FL']['length in mm'])
-                    z1_s_a.append(dictioF['PAsup']['value in degree'])
-                    z2_s_a.append(dictioF['PAinf']['value in degree'])        
+    
+    for par in range(len(participants)):
         
-        # panoramic images
-        dictioP = dictio[participant][fam]['BF']['panoramic']
-        images = [str(im) for im in dictioP.keys()]
-        for i in images:
-    
-            # manual
-            dictioM = dictioP[i]['architecture manual']
-            fascicles = [fa for fa in dictioM if any(fnmatch.fnmatch(fa, p) for p in l2)]
-            for f in fascicles:
-                dictioF = dictioM[f]
-                x_p_m.append(dictioF['dist from insertion in mm'])
-                y_p_m.append(dictioF['FL']['length in mm'])
-                z1_p_m.append(dictioF['PAsup']['value in degree'])
-                z2_p_m.append(dictioF['PAinf']['value in degree'])            
-            print('PM', len(x_p_m), len(y_p_m), len(z1_p_m), len(z2_p_m))
+        participant = participants[par]
+        fam_folders = [str(d) for d in dictio[participant].keys()]
 
-            # automatic
-            dictioA = dictioP[i]['architecture auto']
-            if dictioA:
-                fascicles = [fa for fa in dictioA if any(fnmatch.fnmatch(fa, p) for p in l2)]
+        for fam in fam_folders:
+            # simple images
+            dictioS = dictio[participant][fam]['BF']['simple']
+            images = [str(im) for im in dictioS.keys()]
+            for i in images:
+                
+                # manual
+                dictioM = dictioS[i]['architecture manual']
+                c_start = dictioM['MT']['columns interval'][0] * dictioM['calfct_to_mm']
+                c_end = dictioM['MT']['columns interval'][1] * dictioM['calfct_to_mm']
+                mt_s_m[par].append(dictioM['MT']['coords']) #(absc,MT) in mm
+                fascicles = [str(fa) for fa in dictioM if any(fnmatch.fnmatch(fa, p) for p in l2)]
                 for f in fascicles:
-                    dictioF = dictioA[f]
-                    x_p_a.append(dictioF['dist from insertion in mm'])
-                    y_p_a.append(dictioF['FL']['length in mm'])
-                    z1_p_a.append(dictioF['PAsup']['value in degree'])
-                    z2_p_a.append(dictioF['PAinf']['value in degree'])        
-                print('PA', len(x_p_a), len(y_p_a), len(z1_p_a), len(z2_p_a))
+                    dictioF = dictioM[f]
+                    d_s_m[par].append(dictioF['dist from (0,0) of RGB image, in mm'])
+                    fl_s_m[par].append(dictioF['FL']['length in mm'])
+                    z1_s_m[par].append(dictioF['PAsup']['value in degree'])
+                    z2_s_m[par].append(dictioF['PAinf']['value in degree'])
 
+                    
+                # automatic
+                dictioA = dictioS[i]['architecture auto']
+                if dictioA:
+                    fascicles = [fa for fa in dictioA if any(fnmatch.fnmatch(fa, p) for p in l2)]
+                    for f in fascicles:
+                        dictioF = dictioA[f]
+                        d_s_a[par].append(dictioF['dist from (0,0) of RGB image, in mm'])
+                        fl_s_a[par].append(dictioF['FL']['length in mm'])
+                        z1_s_a[par].append(dictioF['PAsup']['value in degree'])
+                        z2_s_a[par].append(dictioF['PAinf']['value in degree'])
+
+                 
+                    #extract MT on the same interval than for manual processing
+                    c_start_p = dictioA['crop']['columns'][0] +\
+                                dictioA['MT']['columns interval'][0]                   
+                    
+                    dictioA['MT']['coords'][:,0] = dictioA['MT']['coords'][:,0]+\
+                            c_start_p * dictioA['calfct_to_mm']['horizontal axis']
+                            
+                    for ind in range(dictioA['MT']['coords'].shape[0]):
+                        if dictioA['MT']['coords'][ind,0] >= c_start and dictioA['MT']['coords'][ind,0]<= c_end:
+                            mt_s_a.append(dictioA['MT']['coords'][ind,:])
+                
+                #calibration factors difference
+                diff_calfct_s.append(abs(dictioM['calfct_to_mm']-\
+                                         dictioA['calfct_to_mm']['horizontal axis']))
+
+            # panoramic images
+            dictioP = dictio[participant][fam]['BF']['panoramic']
+            images = [str(im) for im in dictioP.keys()]
+            for i in images:
+        
+                # manual
+                dictioM = dictioP[i]['architecture manual']
+                c_start = dictioM['MT']['columns interval'][0] * dictioM['calfct_to_mm']
+                c_end = dictioM['MT']['columns interval'][1] * dictioM['calfct_to_mm']
+                mt_p_m[par].append(dictioM['MT']['coords'])#(absc,MT) in mm             
+                fascicles = [fa for fa in dictioM if any(fnmatch.fnmatch(fa, p) for p in l2)]
+                for f in fascicles:
+                    dictioF = dictioM[f]
+                    d_p_m[par].append(dictioF['dist from insertion in mm'])
+                    fl_p_m[par].append(dictioF['FL']['length in mm'])
+                    z1_p_m[par].append(dictioF['PAsup']['value in degree'])
+                    z2_p_m[par].append(dictioF['PAinf']['value in degree'])            
+    
+                # automatic
+                dictioA = dictioP[i]['architecture auto']
+                if dictioA and ('MT' in dictioA):
+                    fascicles = [fa for fa in dictioA if any(fnmatch.fnmatch(fa, p) for p in l2)]
+                    for f in fascicles:
+                        dictioF = dictioA[f]
+                        d_p_a[par].append(dictioF['dist from insertion in mm'])
+                        fl_p_a[par].append(dictioF['FL']['length in mm'])
+                        z1_p_a[par].append(dictioF['PAsup']['value in degree'])
+                        z2_p_a[par].append(dictioF['PAinf']['value in degree'])      
+                   
+                    #extract MT on the same interval than for manual processing
+                    c_start_p = dictioA['crop']['columns'][0] +\
+                                dictioA['MT']['columns interval'][0]                   
+                    
+                    dictioA['MT']['coords'][:,0] = dictioA['MT']['coords'][:,0]+\
+                            c_start_p * dictioA['calfct_to_mm after resize']['horizontal axis']
+                            
+                    for ind in range(dictioA['MT']['coords'].shape[0]):
+                        if dictioA['MT']['coords'][ind,0] >= c_start and dictioA['MT']['coords'][ind,0]<= c_end:
+                            mt_p_a.append(dictioA['MT']['coords'][ind,:])
+
+                #calibration factors difference
+                diff_calfct_p.append(abs(dictioM['calfct_to_mm']-dictioA['calfct_to_mm before resize']['horizontal axis']))
+                
+                
+    
     import matplotlib.pyplot as plt
-    figS, ((ax1S, ax2S), (ax3S, ax4S)) = plt.subplots(2,2,sharex = False, sharey = False, figsize =(15,15))
-    figP, ((ax1P, ax2P), (ax3P, ax4P)) = plt.subplots(2,2,sharex = False, sharey = False, figsize =(15,15))
+    figS1, axS1 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+    figS2, axS2 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+    figS3, axS3 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+    figS4, axS4 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+
+    figP1, axP1 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+    figP2, axP2 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+    figP3, axP3 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+    figP4, axP4 = plt.subplots(1,1,sharex = False, sharey = False, figsize =(25,25))
+
+    figCs, (ax1Cs, ax2Cs) = plt.subplots(1,2,sharex = False, sharey = False, figsize =(15,15))
+    figCp, (ax1Cp, ax2Cp) = plt.subplots(1,2,sharex = False, sharey = False, figsize =(15,15))
+
+    #calibration factors
+    import numpy as np
+    diff_min_s = min(diff_calfct_s)
+    diff_max_s = max(diff_calfct_s)
+    diff_mean_s = np.mean(diff_calfct_s)
+    diff_min_p = min(diff_calfct_p)
+    diff_max_p = max(diff_calfct_p)
+    diff_mean_p = np.mean(diff_calfct_p)
     
-    #simple
-    figS.suptitle('Simple images outputs for participant: ' + participant)
-    
-    ax1S.plot(x_s_a, y_s_a, 'b+', markersize = 3, label = 'auto')
-    ax1S.plot(x_s_m, y_s_m, 'r+', markersize = 3, label = 'manual')
-    ax1S.set_ylabel('FL (mm)', fontsize= 8)
-    ax1S.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
-    ax1S.legend(loc = 'upper left', prop={'size': 6})
+    figCs.suptitle('Difference in manual/automatic calibration factor estimation in simple images')
+    ax1Cs.plot([i for i in range(len(diff_calfct_p))], diff_calfct_p, 'bo', markersize = 5)
+    ax1Cs.set_ylabel('Difference of calibration factors (mm/pixel)', fontsize= 8)
+    ax1Cs.set_xlabel('image', fontsize= 8)
+    ax2Cs.text(0.2,0.2, 'Mean ='+str(diff_mean_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+    ax2Cs.text(0.2,0.7, 'Min ='+str(diff_min_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+    ax2Cs.text(0.2,0.5, 'Max ='+str(diff_max_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+    ax2Cs.set_axis_off()
 
-    ax2S.plot(x_s_a, z1_s_a, 'b+', markersize = 3, label = 'auto')
-    ax2S.plot(x_s_m, z1_s_m, 'r+', markersize = 3, label = 'manual')
-    ax2S.set_ylabel('PA (degree) with superficial aponeurosis', fontsize= 8)
-    ax2S.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
-    ax2S.legend(loc = 'upper left', prop={'size': 6})
-
-    ax3S.plot(x_s_a, z2_s_a, 'b+', markersize = 3, label = 'auto')
-    ax3S.plot(x_s_m, z2_s_m, 'r+', markersize = 3, label = 'manual')
-    ax3S.set_ylabel('PA (degree) with deep aponeurosis', fontsize= 8)
-    ax3S.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
-    ax3S.legend(loc = 'upper left', prop={'size': 6})    
-
-
-    #panoramic
-    figP.suptitle('Panoramic images outputs for participant: ' + participant)
-
-    ax1P.plot(x_p_a, y_p_a, 'b+', markersize = 3, label = 'auto')
-    ax1P.plot(x_p_m, y_p_m, 'r+', markersize = 3, label = 'manual')
-    ax1P.set_ylabel('FL (mm)', fontsize= 8)
-    ax1P.set_xlabel('Distance from insertion (mm)', fontsize= 8)
-    ax1P.legend(loc = 'upper left', prop={'size': 6})
-
-    ax2P.plot(x_p_a, z1_p_a, 'b+', markersize = 3, label = 'auto')
-    ax2P.plot(x_p_m, z1_p_m, 'r+', markersize = 3, label = 'manual')
-    ax2P.set_ylabel('PA (degree) with superficial apoenurosis', fontsize= 8)
-    ax2P.set_xlabel('Distance from insertion (mm)', fontsize= 8)
-    ax2P.legend(loc = 'upper left', prop={'size': 6})
-
-    ax3P.plot(x_p_a, z2_p_a, 'b+', markersize = 3, label = 'auto')
-    ax3P.plot(x_p_m, z2_p_m, 'r+', markersize = 3, label = 'manual')
-    ax3P.set_ylabel('PA (degree) with deep aponeurosis', fontsize= 8)
-    ax3P.set_xlabel('Distance from insertion (mm)', fontsize= 8)
-    ax3P.legend(loc = 'upper left', prop={'size': 6})
-    
-    plt.show()
+    figCp.suptitle('Difference in manual/automatic calibration factor estimation in panoramic images')
+    ax1Cp.plot([i for i in range(len(diff_calfct_p))], diff_calfct_p, 'bo', markersize = 5)
+    ax1Cp.set_ylabel('Difference of calibration factors (mm/pixel)', fontsize= 8)
+    ax1Cp.set_xlabel('image', fontsize= 8)
+    ax2Cp.text(0.2,0.2, 'Mean ='+str(diff_mean_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+    ax2Cp.text(0.2,0.7, 'Min ='+str(diff_min_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+    ax2Cp.text(0.2,0.5, 'Max ='+str(diff_max_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+    ax2Cp.set_axis_off()
 
     
+    #muscle features
+    figS1.suptitle('PA sup in simple images. Points: auto data, Plus: manual data. One color/participant')
+    axS1.set_ylabel('PA (degree) with superficial aponeurosis', fontsize= 8)
+    axS1.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+
+    figS2.suptitle('PA inf in simple images. Points: auto data, Plus: manual data. One color/participant')
+    axS2.set_ylabel('PA (degree) with deep aponeurosis', fontsize= 8)
+    axS2.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+
+    figS3.suptitle('FL in simple images. Points: auto data, Plus: manual data. One color/participant')
+    axS3.set_ylabel('FL (mm)', fontsize= 8)
+    axS3.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+
+    figS4.suptitle('MT in simple images')
+    axS4.set_ylabel('MT (mm)', fontsize= 8)
+    axS4.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+
+    figP1.suptitle('PA sup in panoramic images. Points: auto data, Plus: manual data. One color/participant')
+    axP1.set_ylabel('PA (degree) with superficial aponeurosis', fontsize= 8)
+    axP1.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+
+    figP2.suptitle('PA inf in panoramic images. Points: auto data, Plus: manual data. One color/participant')
+    axP2.set_ylabel('PA (degree) with deep aponeurosis', fontsize= 8)
+    axP2.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+
+    figP3.suptitle('FL in panoramic images. Points: auto data, Plus: manual data. One color/participant')
+    axP3.set_ylabel('FL (mm)', fontsize= 8)
+    axP3.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+    
+    figP4.suptitle('MT in panoramic images')
+    axP4.set_ylabel('MT (mm)', fontsize= 8)
+    axP4.set_xlabel('Distance from upper left corner of image (mm)', fontsize= 8)
+
+    #colors
+    colors = [(0,0,0), (1,1,0), (1,0,1), (0,1,1), (0,1,0), (1,0,0), (0,0,1),\
+                 (0.5,0.8,0),(0.5,0.8,0.5), (0.1,0.8,0),(0.1,0.2,0.1), (1,0.2,0),\
+                (0.3,0.3,1), (1,0.15,0.15), (0,0.2,0.9), (0,0.2,0.15)]
+
+    for par in range(len(participants)):
+          
+        axS3.plot(d_s_a[par], fl_s_a[par], color = colors[par], marker='.', markersize = 3, linestyle='None')
+        axS3.plot(d_s_m[par], fl_s_m[par], color = colors[par], marker='+', markersize = 5, linestyle='None')
+
+        axS1.plot(d_s_a[par], z1_s_a[par], color = colors[par], marker='.', markersize = 3, linestyle='None')
+        axS1.plot(d_s_m[par], z1_s_m[par], color = colors[par], marker='+', markersize = 5, linestyle='None')
+
+        axS2.plot(d_s_a[par], z2_s_a[par], color = colors[par], marker='.', markersize = 3, linestyle='None')
+        axS2.plot(d_s_m[par], z2_s_m[par], color = colors[par], marker='+', markersize = 5, linestyle='None')
+
+        axP3.plot(d_p_a[par], fl_p_a[par], color = colors[par], marker='.', markersize = 3, linestyle='None')
+        axP3.plot(d_p_m[par], fl_p_m[par],  color = colors[par], marker='+', markersize = 5, linestyle='None')
+    
+        axP1.plot(d_p_a[par], z1_p_a[par], color = colors[par], marker='.', markersize = 3, linestyle='None')
+        axP1.plot(d_p_m[par], z1_p_m[par], color = colors[par], marker='+', markersize = 5, linestyle='None')
+    
+        axP2.plot(d_p_a[par], z2_p_a[par], color = colors[par], marker='.', markersize = 3, linestyle='None')
+        axP2.plot(d_p_m[par], z2_p_m[par], color = colors[par], marker='+', markersize = 5, linestyle='None')
+
+    plt.show()   
