@@ -84,33 +84,46 @@ def muscleThickness(start, end, calibV, calibH, spl1 = None, spl2 = None, points
 def diffSpline(x, spl1, spl2):
     return spl1(x) - spl2(x)
 
-def findIntersections(spl1, listSpl, start):
+def findIntersections(spl_inf, spl_sup, listSpl, start, insertion):
     """Function that finds the intersection point between
-    two curves respectively defined by the spline spl1
-    and the splines listed in listSpl
-
+        - spl1 and each spline in the list listSpl
+        - spl2 and each spline in the list listSpl
+    If a spline from listSpl does not have one intersection with spl1
+    and one intersection with spl2, it is not considered anymore. If the intersec
+    tion with spl_inf is after this with spl_sup, then the spline is not considered
+    anymore
+    
     Args:
         spl1: spline, as output by the scipy function 'univariateSpline'.
                     spl1 accounts for the aponeurosis approximation
         ListSpl (list of splines): list of splines (output by univariateSpline)
                 that account for the muscle fascicles approximation
-
+        
     Outputs:
         listIntersections (list of tuples): intersection points between spl1
         and the different splines of listSpl
+        gss
+        sgrqrg
     """
     import scipy.optimize as scio
-    listIntersections = []
+    listIntersections1 = []
+    listIntersections2 = []
+    spl_output = []
     
     t = 0.01
     
     for ind in range(len(listSpl)):
-        spl2 = listSpl[ind]
-        y0 = int(scio.fsolve(diffSpline, x0 = start, args = (spl1, spl2), xtol = t))
-        x0 = int(spl2(y0))
-        listIntersections.append([x0,y0])
+        spl3 = listSpl[ind]
+        res1 = scio.fsolve(diffSpline, x0 = start, args = (spl_inf, spl3), xtol = t, full_output = True)
+        res2 = scio.fsolve(diffSpline, x0 = start, args = (spl_sup, spl3), xtol = t, full_output = True)
+        if res1[2] == 1 and res2[2] == 1 and res1[0] < res2[0]\
+        and res1[0]<insertion and res2[0]<insertion:
+            listIntersections1.append([int(spl3(res1[0])),int(res1[0])])
+            listIntersections2.append([int(spl3(res2[0])),int(res2[0])])
+            spl_output.append(spl3)
+            
+    return listIntersections1, listIntersections2, spl_output
 
-    return listIntersections
 
 def pennationAngles(spl_a, listS_f, listI, xcalib, ycalib, I = None):
     """
