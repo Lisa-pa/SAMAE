@@ -5,14 +5,14 @@ Created on Thu Sep  3 16:52:58 2020
 @author: Lisa Paillard
 """
 
-def simpleManu(manu_pts_dict):
+def simpleManu(manu_pts_dict, path_img = None):
     
     import MUFeaM
     import numpy as np
     import FaDe
     import fnmatch
 
-    calib = manu_pts_dict['calfct in mm']
+    calib = manu_pts_dict['calfct_to_mm']
     
     list_sup = list(manu_pts_dict['aposup']['coords'])
     list_sup.sort(key=lambda x:x[0])
@@ -29,7 +29,6 @@ def simpleManu(manu_pts_dict):
     spline_sup = np.poly1d(polyn_sup)
     polyn_inf = np.polyfit(y_inf, x_inf, deg = 1)
     spline_inf = np.poly1d(polyn_inf)
-
     
     # features computation
     abscissa, thickness, splineT = MUFeaM.muscleThickness(start = max(min(y_sup), min(y_inf)), end = min(max(y_sup), max(y_inf)), calibV = calib, calibH = calib, spl1 = spline_sup, spl2 = spline_inf)
@@ -42,8 +41,7 @@ def simpleManu(manu_pts_dict):
         #Bspline
         spl = FaDe.approximateFasc(typeapprox = 'polyfit', listF = [fasci], d = 1)
         #find intersection points with aponeuroses
-        inters_sup = MUFeaM.findIntersections(spl1 = spline_sup, listSpl = spl, start = x_sup[int(len(y_sup)/2)])
-        inters_inf = MUFeaM.findIntersections(spl1 = spline_inf, listSpl = spl, start = x_inf[int(len(y_inf)/2)])
+        inters_inf, inters_sup, spl = MUFeaM.findIntersections(spl_inf = spline_inf, spl_sup = spline_sup, listSpl = spl, start = 0, insertion = 200/calib)
         #find pennation angles
         PA_sup = MUFeaM.pennationAngles(spl_a = spline_sup, listS_f = spl, listI = inters_sup, xcalib = calib, ycalib = calib)
         PA_inf = MUFeaM.pennationAngles(spl_a = spline_inf, listS_f = spl, listI = inters_inf, xcalib = calib, ycalib = calib)
@@ -57,5 +55,5 @@ def simpleManu(manu_pts_dict):
         manu_pts_dict[fsc]['PAinf'] = {'value in degree' : PA_inf[0],
                      'intersection with apo': inters_inf[0]}
         manu_pts_dict[fsc]['FL'] = {'length in mm': FL[0]}
-    
+   
     return manu_pts_dict
