@@ -1,35 +1,20 @@
-from calibration.calib import autoCalibration
-from preprocessing.cropping import manualcropping
-from preprocessing.preprocess import preprocessingApo
-import apoLoc as apoL
-import apoCont as apoC
-import MUFeaM
-import FaDe
-
-import cv2
-import numpy as np
-import tkinter.messagebox as tkbox
-#import tkinter as tk
-#from PIL import ImageTk, Image
-
-#################################EVENT FUNCTION################################
-
-points = []
-def _pickCoordinates(event):
-    points.append((event.y,event.x))
-
-#######################PROCESSING OF PANORAMIC US IMAGES#######################
-
-#Open the image
-#RGBimageP = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/jHamON_data/06_thomasmartine/fam_2/architecture/Martine_thomas_20180714_095546_image_bfp.jpg', -1)
-#RGBimageP = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/jHamON_data/12_sufyan/fam_1/architecture/Sufyan_jamon_20180709_125927_image_bfp.jpg', -1)
-#USimageP, pt_intersection = manualcropping(RGBimageP, 'C:/Users/Lisa Paillard/Desktop/Pour TFE/jHamON_data/06_thomasmartine/fam_2/architecture/Martine_thomas_20180714_095546_image_bfp.txt')
-#USimageP, pt_intersection = manualcropping(RGBimageP, 'C:/Users/Lisa Paillard/Desktop/Pour TFE/jHamON_data/12_sufyan/fam_1/architecture/Sufyan_jamon_20180709_125927_image_bfp.txt')
-
-
+""" automatic analysis of panoramic images """
 
 def panoprocessing(path_to_image, path_to_txtfile):
-    
+    """
+    """
+    from aponeurosesdetection.calibration.calib import autoCalibration
+    from aponeurosesdetection.preprocessing.cropping import manualcropping
+    from aponeurosesdetection.preprocessing.preprocess import preprocessingApo
+    import aponeurosesdetection.apoLoc as apoL
+    import aponeurosesdetection.apoCont as apoC
+    import aponeurosesdetection.MUFeaM as MUFeaM
+    import aponeurosesdetection.FaDe as FaDe
+
+    import cv2
+    import numpy as np
+    import tkinter.messagebox as tkbox
+
     #opening image and validate processing
     RGBimageP = cv2.imread(path_to_image, -1)
     cv2.imshow('Image to process', RGBimageP)

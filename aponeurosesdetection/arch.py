@@ -1,3 +1,5 @@
+"""Management of the dict architecture"""
+
 def dame_arch_paths(path_to_folders, participants, test='architecture'):
     """Create dict of paths were architecture data have been stored
 
@@ -87,10 +89,10 @@ def _calcula_arch(data):
     """
 
     import numpy as np
-    import autoP
-    import autoS
-    import manuP
-    import manuS
+    import aponeurosesdetection.autoP as autoP
+    import aponeurosesdetection.autoS as autoS
+    import aponeurosesdetection.manuP as manuP
+    import aponeurosesdetection.manuS as manuS
     
     for part in data.keys():
         for ntest in data[part].keys():

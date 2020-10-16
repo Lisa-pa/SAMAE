@@ -1,3 +1,4 @@
+"""Functions for the active contour model - detection of aponeuroses"""
 import cv2
 import math
 import numpy as np
