@@ -27,13 +27,36 @@ Features
 --------
 * Structure of the folder containing your US images to analyze
         TO DO
+        1) Architecture of the folder
+
+        2) Data for simple images
+                Structure of the image name: "imagename_bfs.jpg"
+
+                For the automatic analysis of simple image, no more data is needed.
+                For the comparison with manual labelled data, a txt file is needed.
+                        Structure of the txt file name: "imagename_bfs.txt"
+                        Structure inside the txt file:
+                                TO DO
+
+        3) Data for panoramic images
+                Structure of the image name: "imagename_bfp.jpg"
+                
+                Since the cropping is not automated for this type of image, a txt file with manually labelled data is required.
+                        Structure of the txt file name: "imagename_bfp.txt"
+                        Structure inside the txt file:
+                                TO DO
 
 * How to use this package?
-        To analyse US images with this package, open the filemanager.py file and adapt the 
+        To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
                 - path_to_folder variable (path to the folder that contains the images);
                 - part variable (list of participants);
                 - colors variable (list of colors for the visualization);
         then run the file !
+
+        * How to automatically analyze a panoramic image?
+                TO DO
+        * How to automatically analyze a ximple image?
+                TO DO
 
 * What happens when you run the filemanager.py file?
 
@@ -99,7 +122,6 @@ Features
                                 - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual);
                                 - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual).
          
-
 
 Credits
 -------
