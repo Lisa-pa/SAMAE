@@ -81,48 +81,82 @@ def muscleThickness(start, end, calibV, calibH, spl1 = None, spl2 = None, points
 
     return absc, mt, spl
 
-def diffSpline(x, spl1, spl2):
+
+
+def _diffSpline(x, spl1, spl2):
     return spl1(x) - spl2(x)
 
-def findIntersections(spl_inf, spl_sup, listSpl, start, insertion):
+def findIntersections(spl_inf, spl_sup, listSpl, search_interval, start = 0):
     """Function that finds the intersection point between
         - spl1 and each spline in the list listSpl
         - spl2 and each spline in the list listSpl
-    If a spline from listSpl does not have one intersection with spl1
-    and one intersection with spl2, it is not considered anymore. If the intersec
-    tion with spl_inf is after this with spl_sup, then the spline is not considered
-    anymore
+    Conditions to keep considering a fascicle:
+        - one intersection with spl_inf and one with spl_sup
+        - column of intersection with spl_inf < column of intersection with spl_sup
+        - line of intersection with spl_inf > line of intersection with spl_sup
+    Otherwise, the fascicle and its intersections with aponeuroses are not
+    considered anymore
     
     Args:
-        spl1: spline, as output by the scipy function 'univariateSpline'.
-                    spl1 accounts for the aponeurosis approximation
+        spl_inf, spl_sup: splines, as output by the scipy function 'univariateSpline'.
+                    they account for the aponeuroses approximations
         ListSpl (list of splines): list of splines (output by univariateSpline)
                 that account for the muscle fascicles approximation
+                search_interval = list [a,b] = interval in which intersections
+                are looked for
         
     Outputs:
-        listIntersections (list of tuples): intersection points between spl1
-        and the different splines of listSpl
-        gss
-        sgrqrg
+        listIntersections_i, listIntersections_s (list of tuples): intersection
+        points between aponeuroses splines and the different splines of listSpl
     """
     import scipy.optimize as scio
-    listIntersections1 = []
-    listIntersections2 = []
+    listIntersections_i = []
+    listIntersections_s = []
     spl_output = []
     
     t = 0.01
-    
+    tol = 0.5
     for ind in range(len(listSpl)):
         spl3 = listSpl[ind]
-        res1 = scio.fsolve(diffSpline, x0 = start, args = (spl_inf, spl3), xtol = t, full_output = True)
-        res2 = scio.fsolve(diffSpline, x0 = start, args = (spl_sup, spl3), xtol = t, full_output = True)
-        if res1[2] == 1 and res2[2] == 1 and res1[0] < res2[0]\
-        and res1[0]<insertion and res2[0]<insertion:
-            listIntersections1.append([int(spl3(res1[0])),int(res1[0])])
-            listIntersections2.append([int(spl3(res2[0])),int(res2[0])])
-            spl_output.append(spl3)
-            
-    return listIntersections1, listIntersections2, spl_output
+        a = search_interval[0]
+        b = search_interval[1]
+        res1 = scio.fsolve(_diffSpline, x0 = start, args = (spl_inf, spl3), xtol = t, full_output = True)
+        res2 = scio.fsolve(_diffSpline, x0 = (b-a)/2, args = (spl_sup, spl3), xtol = t, full_output = True)
+        
+        #check that solutions have been found and that they are indeed solutions
+        if res1[2] == 1 and res2[2] == 1:   
+            #filter results so that they correspond to the properties of fibres in our images
+            #this should be modified if the program is to be used on other images
+            if res1[0]<res2[0] and spl3(res1[0])>spl3(res2[0]) and abs(res1[1]['fvec'][0])<tol and abs(res2[1]['fvec'][0])<tol:
+                #minimal length of fascicle between the 2 intersection points:
+                if ((res1[0]-res2[0])**2 + (spl3(res1[0])-spl3(res2[0]))**2)>100**2:
+                    #finally, check if intersections are in the range of the muscle:
+                    if res1[0]>a and res2[0]<b:
+                        listIntersections_i.append([int(spl3(res1[0])),int(res1[0])])
+                        listIntersections_s.append([int(spl3(res2[0])),int(res2[0])])
+                        spl_output.append(spl3)
+
+
+#        if (_diffSpline(a,spl_inf,spl3)<0 and _diffSpline(b,spl_inf,spl3)>=0) or\
+#        (_diffSpline(a,spl_inf,spl3)>=0 and _diffSpline(b,spl_inf,spl3)<0):
+#                
+#            res_i = scio.brentq(_diffSpline, a, b, args= (spl_inf, spl3), xtol = t, full_output = True)
+#            
+#            if (_diffSpline(a,spl_sup,spl3)<0 and _diffSpline(b,spl_sup,spl3)>=0) or\
+#            (_diffSpline(a,spl_sup,spl3)>=0 and _diffSpline(b,spl_sup,spl3)<0):
+#                
+#                res_s = scio.brentq(_diffSpline, a, b, args= (spl_sup, spl3), xtol = t, full_output = True)
+#                
+#                #check that results converged
+#                if res_i[1].converged == True and res_s[1].converged == True:
+#                    #filter results so that they correspond to the properties of fibres in our images
+#                    #this should be modified if the program is to be used on other images
+#                    if res_i[0]<res_s[0] and spl3(res_i[0])>spl3(res_s[0]):
+#                        listIntersections_i.append([int(spl3(res_i[0])),int(res_i[0])])
+#                        listIntersections_s.append([int(spl3(res_s[0])),int(res_s[0])])
+#                        spl_output.append(spl3)
+         
+    return listIntersections_i, listIntersections_s, spl_output
 
 
 def pennationAngles(spl_a, listS_f, listI, xcalib, ycalib, I = None):
@@ -166,11 +200,11 @@ def pennationAngles(spl_a, listS_f, listI, xcalib, ycalib, I = None):
             for ind in range(vect.shape[0]):
                 if vect[ind]>= 0 and vect[ind]<I.shape[1]\
                     and vect_f[ind]>=0 and vect_f[ind] < I.shape[0]:
-                        I[int(vect_f[ind]), int(vect[ind]), :] = [255,0,255]
+                    I[int(vect_f[ind]), int(vect[ind]), :] = [255,  0,255]
 
                 if vect[ind]>= 0 and vect[ind]<I.shape[1]\
                     and vect_a[ind]>=0 and vect_a[ind] < I.shape[0]:
-                        I[int(vect_a[ind]), int(vect[ind]), :] = [255,0,255]
+                    I[int(vect_a[ind]), int(vect[ind]), :] = [255, 0, 255]
         
     return list_pa
 
