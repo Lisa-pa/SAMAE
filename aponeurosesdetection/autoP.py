@@ -54,14 +54,12 @@ def panoprocessing(path_to_image, path_to_txtfile):
     
         USimageP, pt_intersection, l1,l2,c1,c2 = manualcropping(RGBimageP, path_to_txtfile)
 
-        
         cv2.imshow('Cropped image', USimageP)
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
         
         
         #################################################
-        
         #resize
         #update calibration factors and pt_intersection's coordinates
         initialsize = (USimageP.shape[1], USimageP.shape[0])
@@ -141,10 +139,10 @@ def panoprocessing(path_to_image, path_to_txtfile):
         
                     if np.amin(contourSup_i)<=0: #if the contour exists, extract it
                         contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = locSup[0], offSetY = i * sampleSize)
+                        visu = np.copy(USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                        visu[locSup[0]:locSup[1],:] = contourSup_image_i
                         #ask for manual validation of the contour
-                        cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
-                        cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
-                        cv2.imshow('Pre-processed sample',Sup_i_pp)
+                        cv2.imshow('Sample i', visu)
                         valid = tkbox.askyesno('Need user validation', 'Do you validate the contour? After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
                         cv2.waitKey(0) & 0xFF
                         cv2.destroyAllWindows()
@@ -157,10 +155,10 @@ def panoprocessing(path_to_image, path_to_txtfile):
                             print('Upper aponeurosis contour found in ', nSup_i, ' steps')
                             if np.amin(contourSup_i) <= 0 :
                                 contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = locSup[0], offSetY = i * sampleSize)
+                                visu = np.copy(USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                                visu[locSup[0]:locSup[1],:] = contourSup_image_i
                                 #ask for manual validation of the contour
-                                cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
-                                cv2.imshow('Pre-processed sample',Sup_i_pp)
-                                cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                                cv2.imshow('Sample i', visu)
                                 valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
                                 cv2.waitKey(0) & 0xFF
                                 cv2.destroyAllWindows()                
@@ -186,7 +184,6 @@ def panoprocessing(path_to_image, path_to_txtfile):
                     contourInf_i, nInf_i = apoC.activeContour(Inf_i_pp, iniInf_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
                     print('Deep aponeurosis contour found in ', nInf_i, ' steps')
                     
-                    
                     #Verify contour has been detected and ask for validation
                     if np.amin(contourInf_i) > 0: #try a second time with a bigger initial contour if no contour has been found
                         iniInf_i = apoC.initiateContour(Inf_i_pp, typeC = 'quadrangle_param', param = [paramInf[0], paramInf[1] - locInf[0], 40])
@@ -195,10 +192,10 @@ def panoprocessing(path_to_image, path_to_txtfile):
         
                     if np.amin(contourInf_i)<=0: #if the contour exists, extract it
                         contourInf_image_i, contourInf_points_i = apoC.extractContour(contourInf_i, Inf_i, offSetX = locInf[0], offSetY = i * sampleSize)
+                        visu = np.copy(USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                        visu[locInf[0]:locInf[1],:] = contourInf_image_i
                         #ask for manual validation of the contour
-                        cv2.imshow('Deep aponeurosis contour on sample i', contourInf_image_i)
-                        cv2.imshow('Pre-processed sample',Inf_i_pp)
-                        cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                        cv2.imshow('Sample i', visu)
                         valid = tkbox.askyesno('Need user validation', 'Do you validate the contours? After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
                         cv2.waitKey(0) & 0xFF
                         cv2.destroyAllWindows()
@@ -211,10 +208,10 @@ def panoprocessing(path_to_image, path_to_txtfile):
                             print('Deep aponeurosis contour found in ', nInf_i, ' steps')
                             if np.amin(contourInf_i) <= 0 :
                                 contourInf_image_i, contourInf_points_i = apoC.extractContour(contourInf_i, Inf_i, offSetX = locInf[0], offSetY = i * sampleSize)
+                                visu = np.copy(USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                                visu[locInf[0]:locInf[1],:] = contourInf_image_i
                                 #ask for manual validation of the contour
-                                cv2.imshow('Deep aponeurosis contour on sample i', contourInf_image_i)
-                                cv2.imshow('Pre-processed sample',Inf_i_pp)
-                                cv2.imshow('Sample i', USimageP[:, i*sampleSize:(i+1)*sampleSize])
+                                cv2.imshow('Sample i', visu)
                                 valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
                                 cv2.waitKey(0) & 0xFF
                                 cv2.destroyAllWindows()                
@@ -241,13 +238,6 @@ def panoprocessing(path_to_image, path_to_txtfile):
                 if param[0] != 'error':
                     #initiate contour
                     iniSup_i = apoC.initiateContour(Sup_i_pp, typeC = 'quadrangle_param', param = [param[0], param[1] - offS, 10])
-
-                    '''
-                    cont_ini_im, ptini = apoC.extractContour(iniSup_i, Sup_i,offSetX = offS, offSetY = i * sampleSize)
-                    cv2.imshow('initial contour', cont_ini_im)
-                    cv2.waitKey(0) & 0xFF
-                    cv2.destroyAllWindows()
-                    '''
         
                     #calculate contour with active contour model
                     contourSup_i, nSup_i = apoC.activeContour(Sup_i_pp, iniSup_i, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
@@ -276,7 +266,6 @@ def panoprocessing(path_to_image, path_to_txtfile):
                                 contourSup_image_i, contourSup_points_i = apoC.extractContour(contourSup_i, Sup_i, offSetX = offS, offSetY = i * sampleSize)
                                 #ask for manual validation of the contour
                                 cv2.imshow('Upper aponeurosis contour on sample i', contourSup_image_i)
-                                cv2.imshow('Pre-processed sample',Sup_i_pp)
                                 valid = tkbox.askyesno('Need user validation', 'Do you validate the contour ? If no, this section will be ignored in the interpolation process. After clicking yes or no, please close the image windows to continue.', default = 'yes', icon='question')
                                 cv2.waitKey(0) & 0xFF
                                 cv2.destroyAllWindows()
@@ -293,7 +282,6 @@ def panoprocessing(path_to_image, path_to_txtfile):
             archi_auto = dict()
             archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
             archi_auto['calfct_to_mm before resize'] = {'vertical axis': calibX * PERCENTAGE / 100, 'horizontal axis': calibY* PERCENTAGE / 100}
-            archi_auto['calfct_to_mm after resize'] = {'vertical axis': calibX, 'horizontal axis': calibY}
             archi_auto['aposup'] = {'coords':'error'}
             archi_auto['apoinf'] = {'coords':'error'}
             return archi_auto
@@ -303,11 +291,7 @@ def panoprocessing(path_to_image, path_to_txtfile):
         spline_Sup = apoC.approximateApo(p = contoursSup, apoType = 'upper', I = USimageP, typeapprox = 'polyfit', d = 3)
         spline_Inf = apoC.approximateApo(p = contoursInf, apoType = 'lower', I = USimageP, typeapprox = 'polyfit', d = 2)
         
-        
-        #muscle thickness measurement
-        abscissa, thickness, thickness_spline = MUFeaM.muscleThickness(spl1 = spline_Sup, spl2 = spline_Inf, start = 0, end = MAXBAND*sampleSize, calibV = calibX, calibH = calibY)
-    
-    
+            
         #Calculate coordinates of aponeuroses
         coordSup, spline_Sup = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_Sup, interval = [0, int(pt_intersection[1])])
         coordInf, spline_Inf = MUFeaM.pointsCoordinates(typeA = 'spline', param = spline_Inf, interval = [0, int(pt_intersection[1])])
@@ -348,24 +332,42 @@ def panoprocessing(path_to_image, path_to_txtfile):
                                                               minLength = 5, \
                                                               offSetX = minRow, offSetY = i*sampleSize, im = USimageP)
                 if snippets == 'error':
+                    #move coords back to original RGB image coordinate system
+                    coordSup[:,0] = np.int64(coordSup[:,0]*100/PERCENTAGE+l1)
+                    coordSup[:,1] = np.int64(coordSup[:,1]*100/PERCENTAGE+c1)
+                    coordInf[:,0] = np.int64(coordInf[:,0]*100/PERCENTAGE+l1)
+                    coordInf[:,1] = np.int64(coordInf[:,1]*100/PERCENTAGE+c1)
+                    miniS = np.amin(coordSup[:,1])
+                    maxiS = np.amax(coordSup[:,1])
+                    miniI = np.amin(coordInf[:,1])
+                    maxiI = np.amax(coordInf[:,1])
+                    mini = max(miniS, miniI)
+                    maxi = min(maxiS, maxiI)
+                    coordS = np.zeros((maxi-mini+1,2))
+                    coordI = np.zeros((maxi-mini+1,2))
+                    for index1 in range(mini, maxi+1):
+                        pixelS = [coordSup[i,0] for i in range(coordSup.shape[0]) if coordSup[i,1] == index1]
+                        pixelI = [coordInf[i,0] for i in range(coordInf.shape[0]) if coordInf[i,1] == index1]
+                        coordS[index1-mini,0] = np.mean(pixelS)
+                        coordS[index1-mini,1] = index1
+                        coordI[index1-mini,0] = np.mean(pixelI)
+                        coordI[index1-mini,1] = index1
                     archi_auto = dict()
                     archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
-                    archi_auto['calfct_to_mm before resize'] = {'vertical axis': calibX * PERCENTAGE / 100, 'horizontal axis': calibY* PERCENTAGE / 100}
-                    archi_auto['calfct_to_mm after resize'] = {'vertical axis': calibX, 'horizontal axis': calibY}
-                    archi_auto['aposup'] = {'coords':coordSup}
-                    archi_auto['apoinf'] = {'coords':coordInf}
-                    archi_auto['MT'] = {'coords': np.vstack((abscissa, thickness)).T, 'columns interval': [0, MAXBAND*sampleSize]}
+                    archi_auto['calfct_to_mm before resize'] = {'vertical axis': calibX * PERCENTAGE/100, 'horizontal axis': calibY*PERCENTAGE/100}
+                    archi_auto['aposup'] = {'coords':coordS}
+                    archi_auto['apoinf'] = {'coords':coordI}
+                    #muscle thickness measurement
+                    abscissa, thickness, thickness_spline = MUFeaM.muscleThickness(points1 = coordI, points2 = coordS, start = mini, end = maxi, calibV = calibX*PERCENTAGE/100, calibH = calibY*PERCENTAGE/100)
+                    archi_auto['MT'] = {'coords': thickness, 'columns interval': [mini, maxi]}
                     return archi_auto
                     
                     
                 all_snippets = all_snippets + snippets
                 all_snippets_line = all_snippets_line + snippets_line
             
-        print('snippets nb', len(all_snippets))
         fasc, fasc2 = FaDe.combineSnippets(USimageP, all_snippets, all_snippets_line, min_nb_sn = 3, thresh_alignment = 5)
     
-        print('fascicles poly deg 2', len(fasc))
-        print('fascicles poly deg 1', len(fasc2))
         #transform the snippets, which are in fact the contours of the fascicles,
         #into lines by taking the mean of the contour, that is the mean on each
         #column of the contour. When branches exist, the mean is not computed (the
@@ -384,7 +386,8 @@ def panoprocessing(path_to_image, path_to_txtfile):
         splines_fasc = splines_fasc + FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages2, d = 1)
 
         #intersections of fascicles with aponeuroses (in pixels)
-        intersecL, intersecU, splines_fasc = MUFeaM.findIntersections(spl_inf = spline_Inf, spl_sup = spline_Sup, listSpl = splines_fasc, start = USimageP.shape[1]/2, insertion = pt_intersection[1])
+        intersecL, intersecU, splines_fasc = MUFeaM.findIntersections(spl_inf = spline_Inf, spl_sup = spline_Sup,\
+                                                                      listSpl = splines_fasc, start = 0, search_interval=[-c1*PERCENTAGE/100, pt_intersection[1]])
 
         #Location of fascicles: (in mm from aponeuroses intersection point)
         loc_fasc = MUFeaM.locateFasc(intersecL, pt_intersection, calibY)
@@ -397,51 +400,65 @@ def panoprocessing(path_to_image, path_to_txtfile):
         fasc_length = MUFeaM.fasciclesLength(splines_fasc, intersecU, intersecL, calibX, calibY)
     
         #Dict containing info per image
+        #move coords back to original RGB image coordinate system
+        coordS = np.zeros(coordSup.shape)
+        coordI = np.zeros(coordInf.shape)
+        coordS[:,0] = np.int64(coordSup[:,0]*100/PERCENTAGE+l1)
+        coordS[:,1] = np.int64(coordSup[:,1]*100/PERCENTAGE+c1)
+        coordI[:,0] = np.int64(coordInf[:,0]*100/PERCENTAGE+l1)
+        coordI[:,1] = np.int64(coordInf[:,1]*100/PERCENTAGE+c1)        
+        miniS = np.amin(coordS[:,1])
+        maxiS = np.amax(coordS[:,1])
+        miniI = np.amin(coordI[:,1])
+        maxiI = np.amax(coordI[:,1])
+        mini = int(max(miniS, miniI))
+        maxi = int(min(maxiS, maxiI))
+        coordS2 = np.zeros((maxi-mini+1,2))
+        coordI2 = np.zeros((maxi-mini+1,2))
+        for index1 in range(mini, maxi+1):
+            pixelS = [coordS[i,0] for i in range(coordS.shape[0]) if coordS[i,1] == index1]
+            pixelI = [coordI[i,0] for i in range(coordI.shape[0]) if coordI[i,1] == index1]
+            coordS2[index1-mini,0] = np.mean(pixelS)
+            coordS2[index1-mini,1] = index1
+            coordI2[index1-mini,0] = np.mean(pixelI)
+            coordI2[index1-mini,1] = index1       
         archi_auto = dict()
         archi_auto['crop'] = {'lines': [l1,l2], 'columns': [c1,c2]}
         archi_auto['calfct_to_mm before resize'] = {'vertical axis': calibX * PERCENTAGE / 100, 'horizontal axis': calibY* PERCENTAGE / 100}
-        archi_auto['calfct_to_mm after resize'] = {'vertical axis': calibX, 'horizontal axis': calibY}
-        archi_auto['aposup'] = {'coords':coordSup}
-        archi_auto['apoinf'] = {'coords':coordInf}
-        archi_auto['MT'] = {'coords': np.vstack((abscissa, thickness)).T, 'columns interval': [0, MAXBAND*sampleSize]}
+        archi_auto['aposup'] = {'coords':coordS2}
+        archi_auto['apoinf'] = {'coords':coordI2}
+        #muscle thickness measurement
+        abscissa, thickness, thickness_spline = MUFeaM.muscleThickness(points1 = coordI2, points2 = coordS2, start = mini, end = maxi, calibV = calibX*PERCENTAGE/100, calibH = calibY*PERCENTAGE/100)
+        archi_auto['MT'] = {'coords': thickness, 'columns interval': [mini, maxi]}
         
         for index in range(len(splines_fasc)):
             archi_auto['fsc_' + str(index+1)] = {}
             typeIU = 'out of image'
             typeIL = 'out of image'
             typeFL = 'out of image'
-            if intersecU[index][0] >= 0 and\
-                intersecU[index][0] < USimageP.shape[0] and\
-                intersecU[index][1] >= 0 and\
-                intersecU[index][1] < USimageP.shape[1]:
+            intU = intersecU[index]
+            intL = intersecL[index]
+            if intU[0] >= 0 and intU[0] < USimageP.shape[0] and\
+                intU[1] >= 0 and intU[1] < USimageP.shape[1]:
                 typeIU = 'in image'
-            if intersecL[index][0] >= 0 and\
-                intersecL[index][0] < USimageP.shape[0] and\
-                intersecL[index][1] >= 0 and\
-                intersecL[index][1] < USimageP.shape[1]:
+            if intL[0] >= 0 and intL[0] < USimageP.shape[0] and\
+                intL[1] >= 0 and intL[1] < USimageP.shape[1]:
                 typeIL = 'in image'
             if typeIU == 'in image' and typeIL == 'in image':
                 typeFL = 'in image'
+                
             archi_auto['fsc_' + str(index+1)] = {'dist from insertion in mm': loc_fasc[index]}
             
- 
             archi_auto['fsc_' + str(index+1)]['PAsup'] = {'in/out of the image': typeIU,
                                                           'value in degree' : PA_Sup[index],
-                                                          'intersection with apo': intersecU[index]}
+                                                          'intersection with apo': [int(intU[0]*100/PERCENTAGE+l1), int(intU[1]*100/PERCENTAGE+c1)]}
 
             archi_auto['fsc_' + str(index+1)]['PAinf'] = {'in/out of the image': typeIL,
                                                           'value in degree' : PA_Inf[index],
-                                                          'intersection with apo': intersecL[index]}
+                                                          'intersection with apo': [int(intL[0]*100/PERCENTAGE+l1), int(intL[1]*100/PERCENTAGE+c1)]}
             
             archi_auto['fsc_' + str(index+1)]['FL'] = {'in/out of the image':typeFL,
                                                        'length in mm': fasc_length[index]}
- 
-    
-    
-    
-    
-    
-    
     
         #####
         #Visualization
@@ -486,36 +503,27 @@ def panoprocessing(path_to_image, path_to_txtfile):
                     if coord[n2][1] + 1 >= 0 and coord[n2][1] + 1 < USimageP.shape[1]:
                         USimageP[coord[n2][0], coord[n2][1] + 1, :] = [0,255,0]
 
+        #pointsintersection
+        for i0 in range(len(intersecU)):
+            intU = intersecU[i0]
+            intUp = [int(intU[0]*100/PERCENTAGE+l1), int(intU[1]*100/PERCENTAGE+c1)]
+            intL = intersecL[i0]
+            intLow = [int(intL[0]*100/PERCENTAGE+l1), int(intL[1]*100/PERCENTAGE+c1)]
+            for i1 in range(-5,6):
+                if intUp[0]+i1>=0 and intUp[0]+i1<RGBimageP.shape[0] and\
+                intUp[1]+i1>=0 and intUp[1]+i1< RGBimageP.shape[1]:
+                    RGBimageP[intUp[0]+i1,intUp[1],:] = [0,0,255]
+                    RGBimageP[intUp[0],intUp[1]+i1,:] = [0,0,255]
+            for i2 in range(-7,8):
+                if intLow[0]+i2>=0 and intLow[0]+i2<RGBimageP.shape[0] and\
+                intLow[1]+i2>=0 and intLow[1]+i2< RGBimageP.shape[1]:
+                    RGBimageP[intLow[0]+i2,intLow[1],:] = [0,255,255]
+                    RGBimageP[intLow[0],intLow[1]+i2,:] = [0,255,255]
+        
         cv2.imwrite(path_to_image[:-8]+'_final.jpg', USimageP)
         cv2.imshow('full image', USimageP)
+        cv2.imshow('original image',RGBimageP)
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
-        
-        '''
-        #FEATURES
-        import matplotlib.pyplot as plt
-        fig, (ax1, ax2, ax3) = plt.subplots(1,3,sharex = False, sharey = False, figsize =(15,15))
-        
-        #muscle thickness
-        ax1.plot(abscissa, thickness, 'b+', markersize = 3)
-        ax1.set_title('Muscle thickness')
-        ax1.set_ylabel('thickness (mm)')
-        ax1.set_xlabel('muscle axis (mm)')
-        ax1.set_ybound(0,30)
-        
-        #pennation angle
-        ax2.plot(PASup, PAInf, 'g+', markersize = 5)
-        ax2.set_title('Pennation angles')
-        ax2.set_xlabel('Angle (degrees) / upper apo')
-        ax2.set_ylabel('Angle (degrees) / deep apo')
-        ax2.set_xbound(0,30)
-        ax2.set_ybound(0,30)
-    
-        #fascicles length
-        ax3.plot(fasc_length, [1] * len(fasc_length), 'g+', markersize = 5)
-        ax3.set_title('Fascicles length')
-        ax3.set_xlabel('length (mm)')
-        
-        plt.show()
-        '''
+
         return archi_auto
