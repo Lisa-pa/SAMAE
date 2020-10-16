@@ -38,30 +38,28 @@ Prerequisites
    :height: 100
    :align: center
 
-        --------
-        a) Files for simple images processing
-        --------
 
-                -> Required file for automatic analysis:
-                        *imagename_bfs.jpg*
+^ Files for simple images processing
 
-                -> Required files for comparison of automatic results with manual labelled data:
-                        *imagename_bfs.jpg*, 
-                        *imagename_bfs.txt*
 
-                        Structure of imagename_bfs.txt:
-                                TO DO
+        -> Required file for automatic analysis:
+                *imagename_bfs.jpg*
 
-        --------
-        b) Files for panoramic images processing
-        --------
+        -> Required files for comparison of automatic results with manual labelled data:
+                *imagename_bfs.jpg*, 
+                *imagename_bfs.txt*
 
-                -> Required files, for automatic analysis of panoramic images or comparison of automatic/manual results:
-                        *imagename_bfp.jpg*,
-                        *imagename_bfp.txt* (required for both methods since cropping is not automated for this type of images)
+                Structure of imagename_bfs.txt:
+                        TO DO
 
-                        Structure inside the txt file:
-                                TO DO
+^ Files for panoramic images processing
+
+        -> Required files, for automatic analysis of panoramic images or comparison of automatic/manual results:
+                *imagename_bfp.jpg*,
+                *imagename_bfp.txt* (required for both methods since cropping is not automated for this type of images)
+
+                Structure inside the txt file:
+                        TO DO
 
 --------
 2) Python packages
