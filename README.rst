@@ -39,7 +39,7 @@ Prerequisites
    :align: center
 
 
-^ Files for simple images processing
+* Files for simple images processing
 
 
         -> Required file for automatic analysis:
@@ -52,7 +52,7 @@ Prerequisites
                 Structure of imagename_bfs.txt:
                         TO DO
 
-^ Files for panoramic images processing
+* Files for panoramic images processing
 
         -> Required files, for automatic analysis of panoramic images or comparison of automatic/manual results:
                 *imagename_bfp.jpg*,
