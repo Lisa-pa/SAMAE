@@ -1,43 +1,10 @@
-def dame_participants():
-    """Create list containing folder names
-
-    Returns:
-        list: list of strings
-    """    
-    part = ['01_Kevin','02_rafaelopes']
-    
-    '''
-    part = ['01_Kevin', '02_rafaelopes', '03_charlesbarrand', '04_guilhem',
-        '05_leandre', '06_thomasmartine', '10_victor', 
-        '11_youssouf', '12_sufyan', '16_julien', '34_nicolas']
-    '''
-    
-    # part = ['01_Kevin', '02_rafaelopes', '03_charlesbarrand', '04_guilhem',
-    #         '05_leandre', '06_thomasmartine', '09_serge', '10_victor',
-    #         '11_youssouf', '12_sufyan', '14_thomasFrancois',
-    #         '15_davidsimeon', '16_julien',
-
-    #         '18_mehdi', '20_tiavina', '22_granska', '23_jeandruais',
-    #         '24_guillaumeleroy', '25_mouaad', '25_mouaad', '26_waid',
-    #         '28_hugo', '29_johann', '30_nelsonlopez', '31_romain',
-    #         '41_pierrelouisgauche', '33_gabrielbeq', '34_nicolas',
-
-    #         '07_jihad', '08_jason', '17_simonavr', '19_enzo', '21_vincent',
-    #         '27_thibaultrigal', '35_benjamin', '36_baptiste', '37_samuel',
-    #         '38_samir', '40_jamesjeremy', '42_javi']
-
-    return part
-
-
-def dame_arch_paths(path_to_folders, test='architecture'):
+def dame_arch_paths(path_to_folders, participants, test='architecture'):
     """Create dict of paths were architecture data have been stored
 
     """
 
     import os
     import fnmatch
-
-    participants = dame_participants()
 
     arch_paths = dict()
     for participante in range(len(participants)):
@@ -49,10 +16,10 @@ def dame_arch_paths(path_to_folders, test='architecture'):
         arch_paths[participants[participante]] = {}
         for fa in range(len(fam_folders)):
             ll = os.listdir(
-                str(path_to_folders) + '\\' + participants[participante] + '\\' + str(fam_folders[fa]))
+                str(path_to_folders) + '\\' + str(participants[participante]) + '\\' + str(fam_folders[fa]))
             if test in ll:
                 arch_paths[participants[participante]][fam_folders[fa]] = str(
-                    path_to_folders) + '\\' + participants[participante] + '\\' + fam_folders[fa] + '\\' + test
+                    path_to_folders) + '\\' + str(participants[participante]) + '\\' + str(fam_folders[fa]) + '\\' + str(test)
 
     return arch_paths
 
@@ -142,20 +109,28 @@ def _calcula_arch(data):
 
                         print(part, ntest, msc, echo, img)
 
-                        
                         if echo == 'panoramic':
                             path_to_txt = data[part][ntest][msc][echo][img]['path']
                             path_to_jpg = path_to_txt[:-3] + 'jpg'                            
                             idx = data[part][ntest][msc]['panoramic'][img]['coords']
                             # manual processing
                             architecture1 = idfascicles(coords=idx, img='pano')
+                            points_sup_m = architecture1['aposup']['coords']
+                            points_inf_m = architecture1['apoinf']['coords']
                             architecture1 = manuP.panoManu(architecture1, None)
                             data[part][ntest][msc]['panoramic'][img]['architecture manual'] = architecture1
                             #automatic processing
                             architecture2 = autoP.panoprocessing(path_to_jpg, path_to_txt)
-                            data[part][ntest][msc]['panoramic'][img]['architecture auto'] = architecture2
-                            
-
+                            if architecture2:
+                                points_sup_a = architecture2['aposup']['coords']
+                                points_inf_a = architecture2['apoinf']['coords']
+                                data[part][ntest][msc]['panoramic'][img]['architecture auto'] = architecture2
+                                
+                                if ('MT' in architecture2):
+                                    MT1, MT2 = forMTcomparison(points_sup_m, points_inf_m, points_sup_a, points_inf_a,architecture1['calfct_to_mm'],\
+                                                        architecture2['calfct_to_mm before resize']['vertical axis'])
+                                    data[part][ntest][msc]['panoramic'][img]['architecture auto']['MT']['MT for labelled points'] = MT2
+                                    data[part][ntest][msc]['panoramic'][img]['architecture manual']['MT']['MT for labelled points'] = MT1
 
                         if echo == 'simple':
                             path_to_txt = data[part][ntest][msc][echo][img]['path']
@@ -163,12 +138,22 @@ def _calcula_arch(data):
                             idx = data[part][ntest][msc]['simple'][img]['coords']
                             #manual processing
                             architecture1 = idfascicles(coords=idx, img='simple')
+                            points_sup_m = architecture1['aposup']['coords']
+                            points_inf_m = architecture1['apoinf']['coords']
                             architecture1 = manuS.simpleManu(architecture1)
                             data[part][ntest][msc]['simple'][img]['architecture manual'] = architecture1
                             #automatic processing
                             architecture2 = autoS.simpleprocessing(path_to_jpg)
-                            data[part][ntest][msc]['simple'][img]['architecture auto'] = architecture2
+                            if architecture2:
+                                points_sup_a = architecture2['aposup']['coords']
+                                points_inf_a = architecture2['apoinf'] ['coords']                           
+                                data[part][ntest][msc]['simple'][img]['architecture auto'] = architecture2
                             
+                                if ('MT' in architecture2):
+                                    MT1, MT2 = forMTcomparison(points_sup_m, points_inf_m, points_sup_a, points_inf_a,\
+                                                        architecture1['calfct_to_mm'], architecture2['calfct_to_mm']['vertical axis'])
+                                    data[part][ntest][msc]['simple'][img]['architecture auto']['MT']['MT for labelled points'] = MT2
+                                    data[part][ntest][msc]['simple'][img]['architecture manual']['MT']['MT for labelled points'] = MT1
     return data
 
 
@@ -220,23 +205,40 @@ def idfascicles(coords, img):
     architecture['calfct_to_mm'] = 10./(coords[1, 1] - coords[0, 1])  # 10 mm calibration factor for all panoramic and simple images
 
     if img == 'pano':
-        architecture['insertion'] = {'coords': coords[2,:]}
-        architecture['aposup'] = {'coords': coords[8:13, :]}
-        architecture['apoinf'] = {'coords': coords[3:8, :]}
+        coordS = coords[8:13, :]
+        coordS[:,[0,1]] = coordS[:,[1,0]]
+        coordI = coords[3:8, :]
+        coordI[:,[0,1]] = coordI[:,[1,0]]
+        #first coordinate is row, second coordinate is column
+        architecture['insertion'] = {'coords': [coords[2,1],coords[2,0]]}
+        architecture['aposup'] = {'coords': coordS}
+        architecture['apoinf'] = {'coords': coordI}
 
         fsc_idx = np.arange(start=13, stop=len(coords), step=10)
         for f in np.arange(len(fsc_idx)):
-            architecture['fsc_'+str(f+1)] = {'coords': coords[fsc_idx[f]:fsc_idx[f]+10, :]}
+            coordF = coords[fsc_idx[f]:fsc_idx[f]+10, :]
+            coordF[:,[0,1]] = coordF[:,[1,0]]
+            #first coordinate is row, second coordinate is column
+            architecture['fsc_'+str(f+1)] = {'coords': coordF}
 
     if img == 'simple':
-        architecture['aposup'] = {'coords': coords[2:6, :]}
-        architecture['apoinf'] = {'coords': coords[6:10, :]}
+        coordS = coords[2:6, :]
+        coordS[:,[0,1]] = coordS[:,[1,0]]
+        coordI = coords[6:10, :]
+        coordI[:,[0,1]] = coordI[:,[1,0]]
+        #first coordinate is row, second coordinate is column
+        architecture['aposup'] = {'coords': coordS}
+        architecture['apoinf'] = {'coords': coordI}
 
         fsc_idx = np.arange(start=10, stop=len(coords), step=4)
         for f in np.arange(len(fsc_idx)):
-            architecture['fsc_'+str(f+1)] = {'coords': coords[fsc_idx[f]:fsc_idx[f]+4, :]}
+            coordF = coords[fsc_idx[f]:fsc_idx[f]+4, :]
+            coordF[:,[0,1]] = coordF[:,[1,0]]
+            #first coordinate is row, second coordinate is column
+            architecture['fsc_'+str(f+1)] = {'coords': coordF}
 
     return architecture
+
 
 def distsimpleimg(coords):
     """Return distance (cm) from muscle insertion point 
@@ -245,6 +247,8 @@ def distsimpleimg(coords):
     Arguments:
         coords {array} -- Array containing x and y coordinates of calibration scale, 
         insertion point and place of the image.
+        
+        /!\ check what means x and y (raws/columns ?)
     
     Returns:
         [float] -- distance in cm
@@ -257,3 +261,34 @@ def distsimpleimg(coords):
     distance = [(insertion - img_place) / cal_fct][0][0]
 
     return distance
+
+def forMTcomparison(ptsSup_m, ptsInf_m, ptsSup_a, ptsInf_a, calibV_m, calibV_a):
+    """
+    
+    """
+    MT_m = []
+    MT_a = []
+    
+    for ind in range(len(ptsSup_m)):
+        col_1 = ptsSup_m[ind][1]
+        col_2 = ptsInf_m[ind][1]
+        lig_1 = ptsSup_m[ind][0]
+        lig_2 = ptsInf_m[ind][0]
+        lig_3 = -1
+        lig_4 = -1
+        MT_m.append(abs(lig_2 - lig_1)*calibV_m)
+            
+        if ptsSup_a != 'error' and ptsInf_a != 'error':
+            for ind2 in range(len(ptsSup_a)):
+                if int(ptsSup_a[ind2][1]) == int(col_1):
+                    lig_3 = ptsSup_a[ind2][0]
+                if int(ptsInf_a[ind2][1]) == int(col_2):
+                    lig_4 = ptsInf_a[ind2][0]
+            
+            
+            if lig_3>= 0 and lig_4 >=0:
+                MT_a.append(abs(lig_4 - lig_3)*calibV_a)
+            else:
+                MT_a.append('error')
+                
+    return MT_m, MT_a
