@@ -1,33 +1,20 @@
-from calibration.calib import autoCalibration
-from preprocessing.cropping import autocropping
-from preprocessing.preprocess import preprocessingApo
-import apoLoc as apoL
-import apoCont as apoC
-import MUFeaM
-import FaDe as FaDe
-
-import cv2
-import numpy as np
-import tkinter.messagebox as tkbox
-
-
-########################PROCESSING OF SIMPLE US IMAGES#########################
-
-#Open the image
-#import aponeurosesdetection.data as apodat
-
-#! RGBimage = apodat.simpleimg()
-#RGBimage = cv2.imread('C:/Users/Antonio/Desktop/AponeurosesDetection/aponeurosesdetection/data/simple_echo.jpg', -1)
-
-#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/01_Kevin/POST/architecture/Kevin_jamon_20180927_142814_image_bfs.jpg', -1)
-#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/31_romain/architecture/Romain_jamon_20181008_084433_image_bfs.jpg', -1)
-#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/fam_1/architecture/Julien_jamon_20180720_170728_image_bfs.jpg', -1)
-#RGBimage = cv2.imread('C:/Users/Lisa Paillard/Desktop/Pour TFE/data/34_nicolas/architecture/Nicolas_post_20181210_105644_image_bfs.jpg', -1)
-#RGBimage = data.simpleimg()
-
-
+"""Auto processing of simple/standard images"""
 
 def simpleprocessing(path_to_img):
+    """
+    """
+
+    from aponeurosesdetection.calibration.calib import autoCalibration
+    from aponeurosesdetection.preprocessing.cropping import autocropping
+    from aponeurosesdetection.preprocessing.preprocess import preprocessingApo
+    import aponeurosesdetection.apoLoc as apoL
+    import aponeurosesdetection.apoCont as apoC
+    import aponeurosesdetection.MUFeaM as MUFeaM
+    import aponeurosesdetection.FaDe as FaDe
+
+    import cv2
+    import numpy as np
+    import tkinter.messagebox as tkbox
 
     RGBimage = cv2.imread(path_to_img, -1)
     

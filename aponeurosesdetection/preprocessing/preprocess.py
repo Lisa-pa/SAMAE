@@ -1,5 +1,4 @@
-import numpy as np
-import cv2
+
 
 def preprocessingApo(I, typeI, mode, margin, sizeContrast):
     """This function aims at enhancing the image I -and particularly aponeuroses-
@@ -39,7 +38,8 @@ def preprocessingApo(I, typeI, mode, margin, sizeContrast):
         Output:
                 np-array of same size than I
     """
-
+    import numpy as np
+    import cv2
     import scipy.ndimage as scindi
     
     if len(I.shape) > 2:

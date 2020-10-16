@@ -1,5 +1,4 @@
-import cv2
-import numpy as np
+""" Automatic and semi-automatic cropping functions """
 
 def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, additionalCrop1 = 0, additionalCrop2 = 0):
     """ Cropping of raw ultrasound image I to get region of interest: Removal 
@@ -47,6 +46,9 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, 
           cv2.waitKey(0) & 0xFF
           cv2.destroyAllWindows()
 """
+    import cv2
+    import numpy as np
+
     #Check if I is a 1-canal image
     if len(I.shape) == 3:
         grayI = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
@@ -131,7 +133,9 @@ def manualcropping(I, pointsfile):
             of the image and which should correspond to the point of intersection of deep 
             and upper aponeuroses.
     """
-    
+
+    import numpy as np
+
     data = open(pointsfile, 'r')
     
     #finds whether the image is panoramic or simple

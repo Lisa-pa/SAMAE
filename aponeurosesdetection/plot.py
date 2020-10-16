@@ -1,13 +1,9 @@
-"""plot"""
-#colors
-col = [(1,0.26,0.11),(0.45,0.45,1),(0.8,0.2,1),(0,0.4,1),\
-          (0,1,0.6),(0.2,0.8,0.2),(1,0.8,0),(0.8,0,0),\
-          (1,0,0.4),(0.7,0.24,0),(0,0,0.8)]
+"""plots"""
 
 def plotFeatures(path_to_dict, name_dict, colors, participants):
     import numpy as np
     import fnmatch
-    from dictmanager import load_obj
+    from aponeurosesdetection.dictmanager import load_obj
     
     
     #d = list of distances from reference point

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """
+Processing of manual data for simple/standard images
 Created on Thu Sep  3 16:52:58 2020
 
 @author: Lisa Paillard
@@ -7,9 +7,9 @@ Created on Thu Sep  3 16:52:58 2020
 
 def simpleManu(manu_pts_dict, path_img = None):
     
-    import MUFeaM
+    import aponeurosesdetection.MUFeaM as MUFeaM
     import numpy as np
-    import FaDe
+    import aponeurosesdetection.FaDe as FaDe
     import fnmatch
 
     calib = manu_pts_dict['calfct_to_mm']

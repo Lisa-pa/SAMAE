@@ -1,3 +1,4 @@
+"""MUFeaM: MUscle Features Measurements"""
 import numpy as np
 import math
 

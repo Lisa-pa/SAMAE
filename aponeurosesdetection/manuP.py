@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """
+Processing of manual data for panoramic images
 Created on Thu Sep  3 16:53:09 2020
 
 @author: Lisa Paillard
@@ -8,9 +8,9 @@ Created on Thu Sep  3 16:53:09 2020
 def panoManu(manu_pts_dict, path_img = None):
     """
     """
-    import MUFeaM
+    import aponeurosesdetection.MUFeaM as MUFeaM
     import numpy as np
-    import FaDe
+    import aponeurosesdetection.FaDe as FaDe
     import fnmatch
     import scipy.interpolate as interpolate
 
