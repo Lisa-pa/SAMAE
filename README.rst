@@ -38,56 +38,74 @@ Features
 * What happens when you run the filemanager.py file?
 
         - Simple images
-                1) The image appears with a window asking you to validate the start of the analysis
-                2) Scale is automatically detected
-                3) The image is automatically cropped and a window asks you to validate the cropping
-                        Initial thresholds are set to (10, 15, 12, 25, 2, 6). In some cases, no image
-                        is output, so a second automatic try is launched with thresholds (6, 15, 6, 25, 0, 0).
-                        (to check which thresholds have been used, have a look at the command window).
-                         If the cropping is not validated, new thresholds are asked (maximum five tries for new thresholds are asked per image).
-                          - Case a) The cropping is too aggressive (often happens in case of darker images). Try thresholds (6, 15, 6, 25, 0, 0) (that is, reduce 1st and 3rd thresholds).
-                          - Case b) you want to crop more at the top or at the bottom of the image: adapt the last and at the bottom of the image respectively. This is an interesting option in case of an image that presents large white bands different from aponeuroses: by eliminating these bands, you increase your chances to obtain a correct processing.
-                4) The search for aponeuroses begins (1st: superficial aponeurosis; 2nd: deep aponeurosis)
-                        Maximum 10,000 iterations for the search of one aponeurosis. You can follow the iterations in the command window.
+                1) Start of the processing
+                        The image appears with a window asking you to validate the start of the analysis.
+                2) Detection of scale
+                        Scale is automatically detected for the estimation of calibration factors.
+                3) Cropping of the image to obtain the region of interest (aponeuroses + fascicles in between)
+                        The image is automatically cropped and a window asks you to validate the cropping.
                         
+                        The cropping is based on the evaluation of the mean of pixels value per row/column. Those means are compared to thresholds to detect the region where there is the actual US image.
+                        Initial thresholds are set to (10, 15, 12, 25, 2, 6). In some cases, no image is output, so a second automatic try is launched with thresholds (6, 15, 6, 25, 0, 0).
+                        (to check which thresholds have been used, have a look at the command window).
+                         If the cropping is not validated byt the user, new thresholds are asked (a user can try thresholds maximum 5 times per image).
+                          - Case a) The cropping is too aggressive (often happens in case of darker images). Try thresholds (6, 15, 6, 25, 0, 0) (that is, reduce 1st and 3rd thresholds).
+                          - Case b) you want to crop more (or less!) at the top or at the bottom of the image: adapt the last 2 thresolds, that correspond to additional cropping (in mm) at the top and at the bottom of the image respectively. This is an interesting option in case of an image that presents large white bands different from aponeuroses: by eliminating these bands, you increase your chances to obtain a correct processing.
+                4) Search for aponeuroses
+                        (1st: superficial aponeurosis; 2nd: deep aponeurosis)
+                        Maximum 10,000 iterations for the search of one aponeurosis. You can follow the iterations in the command window.
+
                         A window asks you to validate the contour of the aponeurosis if it has been found.
                         If not satisfied, a second try is launched.
                         If the aponeurosis is not found or the contour does not satisfy the user, then
                         a linear approximation of the location of the aponeurosis is used.
-                5) Fascicles are automatically looked for.
-                6) The final image with the detected aponeuroses (in blue)
-                   and the fascicles (in green) appears. Close it to move on to the following image.
+                5) Search for muscle fascicles
+                        Automatic detection of portions of fascicles.
+                6) Visualization
+                        The final image with the detected aponeuroses (in blue) and the fascicles (in green) appears. Close it to move on to the following image.
 
 
         - Panoramic images
-                1) The image appears with a window asking you to validate the start of the analysis
-                2) Scale is automatically detected
-                3) The image is cropped according to manually labelled data that is stored in txt file.
-                   The cropped image appears in a window. Close to move on.
-                4) The image is divided vertically into sub-images to look for aponeuroses.
-                   The size of sub-images depends on the width of the cropped image.
-                   Per sub-image, the search for aponeuroses follows the same process as
-                   for simple images. Superficial aponeurosis is searched all along the 
-                   cropped image. Deep aponeurosis is searched only in the first half of the
-                   cropped image, according to observations. Once all subimages have been processed,
-                   aponeuroses are fitted with 2-degree polynomes (meaning, if aponeuroses are not found
-                   in a sub-image, this is not a problem; to ensure the fitting of aponeuroses, there 
-                   should be at least one portion of each aponeurosis found among all sub-images. However
-                   the more portions of aponeuroses are detected, the better the estimation would be).
-                5) The search for fascicles is realized automatically sub-image by sub-image before reunification.
-                6) Two windows show 
-                        - the original image with the intersection points between fascicles
-                          and aponeuroses
-                        - the cropped image with fascicles (in green) and aponeuroses (in blue)
-                   Close them to move on to the following image.
+                1) Start of the processing
+                        The image appears with a window asking you to validate the start of the analysis
+                2) Detection of scale
+                        Scale is automatically detected for the estimation of calibration factors.
+                3) Cropping of the image to obtain the region of interest (aponeuroses + fascicles in between)
+                        The image is cropped according to manually labelled data that is stored in txt file.
+                        The cropped image appears in a window. Close to move on.
+                4) Search for aponeuroses
+                        The image is divided vertically into sub-images to look for aponeuroses.
+                        The size of sub-images depends on the width of the cropped image.
+                        
+                        Per sub-image, the search for aponeuroses follows the same process as
+                        for simple images. Superficial aponeurosis is searched all along the 
+                        cropped image. Deep aponeurosis is searched only in the first half of the
+                        cropped image, according to observations.
+                        
+                        Once all subimages have been processed, aponeuroses are fitted with 2-degree polynomes (meaning, if aponeuroses are not found
+                        in a sub-image, this is not a problem; to ensure the fitting of aponeuroses, there 
+                        should be at least one portion of each aponeurosis found among all sub-images. However
+                        the more portions of aponeuroses are detected, the better the estimation would be).
+                5) Search for fascicles
+                        Automatic detection of portions of fascicles sub-image by sub-image before reunification.
+                6) Visualization
+                        Two windows show 
+                                - the original image with the intersection points between fascicles and aponeuroses
+                                - the cropped image with fascicles (in green) and aponeuroses (in blue)
+                        Close them to move on to the following image.
 
-        - When the data set has been fully processed, 10 plots are created to visualize results (5 plots for simple images, 5 plots for panoramic images):
-                - 1 plot for the comparison of calibration factors (auto vs. manual);
-                - 1 plot for the comparison of fascicle lengths estimation (auto vs. manual);
-                - 1 plot for the comparison of pennation angles estimation with superficial aponeurosis (auto vs. manual);
-                - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual);
-                - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual).
-         A dictionnary containing all the results is available in the images folder.
+        - Outputs
+                * Dictionnary
+                        A dictionnary containing all the results is available in the images folder.
+                
+                * Plots
+                        When the data set has been fully processed, 10 plots are created to visualize results (5 plots for simple images, 5 plots for panoramic images):
+                        - 1 plot for the comparison of calibration factors (auto vs. manual);
+                        - 1 plot for the comparison of fascicle lengths estimation (auto vs. manual);
+                        - 1 plot for the comparison of pennation angles estimation with superficial aponeurosis (auto vs. manual);
+                        - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual);
+                        - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual).
+         
 
 
 Credits
