@@ -35,8 +35,7 @@ Structure of the folder containing your US images
 
 --------
 1) Architecture of the folder
---------
-                
+--------       
 to do
 
 --------
@@ -62,9 +61,6 @@ Automatic analysis of panoramic images or comparison of automatic/manual results
         Structure of the txt file name: "imagename_bfp.txt"
         Structure inside the txt file:
                 TO DO
-
-------
-what does this layout do ?
 
 
 
