@@ -37,20 +37,20 @@ Structure of the folder containing your US images
 1) Architecture of the folder
 --------
                 
-                to do
-                
+to do
+
 --------
 2) Data for simple images
 --------
-                Structure of the image name: "imagename_bfs.jpg"
+Structure of images name: "imagename_bfs.jpg"
+        For the automatic analysis of simple image, no more data is needed.
 
-                For the automatic analysis of simple image, no more data is needed.
-                For the comparison with manual labelled data, a txt file is needed.
-                        Structure of the txt file name: "imagename_bfs.txt"
-                        Structure inside the txt file:
-                                TO DO
+For the comparison with manual labelled data, a txt file is needed.
+        Structure of txt files name: "imagename_bfs.txt"
+        Structure inside the txt file:
+                TO DO
 
-        3) Data for panoramic images
+3) Data for panoramic images
                 Structure of the image name: "imagename_bfp.jpg"
                 
                 Since the cropping is not automated for this type of image, a txt file with manually labelled data is required.
