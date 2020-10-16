@@ -40,23 +40,31 @@ Structure of the folder containing your US images
 to do
 
 --------
-2) Data for simple images
+2) Data for simple images processing
 --------
-Structure of images name: "imagename_bfs.jpg"
-For the automatic analysis of simple image, no more data is needed.
+Automatic analysis of simple images:
+        Structure of images name: "imagename_bfs.jpg".
 
-For the comparison with manual labelled data, a txt file is needed.
+Comparison of automatic results with manual labelled data:
+        Structure of images name: "imagename_bfs.jpg"
         Structure of txt files name: "imagename_bfs.txt"
         Structure inside the txt file:
                 TO DO
 
+--------
 3) Data for panoramic images
-                Structure of the image name: "imagename_bfp.jpg"
-                
-                Since the cropping is not automated for this type of image, a txt file with manually labelled data is required.
-                        Structure of the txt file name: "imagename_bfp.txt"
-                        Structure inside the txt file:
-                                TO DO
+--------
+Automatic analysis of panoramic images or comparison of automatic/manual results:
+        Structure of the image name: "imagename_bfp.jpg"
+        Since the cropping is not automated for this type of image, a txt file with manually labelled data is required.
+        Structure of the txt file name: "imagename_bfp.txt"
+        Structure inside the txt file:
+                TO DO
+
+------
+what does this layout do ?
+
+
 
 How to use this package?
 --------
