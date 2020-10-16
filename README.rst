@@ -48,6 +48,7 @@ Features
                           - Case a) The cropping is too aggressive (often happens in case of darker images). Try thresholds (6, 15, 6, 25, 0, 0) (that is, reduce 1st and 3rd thresholds).
                           - Case b) you want to crop more at the top or at the bottom of the image: adapt the last and at the bottom of the image respectively. This is an interesting option in case of an image that presents large white bands different from aponeuroses: by eliminating these bands, you increase your chances to obtain a correct processing.
                 4) The search for aponeuroses begins (1st: superficial aponeurosis; 2nd: deep aponeurosis)
+                        Maximum 10,000 iterations for the search of one aponeurosis. You can follow the iterations in the command window
                         A window asks you to validate the contour of the aponeurosis if it has been found.
                         If not satisfied, a second try is launched.
                         If the aponeurosis is not found or the contour does not satisfy the user, then
