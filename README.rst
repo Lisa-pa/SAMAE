@@ -78,7 +78,7 @@ How to use this package?
                 then run the file !
 
         * How to automatically analyze a panoramic image?
-                TO DO
+                
         * How to automatically analyze a ximple image?
                 TO DO
 
@@ -148,6 +148,9 @@ What happens when you run the filemanager.py file?
                                 - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual);
                                 - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual).
          
+What happens when you analyze a panoramic image or a simple image, using respectively the panoprocessing and simpleprocessing function ?
+--------
+        The same process described in points 1) to 5) in the previous section, for panoramic images or simple images.
 
 Credits
 -------
