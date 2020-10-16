@@ -32,11 +32,13 @@ Structure of the folder containing your US images
 --------
 
         TO DO
-        
+
 --------
 1) Architecture of the folder
 --------
+                
                 to do
+                
 --------
 2) Data for simple images
 --------
