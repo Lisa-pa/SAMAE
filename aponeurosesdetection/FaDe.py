@@ -178,7 +178,7 @@ def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0, im = 
             line_snip.append([slope, [p1[0] + offSetY, p1[1] + offSetX]])
         else:
             slope = 0
-            x_list = np.arange(np.amin(snippets[i][:,0,1]), np.amax(snippets[i][:,0,1]), 1)
+            x_list = np.arange(np.amin(snippets[i][:,0,1]), np.amax(snippets[i][:,0,1])+1, 1)
             line_snip.append([slope, [p1[0] + offSetY, p1[1] + offSetX]])
         
         
@@ -194,8 +194,9 @@ def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0, im = 
             else:
                 pix_white = 0
                 for n in range(y_list.shape[0]):
-                    if I[int(x_list[n]), int(y_list[n])] > 0 :
-                        pix_white = pix_white + 1
+                    if int(x_list[n])<I.shape[0]:
+                        if I[int(x_list[n]), int(y_list[n])] > 0 :
+                            pix_white = pix_white + 1
                 align = pix_white/y_list.shape[0]           
         else:
             maa = 0
