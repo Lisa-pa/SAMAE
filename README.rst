@@ -82,7 +82,7 @@ How to use this package?
 ::
 
         >>>import aponeurosesdetection.autoP as autoP
-        >>>dict_results = autoPpanoprocessing(path_to_image, path_to_txtfile)
+        >>>dict_results = autoP.panoprocessing(path_to_image, path_to_txtfile)
 
 * How to automatically analyze a simple image?
 
