@@ -30,10 +30,10 @@ Features
 
 * How to use this package?
         To analyse US images with this package, open the filemanager.py file and adapt the 
-        - path_to_folder variable (path to the folder that contains the images);
-        - part variable (list of participants);
-        - colors variable (list of colors for the visualization):
-        then run the file !
+                - path_to_folder variable (path to the folder that contains the images);
+                - part variable (list of participants);
+                - colors variable (list of colors for the visualization):
+                  then run the file !
 
 * What happens when you run the filemanager.py file?
 
