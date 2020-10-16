@@ -42,6 +42,7 @@ to do
 --------
 2) Data for simple images processing
 --------
+
 Automatic analysis of simple images:
         Structure of images name: "imagename_bfs.jpg".
 
@@ -54,6 +55,7 @@ Comparison of automatic results with manual labelled data:
 --------
 3) Data for panoramic images
 --------
+
 Automatic analysis of panoramic images or comparison of automatic/manual results:
         Structure of the image name: "imagename_bfp.jpg"
         Since the cropping is not automated for this type of image, a txt file with manually labelled data is required.
