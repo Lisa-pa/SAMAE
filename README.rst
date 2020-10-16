@@ -129,8 +129,10 @@ Prerequisites
 --------
 
 --------
-1) Architecture of the folder containing US images
---------       
+1) Structure of the folder containing US images
+--------
+-> This is the structure to respect when running the filemanager.py file, or more specifically when using the functions from the arch.py file
+       
 .. image:: docs/pictures/folder_archi.png
    :height: 100
    :align: center
