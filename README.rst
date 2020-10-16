@@ -70,21 +70,21 @@ Prerequisites
 
 How to use this package?
 --------
-        * How to compare manual and automated estimations of muscle architecture parameters ?
-                To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
-                        - path_to_folder variable (path to the folder that contains the images);
-                        - part variable (list of participants);
-                        - colors variable (list of colors for the visualization);
-                then run the file !
+* How to compare manual and automated estimations of muscle architecture parameters ?
+        To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
+                - path_to_folder variable (path to the folder that contains the images);
+                - part variable (list of participants);
+                - colors variable (list of colors for the visualization);
+        then run the file !
 
-        * How to automatically analyze a panoramic image?
+* How to automatically analyze a panoramic image?
 
 ::
 
         >>>import aponeurosesdetection.autoP as autoP
         >>>dict_results = autoPpanoprocessing(path_to_image, path_to_txtfile)
 
-        * How to automatically analyze a ximple image?
+* How to automatically analyze a ximple image?
 
 ::
 
