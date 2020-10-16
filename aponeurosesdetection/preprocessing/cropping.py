@@ -53,47 +53,53 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, 
     elif len(I.shape) == 2:
         grayI = I
     grayI = (grayI*1.05>255)*255. + (grayI*1.05<=255)*grayI*1.1
-    RightColumnsBelow = [0]
-    LeftColumnsBelow = [0]
-    UpRawsBelow = [0]
-    BottomRawsBelow = [0]
+    left_col = [0]
+    right_col = [0]
+    up_row = [0]
+    bottom_row = [0]
     
-    #vertical cropping
+    #vertical cropping: find columns
     while threshCmin < threshCmax and \
-    (len(LeftColumnsBelow) == 1 or len(RightColumnsBelow) == 1):
+    (len(right_col) == 1 or len(left_col) == 1):
 
         for col in range(int(grayI.shape[1]/2)):
             if np.mean(grayI[:, col]) <= threshCmin:
-                RightColumnsBelow.append(col)
+                left_col.append(col)
             if np.mean(grayI[:, grayI.shape[1]-1-col]) <= threshCmin:
-                LeftColumnsBelow.append(grayI.shape[1]-1-col)
+                right_col.append(grayI.shape[1]-1-col)
         threshCmin += 1.
+    #add 15 pixels cropping in the right of the image (to remove white horizontal line)
+    right_col[-1] = right_col[-1] - 15
   
-    #horizontal cropping
+    #horizontal cropping: find rows
     while threshRmin < threshRmax and \
-    (len(UpRawsBelow) == 1 or len(BottomRawsBelow) == 1):
+    (len(up_row) == 1 or len(bottom_row) == 1):
         
         for lig in range(int(grayI.shape[0]/2)):
             if np.mean(grayI[lig, :]) <= threshRmin:
-                UpRawsBelow.append(lig)
+                up_row.append(lig)
             if np.mean(grayI[grayI.shape[0]-1-lig, :]) <= threshRmin:
-                BottomRawsBelow.append(grayI.shape[0]-1-lig)
+                bottom_row.append(grayI.shape[0]-1-lig)
         threshRmin += 2.
 
+    #cropping image
     if len(I.shape) == 3:
-        I2 = I[UpRawsBelow[-1]+5:BottomRawsBelow[-1]-5, RightColumnsBelow[-1]+5:LeftColumnsBelow[-1]-5, :]
+        I2 = I[up_row[-1]+5:bottom_row[-1]-5, left_col[-1]+5:right_col[-1]-5, :]
     elif len(I.shape) == 2:
-        I2 = I[UpRawsBelow[-1]:BottomRawsBelow[-1], RightColumnsBelow[-1]:LeftColumnsBelow[-1]]
-    
+        I2 = I[up_row[-1]:bottom_row[-1], left_col[-1]:right_col[-1]]
+            
     if calibV != 0:
         addcrop1 = int(additionalCrop1 / calibV)
         addcrop2 = int(additionalCrop2 / calibV)
-        I2 = I2[addcrop1: - addcrop2, :-15]
-        UpRawsBelow[-1] = UpRawsBelow[-1] + int(additionalCrop1 / calibV)
-        BottomRawsBelow[-1] = BottomRawsBelow[-1] - int(additionalCrop2 / calibV)
-        RightColumnsBelow[-1] = RightColumnsBelow[-1] - 15
+        if addcrop1<I2.shape[0]:
+            up_row[-1] = up_row[-1] + addcrop1
+            I2 = I2[addcrop1:, :]
+        if addcrop2 !=0:
+            I2 = I2[: - addcrop2, :]
+            bottom_row[-1] = bottom_row[-1] - addcrop2
         
-    return I2, UpRawsBelow[-1], BottomRawsBelow[-1], LeftColumnsBelow[-1], RightColumnsBelow[-1]
+        
+    return I2, up_row[-1], bottom_row[-1], left_col[-1], right_col[-1]
 
 def manualcropping(I, pointsfile):
     """This function crops a copy of image I according to points stored 
