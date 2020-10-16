@@ -35,8 +35,8 @@ Structure of the folder containing your US images
 1) Architecture of the folder
 --------       
 .. image:: docs/pictures/folder_archi.png
-   :height: 100
-   :align:center
+  :height: 100
+  :align:center
 
 --------
 2) Data for simple images processing
