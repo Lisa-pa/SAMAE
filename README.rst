@@ -30,14 +30,16 @@ Features
 
 Structure of the folder containing your US images
 --------
+
         TO DO
-        --------
-        1) Architecture of the folder
-        --------
+        
+--------
+1) Architecture of the folder
+--------
                 to do
-        --------
-        2) Data for simple images
-        --------
+--------
+2) Data for simple images
+--------
                 Structure of the image name: "imagename_bfs.jpg"
 
                 For the automatic analysis of simple image, no more data is needed.
