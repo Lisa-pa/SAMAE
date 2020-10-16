@@ -60,11 +60,10 @@ Comparison of automatic results with manual labelled data:
 Automatic analysis of panoramic images or comparison of automatic/manual results:
         Structure of the image name: "imagename_bfp.jpg"
 
-        Since the cropping is not automated for this type of image, a txt file with manually labelled data is required.
-                Structure of the txt file name: "imagename_bfp.txt"
-        
-                Structure inside the txt file:
-                        TO DO
+        Structure of the txt file name: "imagename_bfp.txt" (required since cropping is not automated for this type of images)
+
+        Structure inside the txt file:
+                TO DO
 
 
 
