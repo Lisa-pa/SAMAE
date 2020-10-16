@@ -43,11 +43,11 @@ Features
                 3) The image is automatically cropped and a window asks you to validate the cropping
                         Initial thresholds are set to (10, 15, 12, 25, 2, 6). In some cases, no image
                         is output, so a second automatic try is launched with thresholds (6, 15, 6, 25, 0, 0).
-                         (to check which thresholds have been used, have a look at the command window).
+                        (to check which thresholds have been used, have a look at the command window).
                          If the cropping is not validated, new thresholds are asked (maximum five tries for new thresholds are asked per image).
-                         - a) The cropping is too aggressive (often happens in case of
+                          - a) The cropping is too aggressive (often happens in case of
                            darker images). Try thresholds (6, 15, 6, 25, 0, 0) (that is, reduce 1st and 3rd thresholds).
-                         - b) you want to crop more at the top or at the bottom of the image: adapt
+                          - b) you want to crop more at the top or at the bottom of the image: adapt
                            the last two thresholds, that correspond to additional cropping in mm at the top
                            and at the bottom of the image respectively. This is an interesting option in case
                            of an image that presents large white bands different from aponeuroses: by eliminating
