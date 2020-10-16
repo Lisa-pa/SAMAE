@@ -57,7 +57,7 @@ to do
 3) Data for panoramic images processing
 --------
 
-Automatic analysis of panoramic images or comparison of automatic/manual results:
+-> Automatic analysis of panoramic images or comparison of automatic/manual results:
         Structure of the image name: "imagename_bfp.jpg"
 
         Structure of the txt file name: "imagename_bfp.txt" (required since cropping is not automated for this type of images)
@@ -84,7 +84,8 @@ How to use this package?
 What happens when you run the filemanager.py file?
 --------
         - Simple images
-                1) Start of the processing
+                0) Estimation of parameters from the manually labelled data.
+                1) Start of the  automated processing
                         The image appears with a window asking you to validate the start of the analysis.
                 2) Detection of scale
                         Scale is automatically detected for the estimation of calibration factors.
@@ -112,7 +113,8 @@ What happens when you run the filemanager.py file?
 
 
         - Panoramic images
-                1) Start of the processing
+                0) Estimation of parameters from the manually labelled data.
+                1) Start of the automated processing
                         The image appears with a window asking you to validate the start of the analysis.
                 2) Detection of scale
                         Scale is automatically detected for the estimation of calibration factors.
