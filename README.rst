@@ -79,26 +79,25 @@ Features
                         
                         Per sub-image, the search for aponeuroses follows the same process as for simple images. Superficial aponeurosis is searched all along the cropped image. Deep aponeurosis is searched only in the first half of the cropped image, according to our observations on our panoramic images of the biceps femoris.
                         
-                        Once all subimages have been processed, aponeuroses are fitted with 2-degree polynomes (meaning, if aponeuroses are not found in a sub-image, this is not a problem; to ensure the fitting of aponeuroses, at least one portion of each aponeurosis should be found among all sub-images. However the more portions of aponeuroses are detected, the better the estimation would be).
+                        Once all sub-images have been processed, aponeuroses are fitted with 2-degree polynomes (meaning, if aponeuroses are not found in a sub-image, this is not a problem; to ensure the fitting of aponeuroses, at least one portion of each aponeurosis should be found among all sub-images. However the more portions of aponeuroses are detected, the better the estimation would be).
                 5) Search for fascicles
                         Automatic detection of portions of fascicles sub-image by sub-image before reunification.
                 6) Visualization
-                        Two windows show 
-                                - the original image with the intersection points between fascicles and aponeuroses
-                                - the cropped image with fascicles (in green) and aponeuroses (in blue)
+                        - the original image with the intersection points between fascicles and aponeuroses
+                        - the cropped image with fascicles (in green) and aponeuroses (in blue)
                         Close them to move on to the following image.
 
         - Outputs
                 * Dictionnary
-                        A dictionnary containing all the results is available in the images folder.
+                        A dictionnary containing all the results is available in the original folder.
                 
                 * Plots
                         When the data set has been fully processed, 10 plots are created to visualize results (5 plots for simple images, 5 plots for panoramic images):
-                        - 1 plot for the comparison of calibration factors (auto vs. manual);
-                        - 1 plot for the comparison of fascicle lengths estimation (auto vs. manual);
-                        - 1 plot for the comparison of pennation angles estimation with superficial aponeurosis (auto vs. manual);
-                        - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual);
-                        - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual).
+                                - 1 plot for the comparison of calibration factors (auto vs. manual);
+                                - 1 plot for the comparison of fascicle lengths estimation (auto vs. manual);
+                                - 1 plot for the comparison of pennation angles estimation with superficial aponeurosis (auto vs. manual);
+                                - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual);
+                                - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual).
          
 
 
