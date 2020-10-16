@@ -78,9 +78,18 @@ How to use this package?
                 then run the file !
 
         * How to automatically analyze a panoramic image?
-                
+
+::
+
+        >>>import aponeurosesdetection.autoP as autoP
+        >>>dict_results = autoPpanoprocessing(path_to_image, path_to_txtfile)
+
         * How to automatically analyze a ximple image?
-                TO DO
+
+::
+
+        >>>import aponeurosesdetection.autoS as autoS
+        >>>dict_results = autoS.simpleprocessing(path_to_img)
 
 What happens when you run the filemanager.py file?
 --------
@@ -150,7 +159,7 @@ What happens when you run the filemanager.py file?
          
 What happens when you analyze a panoramic image or a simple image, using respectively the panoprocessing and simpleprocessing function ?
 --------
-        The same process described in points 1) to 5) in the previous section, for panoramic images or simple images.
+        The same process described in points 1) to 6) in the previous section, for panoramic images or simple images.
 
 Credits
 -------
