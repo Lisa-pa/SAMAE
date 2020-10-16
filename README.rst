@@ -28,49 +28,10 @@ Features
         TO DO
 
 
-Prerequisites
---------
-
---------
-1) Architecture of the folder containing US images
---------       
-.. image:: docs/pictures/folder_archi.png
-   :height: 100
-   :align: center
-
-
-* Files for simple images processing
-
-
-        -> Required file for automatic analysis:
-                *imagename_bfs.jpg*
-
-        -> Required files for comparison of automatic results with manual labelled data:
-                *imagename_bfs.jpg*, 
-                *imagename_bfs.txt*
-
-                Structure of imagename_bfs.txt:
-                        TO DO
-
-* Files for panoramic images processing
-
-        -> Required files, for automatic analysis of panoramic images or comparison of automatic/manual results:
-                *imagename_bfp.jpg*,
-                *imagename_bfp.txt* (required for both methods since cropping is not automated for this type of images)
-
-                Structure inside the txt file:
-                        TO DO
-
---------
-2) Python packages
---------
-        TO do
-
-
-
 How to use this package?
 --------
 * How to compare manual and automated estimations of muscle architecture parameters ?
+        See prerequisites on the structure  of the folder containing your images.
         To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
                 - path_to_folder variable (path to the folder that contains the images);
                 - part variable (list of participants);
@@ -160,6 +121,49 @@ What happens when you run the filemanager.py file?
 What happens when you analyze a panoramic image or a simple image, using respectively the panoprocessing and simpleprocessing function ?
 --------
         The same process described in points 1) to 6) in the previous section, for panoramic images or simple images.
+
+
+
+
+Prerequisites
+--------
+
+--------
+1) Architecture of the folder containing US images
+--------       
+.. image:: docs/pictures/folder_archi.png
+   :height: 100
+   :align: center
+
+
+* Files for simple images processing
+
+
+        -> Required file for automatic analysis:
+                *imagename_bfs.jpg*
+
+        -> Required files for comparison of automatic results with manual labelled data:
+                *imagename_bfs.jpg*, 
+                *imagename_bfs.txt*
+
+                Structure of imagename_bfs.txt:
+                        TO DO
+
+* Files for panoramic images processing
+
+        -> Required files, for automatic analysis of panoramic images or comparison of automatic/manual results:
+                *imagename_bfp.jpg*,
+                *imagename_bfp.txt* (required for both methods since cropping is not automated for this type of images)
+
+                Structure inside the txt file:
+                        TO DO
+
+--------
+2) Python packages
+--------
+        TO do
+
+
 
 Credits
 -------
