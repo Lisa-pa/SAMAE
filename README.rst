@@ -25,7 +25,11 @@ This package contains functions that will enable automatic aponeuroses and tubul
 
 Features
 --------
-* Structure of the folder containing your US images to analyze
+        TO DO
+
+--------
+Structure of the folder containing your US images
+--------
         TO DO
         1) Architecture of the folder
 
@@ -46,7 +50,8 @@ Features
                         Structure inside the txt file:
                                 TO DO
 
-* How to use this package?
+How to use this package?
+--------
         To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
                 - path_to_folder variable (path to the folder that contains the images);
                 - part variable (list of participants);
@@ -58,8 +63,8 @@ Features
         * How to automatically analyze a ximple image?
                 TO DO
 
-* What happens when you run the filemanager.py file?
-
+What happens when you run the filemanager.py file?
+--------
         - Simple images
                 1) Start of the processing
                         The image appears with a window asking you to validate the start of the analysis.
