@@ -42,10 +42,10 @@ to do
 2) Data for simple images processing
 --------
 
-Automatic analysis:
+-> Automatic analysis:
         Structure of images name: "imagename_bfs.jpg".
 
-Comparison of automatic results with manual labelled data:
+-> Comparison of automatic results with manual labelled data:
         Structure of images name: "imagename_bfs.jpg"
 
         Structure of txt files name: "imagename_bfs.txt"
@@ -69,11 +69,12 @@ Automatic analysis of panoramic images or comparison of automatic/manual results
 
 How to use this package?
 --------
-        To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
-                - path_to_folder variable (path to the folder that contains the images);
-                - part variable (list of participants);
-                - colors variable (list of colors for the visualization);
-        then run the file !
+        * How to compare manual and automated estimations of muscle architecture parameters ?
+                To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
+                        - path_to_folder variable (path to the folder that contains the images);
+                        - part variable (list of participants);
+                        - colors variable (list of colors for the visualization);
+                then run the file !
 
         * How to automatically analyze a panoramic image?
                 TO DO
