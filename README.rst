@@ -31,37 +31,34 @@ Features
 Structure of the folder containing your US images
 --------
 
-        TO DO
-
 --------
 1) Architecture of the folder
 --------       
 .. image:: docs/pictures/folder_archi.png
-  :height: 100
+   :height: 100
+   :align:center
 
 --------
 2) Data for simple images processing
 --------
 
-        -> Automatic analysis:
-                Structure of images name: "imagename_bfs.jpg".
+        -> Required file for automatic analysis:
+                *imagename_bfs.jpg*
 
-        -> Comparison of automatic results with manual labelled data:
-                Structure of images name: "imagename_bfs.jpg"
+        -> Required files for comparison of automatic results with manual labelled data:
+                *imagename_bfs.jpg*, 
+                *imagename_bfs.txt*
 
-                Structure of txt files name: "imagename_bfs.txt"
-
-                Structure inside the txt file:
+                Structure of imagename_bfs.txt:
                         TO DO
 
 --------
 3) Data for panoramic images processing
 --------
 
-        -> Automatic analysis of panoramic images or comparison of automatic/manual results:
-                Structure of the image name: "imagename_bfp.jpg"
-
-                Structure of the txt file name: "imagename_bfp.txt" (required since cropping is not automated for this type of images)
+        -> Required files, for automatic analysis of panoramic images or comparison of automatic/manual results:
+                *imagename_bfp.jpg*,
+                *imagename_bfp.txt* (required for both methods since cropping is not automated for this type of images)
 
                 Structure inside the txt file:
                         TO DO
