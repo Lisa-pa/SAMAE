@@ -47,11 +47,11 @@ Features
                          If the cropping is not validated, new thresholds are asked (maximum five tries for new thresholds are asked per image).
                           - Case a) The cropping is too aggressive (often happens in case of
                            darker images). Try thresholds (6, 15, 6, 25, 0, 0) (that is, reduce 1st and 3rd thresholds).
-                           - Case b) you want to crop more at the top or at the bottom of the image: adapt
-                            the last two thresholds, that correspond to additional cropping in mm at the top
-                            and at the bottom of the image respectively. This is an interesting option in case
-                            of an image that presents large white bands different from aponeuroses: by eliminating
-                            these bands, you increase your chances to obtain a correct processing.
+                          - Case b) you want to crop more at the top or at the bottom of the image: adapt
+                           the last two thresholds, that correspond to additional cropping in mm at the top
+                           and at the bottom of the image respectively. This is an interesting option in case
+                           of an image that presents large white bands different from aponeuroses: by eliminating
+                           these bands, you increase your chances to obtain a correct processing.
                 4) The search for aponeuroses begins (1st: superficial aponeurosis; 2nd: deep aponeurosis)
                         A window asks you to validate the contour of the aponeurosis if it has been found.
                         If not satisfied, a second try is launched.
