@@ -45,13 +45,8 @@ Features
                         is output, so a second automatic try is launched with thresholds (6, 15, 6, 25, 0, 0).
                         (to check which thresholds have been used, have a look at the command window).
                          If the cropping is not validated, new thresholds are asked (maximum five tries for new thresholds are asked per image).
-                          - Case a) The cropping is too aggressive (often happens in case of
-                           darker images). Try thresholds (6, 15, 6, 25, 0, 0) (that is, reduce 1st and 3rd thresholds).
-                          - Case b) you want to crop more at the top or at the bottom of the image: adapt the last 
-                           two thresholds, that correspond to additional cropping in mm at the top
-                           and at the bottom of the image respectively. This is an interesting option in case
-                           of an image that presents large white bands different from aponeuroses: by eliminating
-                           these bands, you increase your chances to obtain a correct processing.
+                          - Case a) The cropping is too aggressive (often happens in case of darker images). Try thresholds (6, 15, 6, 25, 0, 0) (that is, reduce 1st and 3rd thresholds).
+                          - Case b) you want to crop more at the top or at the bottom of the image: adapt the last and at the bottom of the image respectively. This is an interesting option in case of an image that presents large white bands different from aponeuroses: by eliminating these bands, you increase your chances to obtain a correct processing.
                 4) The search for aponeuroses begins (1st: superficial aponeurosis; 2nd: deep aponeurosis)
                         A window asks you to validate the contour of the aponeurosis if it has been found.
                         If not satisfied, a second try is launched.
@@ -65,11 +60,11 @@ Features
         - Panoramic images
                 1) The image appears with a window asking you to validate the start of the analysis
                 2) Scale is automatically detected
-                3) The image is cropped according to data labelled manually and stored in txt file.
+                3) The image is cropped according to manually labelled data that is stored in txt file.
                    The cropped image appears in a window. Close to move on.
                 4) The image is divided vertically into sub-images to look for aponeuroses.
                    The size of sub-images depends on the width of the cropped image.
-                   Per sub-images, the search for aponeuroses follows the same process as
+                   Per sub-image, the search for aponeuroses follows the same process as
                    for simple images. Superficial aponeurosis is searched all along the 
                    cropped image. Deep aponeurosis is searched only in the first half of the
                    cropped image, according to observations. Once all subimages have been processed,
@@ -84,15 +79,13 @@ Features
                         - the cropped image with fascicles (in green) and aponeuroses (in blue)
                    Close them to move on to the following image.
 
-        - When the data set has been fully processed, 10 plots are created to visualize results
-                
-                5 plots for simple images, 5 plots for panoramic images:
+        - When the data set has been fully processed, 10 plots are created to visualize results (5 plots for simple images, 5 plots for panoramic images):
                 - 1 plot for the comparison of calibration factors (auto vs. manual);
-                - 1 plot for the comparison of fascicle lengths estimation (auto vs. manual)
-                - 1 plot for the comparison of pennation angles estimation with superficial aponeurosis (auto vs. manual)
-                - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual)
-                - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual)
-
+                - 1 plot for the comparison of fascicle lengths estimation (auto vs. manual);
+                - 1 plot for the comparison of pennation angles estimation with superficial aponeurosis (auto vs. manual);
+                - 1 plot for the comparison of pennation angles estimation with deep aponeurosis (auto vs. manual);
+                - 1 plot for the comparison of muscle thickness estimation at discrete points (auto vs. manual).
+         A dictionnary containing all the results is available in the images folder.
 
 
 Credits
