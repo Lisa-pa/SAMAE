@@ -264,7 +264,6 @@ def simpleprocessing(path_to_img):
         #let's consider that fascicle diameter is between 0.3 mm and 0.5 mm,
         #the following list is the equivalent interval in pixels, with a step of 0.5 pixel
         sca = np.arange(round(0.3/calibX), round(0.5/calibX), 0.5)
-        print('MVEF running')
         MVEF_image = FaDe.MVEF_2D(255-ROI, sca, [0.5, 0])
         cv2.imwrite(path_to_img[:-8]+'_MVEF.jpg', MVEF_image)
 
@@ -277,7 +276,7 @@ def simpleprocessing(path_to_img):
         #locate snippets and filter them
         snippets, snip_lines = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
                                                    minLength = 4,\
-                                                   offSetX = crop1, im = USimage)
+                                                   offSetX = crop1)
         
         if snippets == 'error':
             #move coords to original image coordinate system

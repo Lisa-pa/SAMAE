@@ -17,9 +17,9 @@ def panoManu(manu_pts_dict, path_img = None):
         manu_pts_dict (dict) modified with the computation of architecture
             from manual data.
     """
-    import aponeurosesdetection.MUFeaM as MUFeaM
+    import MUFeaM as MUFeaM
     import numpy as np
-    import aponeurosesdetection.FaDe as FaDe
+    import FaDe as FaDe
     import fnmatch
     import scipy.interpolate as interpolate
 

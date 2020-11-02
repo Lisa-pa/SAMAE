@@ -328,7 +328,7 @@ def panoprocessing(path_to_image, path_to_txtfile):
                 #locate snippets (=portions of fascicles) and filter them
                 snippets, snippets_line = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
                                                               minLength = 5, \
-                                                              offSetX = minRow, offSetY = i*sampleSize, im = USimageP)
+                                                              offSetX = minRow, offSetY = i*sampleSize)
                 #if snippets could not be detected
                 if snippets == 'error':
                     #move coords back to original RGB image coordinate system
