@@ -48,18 +48,23 @@ def MVEF_2D(I, scales, thresholds):
     """Multiscale Vessel Enhancement Method for 2D images - based on Frangi's,
     Rana's, and Jalborg's works. This method searches for geometrical 
     structures which can be regarded as tubular.
+    The function is coded to enhance dark tube-like structure, so make
+    sure that you do not need to inverse your image I before using this function.
     
     Args:
         I (2D array):       I is a grayscale image (otherwise it is 
                             converted to grayscale)
         thresholds (list):  thresholds is a list of two thresholds that 
                             control the sensitivity of the line filter 
-                            to the measures Fr and R.  
+                            to the measures Fr and R. It should look like
+                            [b, c], where b must not be zero. If c is zero, 
+                            then its value is set to half the frobenius norm
+                            of the hessian matrix.
         scales (list):      scales is a list of lengths that correspond to 
-                            the diameter of the tube-like to find
+                            the diameter (in pixels) of the tube-like structure to find
     
     Outputs:
-        I2 (2D array):  image I filtered by the multiscale vessel enhancement
+        I2 (2D array):  one-canal image I, filtered by the multiscale vessel enhancement
                         filter
     References:
         Based on [ Automatic detection of skeletal muscle architecture 
@@ -83,7 +88,10 @@ def MVEF_2D(I, scales, thresholds):
     c = thresholds[1]
     if b == 0:
          ValueError('first element of thresholds cannot be null')
-        
+    
+    #calculation of Hessian matrix and its eigen values.
+    #Corresponding eigen vectors are normal to and in the direction of
+    #the tubular structure
     for sc in range(len(scales)): 
         H = hessian_matrix(image = I, sigma = scales[sc], order = 'rc')
         eigvals = hessian_matrix_eigvals(H) #2 eigenvalues in decreasing order; shape of ei = (2,I.shape[0], I.shape[1])
@@ -124,18 +132,38 @@ def MVEF_2D(I, scales, thresholds):
     return I2
 '-----------------------------------------------------------------------------'
 
-def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0, im = None):
+def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0):
     """
-    I (array): binary image (one canal)
+    This function aims at detecting portions of fascicles in a binary image I,
+    obtained from the binarization of an image filtered with MVEF.
+    These portions of fascicles are filtered with statistical filtering
+    on the following parameters: length, alignement, aspect ratio and 
+    angle with the horizontal.
+
+    Args:
+        I (array): binary image (one canal)
+        xcalib (float): vertical calibration factor
+        ycalib (float): horizontal calibration factor
+        minLength (float):  length in pixels, under which a portion of fascicle
+                            will be considered or removed from the analysis.
+        offSetX, offSetY (integers):  if the image I is a subimage of another bigger image
+                            I2, and if you want to obtain the localization of the
+                            snippets in I2, offSetX and offSetY should correspond
+                            to the first line of I in I2 and the first column of I
+                            in I2 respectively.
+    Outputs:
+        list of arrays: each array is a snippet's points coordinates
+        list of parameters that caracterize the modeling line of a snippet. Each
+        parameter is such as [slope, [point1_line + offSetY, pont1_column + offSetX]]
     """
     #attention, contours points found by findContours have the structure (columns, rows)
     snippets = cv2.findContours(np.uint8(I), mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_NONE)[0]
     
+    #if no contour is found, stop analysis:
     if len(snippets) == 0:
         return 'error', 'error'
     
     line_snip = [] #list which contains a linear approximation of the snippet sn
-    
     vect = np.zeros((len(snippets), 4))
     
     for i in range(len(snippets)):
@@ -168,7 +196,7 @@ def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0, im = 
             p2 = [sn[i] for i in range(len(sn))\
                     if sn[i][0] == np.amax(np.array(sn)[:,0])][0]
 
-        # create line (x_list, y_list) inside snippet
+        # create line (x_list, y_list) inside snippet's contour
         cmin = np.amin(snippets[i][:,0,0])
         cmax = np.amax(snippets[i][:,0,0])
         y_list = np.arange(cmin, cmax, 1)
@@ -229,6 +257,7 @@ def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0, im = 
         + vect[:,2]*vect[:,2] + vect[:,3]*vect[:,3])
    
     #Filtering on norm
+    #The value "4" has been empirically chosen by observing snippets depending on their norm value
     lines = []
     filtered_indices = [] # list which contains the ID of the filtered snippets
     for n in range(len(snippets)):
@@ -236,7 +265,8 @@ def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0, im = 
             filtered_indices.append(n)
             lines.append(line_snip[n])
     
-    #outputs 
+    #outputs
+    #retrieve snippets' points coordinates if their ID is in filtered_indices
     filtered_snippets = []
     for fa in range(len(filtered_indices)):
         fasc = snippets[filtered_indices[fa]][:,0,:]
@@ -251,14 +281,46 @@ def locateSnippets(I, xcalib, ycalib, minLength, offSetX = 0, offSetY = 0, im = 
 
 
 def combineSnippets(I, listS, listS_paramlines, min_nb_sn, thresh_alignment = 20):
-    """listS contient les snippets en mode [x,y]"""
-    #Look for snippets that are part of the same fascicles
+    """
+    This function aims at combining aligned snippets (we consider that, if two
+    snippets are aligned, they correspond to the same muscle fascicle) so that to
+    reconstruct muscle fascicles.
 
+
+    Args:
+        I : one-canal or three-canal image
+        listS (list of arrays): list of arrays, each array contains one snippet's points coordinates (each
+        point is given by (line, column))
+        listS_paramlines (list of lists): list of sublist. Each sublists contains parameters that 
+        caracterize the modeling line of a snippet. The format of this list is
+        the same output from the function locateSnippets. The format of sublists:
+        [slope, [point1_line + offSetY, pont1_column + offSetX]]
+        min_nb_sn (integer): once aligned, you have the possibility to differentiate
+        the fascicles with a number of detected snippets below min_nb_sn, and above
+        min_nb_sn. This allows you to process those fascicles differently in the 
+        following of your script (for exemple for the degree of modeling curves).
+        thresh_alignment (interger): this is the threshold that determines if two snippets are aligned.
+
+                Potential aligned snippets are such that the modeling line of one intercept the contour
+                of the other.
+                thresh_alignment corresponds to the maximum number of lines accepted between:
+                        - point1 of the most right snippet
+                        - the point with same column as point1, on the modeling line of the most left snippet
+                In addition, the two snippets must be less than 1/4 of the image length far,
+                to be considered as aligned snippets.
+    
+    Outputs:
+        two lists of arrays. Each array contains the points coordinates of the
+        aligned snippets of a same fascicle.
+        The first list contains the fascicles with more than min_nb_sn snippets.
+        The second list contains the fascicles with less than min_nb_sn snippets.
+    """
     fascicles_points = []
     fascicles2_points = []    
     if len(listS) != 0:
         aligned_snip = [[j] for j in range(len(listS))] # contains list of snippets indices part of same fascicle
     
+        #modeling line of snippet s
         for s in range(len(listS) - 1):
             ylist_s = np.arange(0, I.shape[1],1, dtype = np.int64)
             slope_s = listS_paramlines[s][0] #slope
@@ -316,7 +378,6 @@ def combineSnippets(I, listS, listS_paramlines, min_nb_sn, thresh_alignment = 20
             if test == 0:
                 grouped_snip.append(aligned_snip[f])
                     
-       
         #outputs 
         for fa in range(len(grouped_snip)):
             fasc = listS[grouped_snip[fa][0]]
@@ -333,11 +394,19 @@ def combineSnippets(I, listS, listS_paramlines, min_nb_sn, thresh_alignment = 20
 
 
 def contourAverage(inputC):
-    """Function that approximate a contour by a line
-    inputC's dimensions are (x,y); x coordinate of the image along axis 0
-    ( = rows), y along axis 1 (= columns).
+    """Function that approximate a contour by a line inside the contour.
+        It realizes the mean of the lines of two points on a same column.
+        If there is one point or strictly more than 2 points in a same
+        column, the column is not considered and no mean is realized.
+    
+    Args:
+        inputC (list of arrays): each array corresponds to the points coordinates
+        of a fascicle. The format of inputC is the same as one of the output lists 
+        of function combineSnippets. 
+        Points coordinates are (rows along axis 0, columns along axis 1).
 
-    ouputL : list of points [line, column]
+    Outputs:
+        ouputL : list of arrays that contain points [row, column]
     """
     input_list = list(inputC)
     
@@ -354,23 +423,34 @@ def contourAverage(inputC):
 
 
 def approximateFasc(typeapprox, listF, d):
-    """listF is the list of fascicles.
-    Each fascicle is a list of point defining its line
-    
-    points of each fascicle : array = [x y] where x is the line, y the column
-    d : degree of the curve that will be interpolated
+    """
+    Realizes the interpolation of a list of fascicles, either with polynomial fitting
+    or with B-splines.
+
+
+    Inputs:
+        listF is the list of fascicles (same format as output from function contourAverage).
+        Each fascicle is an array of points defining its line. Each point = (row, column).
+        d (integer) : degree of the curve that will be interpolated
+        typeapprox (string): either 'Bspline' or 'polyfit', depending on the type of 
+        approximation that you want to realize (spline or fitting with a polynom respectively) 
+    Outputs:
+        a list of splines.
     """
     approx_fasc = []
     
     if typeapprox == 'Bspline':
         import scipy.interpolate as interpolate
+        
+        #transform each fascicle format in list
         for n in range(len(listF)):
             if type(listF[n]) == list:
                 f = listF[n]
             else:
                 f = list(listF[n])
-                
-            f.sort(key = lambda x: x[1]) #sort according to columns
+            
+            #sort all fascicle points in increasing columns order
+            f.sort(key = lambda x: x[1])
 
             #remove potential double points           
             to_remove = []
@@ -382,17 +462,21 @@ def approximateFasc(typeapprox, listF, d):
             ycoord = [fa[i][1] for i in range(len(fa))]
             xcoord = [fa[i][0] for i in range(len(fa))]               
             
+            #interpolation
             spline = interpolate.UnivariateSpline(ycoord, xcoord, k=d, ext = 0)   
             approx_fasc.append(spline)
 
     if typeapprox == 'polyfit':
         for n in range(len(listF)):
+
+            #change format to list if necessary
             if type(listF[n]) == list:
                 f = listF[n]
             else:
                 f = list(listF[n])
                   
-            f.sort(key = lambda x: x[1]) #sort according to columns
+            #sort fascicle points in increasing columns order
+            f.sort(key = lambda x: x[1])
             
             #remove potential double points
             to_remove = []
@@ -404,6 +488,7 @@ def approximateFasc(typeapprox, listF, d):
             ycoord = [fa[i][1] for i in range(len(fa))]
             xcoord = [fa[i][0] for i in range(len(fa))]               
             
+            #interpolation and conversion to spline
             p = np.polyfit(ycoord, xcoord, deg=d)
             spline = np.poly1d(p)
             approx_fasc.append(spline)
