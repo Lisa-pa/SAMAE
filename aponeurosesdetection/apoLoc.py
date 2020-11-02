@@ -1,4 +1,4 @@
-"""Function for aponeuroses rough location"""
+"""Function for aponeuroses approximated location"""
 
 "*****************************************************************************"
 "**********************************PACKAGES***********************************"
@@ -13,9 +13,9 @@ from skimage.transform import radon, iradon
 "*****************************************************************************"
 
 def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
-    """Function that determines the radon transform of image I and segments it
+    """Function that computes the radon transform of image I and segments it
     to detect the two aponeuroses as the two largest white lines.
-    It returns the inverse transform of the segmented radon transform as
+    It returns the inverse radon transform of the segmented radon transform as
     well as location of two horizontal bands containing aponeuroses.
     
     Args:
@@ -25,6 +25,8 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
         and remove gray areas. If None, the threshold is set so that it only keeps
         the 0.8% brightest pixels
         calibV: is the calibration factor along axis 0.
+        angle1, angle2 (floats, in degrees) are the angles interval in between
+        we assume that aponeuroses orientations stand. angle1 < angle2
         
     Returns:
         (a1, b1), (a2, b2): parameters of the line equation of each
@@ -46,19 +48,19 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
     
     #Calculate radon transform
     #! I_radon reverse the lines: upper aponeurosis region in I is in the bottom of
-    # I_radon. Same for deep apo
+    # I_radon. Similar logic for deep apo
     I_radon = radon(I, circle = True)
         
-    #erase lines with slope > 100° and <80°
+    #erase lines with slope > angle2 and <angle1
     I_radon[:, :angle1] = np.zeros((I_radon.shape[0], angle1))
     I_radon[:, angle2:] = np.zeros((I_radon.shape[0], 180-angle2))
-    
-    
+        
     #cut radon transform in halves
     R_top = np.copy(I_radon[:int(I_radon.shape[0]/2),:])
     R_inf = np.copy(I_radon[int(I_radon.shape[0]/2):,:])
     
     #erase lines that are too centered in the radon transform to be aponeuroses
+    #SOMETHING BETTER HAS TO BE FOUND
     fifth_x_half = int(I_radon.shape[0]/2/5)
     quarter_x_half = int(I_radon.shape[0]/2/4)
     R_top[3*fifth_x_half:,:]=np.zeros((R_top.shape[0]-3*fifth_x_half, R_top.shape[1]))
@@ -69,14 +71,13 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
         thresh = np.percentile(I_radon, 99.2)
     R_top = cv2.threshold(R_top, thresh, 255, cv2.THRESH_BINARY)[1].astype(np.uint8)
     R_inf = cv2.threshold(R_inf, thresh, 255, cv2.THRESH_BINARY)[1].astype(np.uint8)
-
     
     #enhance separation between white regions thanks to erosion
     SE = np.uint8(np.array([[0,1,0],[1,1,1],[0,1,0]]))
     R_top = cv2.erode(src = R_top, kernel = SE)
     R_inf = cv2.erode(src = R_inf, kernel = SE)
     
-    #find where are white regions and contour them
+    #find where are white regions and find their contour
     contours_top = cv2.findContours(R_top,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0]
     contours_inf = cv2.findContours(R_inf,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[0]
     
@@ -132,9 +133,10 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
 
 
             # look for the closest first two contours to line 0
-            # if they are less than 5 mm far from each other, then take the 2nd one
-            # if they are more than 5 mm far from each other, it means they are not
+            # if they are less than 4 mm far from each other, then take the 2nd one
+            # if they are more than 4 mm far from each other, it means they are not
             #  skin and apo, so take the first one.
+            # THIS IS EMPIRICAL, SOMETHING BETTER MUST BE FOUND
             min1 = np.amin(region1[:,0,1])
             max1 = np.amax(region1[:,0,1])
             min2 = np.amin(region2[:,0,1])
@@ -206,9 +208,10 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
                         region2 = contours_inf2[cont0]                   
 
             # look for the closest first two contours to line 0
-            # if they are less than 5 mm far from each other, then take the 2nd one
-            # if they are more than 5 mm far from each other, it means they are not
+            # if they are less than 4 mm far from each other, then take the 2nd one
+            # if they are more than 4 mm far from each other, it means they are not
             #  skin and apo, so take the first one.
+            #EMPIRICAL
             min1 = np.amin(region1[:,0,1])
             max1 = np.amax(region1[:,0,1])
             min2 = np.amin(region2[:,0,1])
@@ -229,7 +232,6 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
         
     #! offset in R_inf when search for contours
     contours_inf[0][:,0,1] = int(I_radon.shape[0]/2) + contours_inf[0][:,0,1]
-    
     
     I_radonF = np.zeros(I_radon.shape)
     center_top, radius_top = cv2.minEnclosingCircle(contours_top[0][:,0,:])
@@ -263,7 +265,7 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
     loc1 = (upLine,min(upLine+60, linearApo.shape[0]-1))
     loc2 = (max(0,lowLine-60),lowLine)
     
-    #Determine line equation of each aponeurosis
+    #Determine approximate modeling line equation of each aponeurosis
     #ay+b=x where x is the coordinate along axis 0 and y along axis 1
     line1 = [[u,v] for u in range(linearApo[loc1[0]:loc1[1],:].shape[0])\
         for v in range(linearApo.shape[1]) if linearApo[loc1[0]:loc1[1],:][u,v]>0]
@@ -299,16 +301,26 @@ def twoApoLocation(I, calibV, angle1, angle2,thresh = None):
 
 def oneApoLocation(I, calibV, angle1, angle2, thresh = None):
     """
-    Function that
+    Function that detects the most proeminant white line in I
+    (that should be aponeurosis).
 
-
-    Args
+    Args:
+        I (array): one canal image
+        thresh: threshold used for segmentation. In the radon transform, all
+        pixels where value > thresh are kept, so that to keep only whiter areas
+        and remove gray areas. If None, the threshold is set so that it only keeps
+        the 0.8% brightest pixels
+        calibV: is the calibration factor along axis 0.
+        angle1, angle2 (floats, in degrees) are the angles interval in between
+        we assume that aponeuroses orientations stand. angle1 < angle2   
 
 
     Returns
-
-    Example
-    
+        (a, b): parameters of the line equation of each
+        aponeurosis: x = a * y + b where x = coordinate along axis 0 and y =
+        coordinate along axis 1. Equations parameters are relative to I's shape.
+        loc (tuple): indicates two indices (distant of 60 pixels) corresponding 
+        to the lines of I between which the  aponeurosis is.   
     """
 
     if len(I.shape) > 2:
@@ -322,7 +334,7 @@ def oneApoLocation(I, calibV, angle1, angle2, thresh = None):
     #Calculate radon transform
     I_radon = radon(I, circle = True)
      
-    #erase lines with slope > 100° and <80°
+    #erase lines with slope > angle2 and <angle1
     I_radon[:, :angle1] = np.zeros((I_radon.shape[0], angle1))
     I_radon[:, angle2:] = np.zeros((I_radon.shape[0], 180 - angle2))
 
@@ -381,8 +393,8 @@ def oneApoLocation(I, calibV, angle1, angle2, thresh = None):
 
 
             # look for the closest first two contours to line 0
-            # if they are less than 5 mm far from each other, then take the 2nd one
-            # if they are more than 5 mm far from each other, it means they are not
+            # if they are less than 4 mm far from each other, then take the 2nd one
+            # if they are more than 4 mm far from each other, it means they are not
             #  skin and apo, so take the first one.
             min1 = np.amin(region1[:,0,1])
             max1 = np.amax(region1[:,0,1])
