@@ -1,8 +1,7 @@
 """Management of the dict architecture"""
 
 def dame_arch_paths(path_to_folders, participants, test='architecture'):
-    """Create dict of paths were architecture data have been stored
-
+    """Create dict of paths were architecture data will be stored
     """
 
     import os
@@ -79,7 +78,8 @@ def dame_arch_data(archpaths):
 
 
 def _calcula_arch(data):
-    """COmpute architectural features from dict of coordinates. It updates the input dict
+    """Compute manual and automatic architectural features from 
+    dict of coordinates. It updates the input dict
     
     Arguments:
         data {dict} -- dictionary containing coordinates for each subject/trial/image
@@ -89,10 +89,10 @@ def _calcula_arch(data):
     """
 
     import numpy as np
-    import aponeurosesdetection.autoP as autoP
-    import aponeurosesdetection.autoS as autoS
-    import aponeurosesdetection.manuP as manuP
-    import aponeurosesdetection.manuS as manuS
+    import autoP as autoP
+    import autoS as autoS
+    import manuP as manuP
+    import manuS as manuS
     
     for part in data.keys():
         for ntest in data[part].keys():
@@ -208,8 +208,9 @@ def idfascicles(coords, img):
 
     if img == 'pano':
         coordS = coords[8:13, :]
-        coordS[:,[0,1]] = coordS[:,[1,0]]
         coordI = coords[3:8, :]
+        # inversion of coordinates, so that points appear as [row, column] and not [column, row]
+        coordS[:,[0,1]] = coordS[:,[1,0]]
         coordI[:,[0,1]] = coordI[:,[1,0]]
         #first coordinate is row, second coordinate is column
         architecture['insertion'] = {'coords': [coords[2,1],coords[2,0]]}
@@ -243,14 +244,12 @@ def idfascicles(coords, img):
 
 
 def distsimpleimg(coords):
-    """Return distance (cm) from muscle insertion point 
+    """Return distance (mm) from muscle insertion point 
     to the place where the single image ultrasound was taken
     
     Arguments:
         coords {array} -- Array containing x and y coordinates of calibration scale, 
         insertion point and place of the image.
-        
-        /!\ check what means x and y (raws/columns ?)
     
     Returns:
         [float] -- distance in cm
@@ -266,28 +265,41 @@ def distsimpleimg(coords):
 
 def forMTcomparison(ptsSup_m, ptsInf_m, ptsSup_a, ptsInf_a, calibV_m, calibV_a):
     """
-    
+    Computes MT at discrete points to compare labelled data and automatic processing.
+    Inputs
+        ptsSup_m: list of points of superficial aponeurosis, manual labelling
+        ptsInf_m: list of points of deep aponeurosis manual labelling
+        ptsSup_a: list of continuous points of superficial aponeurosis, automatic processing, all along the US image
+        ptsInf_a: list of continuous points of deep aponeurosis, automatic processing, all along the US image
+        calibV_m (float): vertical calibration factor computed with manual labelling
+        calibV_a (float): vertical calibration factor computed from automatic processing
+    Outputs:
+        2 lists of same length, that contains MT from manual data, and MT from 
+            automatic processing at the same columns as for manual MT
     """
     MT_m = []
     MT_a = []
     
     for ind in range(len(ptsSup_m)):
+        # extract column and rows of manual points
         col_1 = ptsSup_m[ind][1]
         col_2 = ptsInf_m[ind][1]
         lig_1 = ptsSup_m[ind][0]
         lig_2 = ptsInf_m[ind][0]
         lig_3 = -1
         lig_4 = -1
+        # compute manual MT
         MT_m.append(abs(lig_2 - lig_1)*calibV_m)
             
         if ptsSup_a != 'error' and ptsInf_a != 'error':
+            # look for automatic points that have the same column as manual points
             for ind2 in range(len(ptsSup_a)):
                 if int(ptsSup_a[ind2][1]) == int(col_1):
                     lig_3 = ptsSup_a[ind2][0]
                 if int(ptsInf_a[ind2][1]) == int(col_2):
                     lig_4 = ptsInf_a[ind2][0]
             
-            
+            #compute automatic MT if the previous automatic points were found
             if lig_3>= 0 and lig_4 >=0:
                 MT_a.append(abs(lig_4 - lig_3)*calibV_a)
             else:
