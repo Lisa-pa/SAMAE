@@ -6,7 +6,7 @@ def autocropping(I, threshCmin, threshCmax, threshRmin, threshRmax, calibV = 0, 
     of raws and columns.
     If calibV is not zero, then 'additionalCrop1' millimeters are removed from 
     the top of I (for example to remove the skin, additionalCrop1 should be around
-    2), and 'additionalCrop2' millimeters are removed from the bottom.
+    2mm), and 'additionalCrop2' millimeters are removed from the bottom.
     15 pixels are removed from the right border to make the white vertical
     line disappear.
     
@@ -113,25 +113,27 @@ def manualcropping(I, pointsfile):
         pointsfile (text file): contains points' coordinates. Pointsfile must be 
         organized such that:
             - column 0 is the ID of each point
-            - column 1 is the X coordinate of each point, ie the corresponding 
+            - column 1 is the X coordinate of each point, that is the corresponding 
             column in I
-            - column 2 is the Y coordinate, ie the raw in I
-            - raw 0 is for columns' name
-            - raws 1 and 2 are for two points of the scale
-            - raws 3 to 13 are aponeuroses' points in panoramic images // raws 3 
+            - column 2 is the Y coordinate, that is the row in I
+            - row 0 is for txt columns' names
+            - rows 1 and 2 are for two points of the scale
+            - rows 3 to 13 are aponeuroses' points in panoramic images // raws 3 
             to 10 in simple images
-            - following raws are for muscle fascicles (and are optional for this 
+            - following rows are for muscle fascicles (and are optional for this 
             function)
-            pointsfile's name must 1) include extension 2) indicates whether I
-            is panoramic or simple by having 'p' or 's' just before the point
-            of the extension.
+            Other requirements: pointsfile's name must 1) include extension 
+            2) indicates whether I is panoramic or simple by having 'p' or 
+            's' just before the point of the extension.
 
         Returns:
             I2 (array) : array of same type than I. It is the cropped image of I according
             to the aponeuroses' points manually picked and stored in pointsfile.
-            point_of_intersect (tuple) : point which is the most at the right 
-            of the image and which should correspond to the point of intersection of deep 
+            point_of_intersect (tuple) : point at right
+            of the image; should correspond to the point of intersection of deep 
             and upper aponeuroses.
+            min_raw, max_raw, min_col, max_col: indices of the location of the cropped image 
+            in the input raw image
     """
 
     import numpy as np
