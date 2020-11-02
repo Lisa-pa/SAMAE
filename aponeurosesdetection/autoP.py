@@ -2,7 +2,7 @@
 
 def panoprocessing(path_to_image, path_to_txtfile):
     """
-    Function that realizes the (semi) automatic processing of panoramic images
+    Function that realizes the (semi) automatic processing of panoramic US images of muscles
 
     inputs
         path_to_image (string): path to the image + name image + extension

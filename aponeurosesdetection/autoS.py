@@ -2,48 +2,56 @@
 
 def simpleprocessing(path_to_img):
     """
+    Function that realizes the (semi) automatic processing of simple/standard US images of muscles
+
+    inputs
+        path_to_image (string): path to the image + name image + extension
+
+    outputs:
+        a dictionary containing the analyzed architecture of the image.
     """
 
-    from aponeurosesdetection.calibration.calib import autoCalibration
-    from aponeurosesdetection.preprocessing.cropping import autocropping
-    from aponeurosesdetection.preprocessing.preprocess import preprocessingApo
-    import aponeurosesdetection.apoLoc as apoL
-    import aponeurosesdetection.apoCont as apoC
-    import aponeurosesdetection.MUFeaM as MUFeaM
-    import aponeurosesdetection.FaDe as FaDe
+    from calibration.calib import autoCalibration
+    from preprocessing.cropping import autocropping
+    from preprocessing.preprocess import preprocessingApo
+    import apoLoc as apoL
+    import apoCont as apoC
+    import MUFeaM as MUFeaM
+    import FaDe as FaDe
 
     import cv2
     import numpy as np
     import tkinter.messagebox as tkbox
 
+    # open the image and validate the start of the processing
     RGBimage = cv2.imread(path_to_img, -1)
-    
-    #Validate the image processing start
     cv2.imshow('Image to process', RGBimage)
     process = tkbox.askyesno('Need user approval', 'Do you accept to process this image?\
         Close all windows after clicking yes or no.', default = 'yes', icon='question')
     cv2.waitKey(0) & 0xFF
     cv2.destroyAllWindows()
     
-    
     if process == True:
         
 
-        #Calibrate the image
-        # calibX, calibY are the calibration factors in X and Y directions
+        # Calibrate the image
+        # calibX, calibY are the calibration factors in the vertical and horizontal directions
         calibX, calibY = autoCalibration(RGBimage)
+        #check that one calibration factor does not have an implausble value compared to the other
         if calibX > 2 * calibY or calibY > 2 * calibX:
             calibX = min(calibX, calibY)
             calibY = min(calibX, calibY)
                     
         #Crop the image to keep essential US data
         print('Try thresholds (10,15,12,25,2,6)')
+        #   automatic try
         USimage, l1, l2, c1, c2 = autocropping(RGBimage, 10., 15., 12., 25., calibY, additionalCrop1 = 2., additionalCrop2 = 6.)
-        if USimage.size<=0: #if the previous cropping did not work, try a second time
+        if USimage.size<=0: #if the previous cropping did not work, try a second automatic try
             print('Try thresholds (6,15,6,25,0,0)')
             USimage, l1, l2, c1, c2 = autocropping(RGBimage, 6., 15., 6., 25., calibY, additionalCrop1 = 0, additionalCrop2 = 0)
         
-        #--------ask for validation; if cropping does not suit the user, ask the user for thresholds
+        #--------ask for validation; if cropping does not suit the user, ask the user for thresholds in manual entry
+        # you can try new thresholds maximum 5 times
         ok = False
         counter = 1
         while ok == False and counter<=5:
@@ -89,9 +97,13 @@ def simpleprocessing(path_to_img):
         #               x = rows, y = columns
         # paramInf:     parameters for the line equation of deep aponeurosis
         # locSup:        (l1,l2) are the two lines in between which the 
-        #               upper aponeurosis spotted.
+        #               upper aponeurosis was spotted.
         # locInf:        lines in between which deep aponeurosis was spotted
+        
+        # preprocess image
         USimage_pp = preprocessingApo(I = USimage, typeI = 'simple', mode = 'localmean', margin = 0, sizeContrast = 41) #pre_processing
+        #locate both aponeuroses in image + linear modeling of aponeuroses
+        print('Looking for aponeuroses')
         paramSup, paramInf, locSup, locInf = apoL.twoApoLocation(USimage_pp, angle1 = 80, angle2 = 100, thresh = None, calibV = calibX)
         cv2.imwrite(path_to_img[:-8]+'_preprocessed.jpg', USimage_pp)        
         Bspl_sup = 0
@@ -103,6 +115,7 @@ def simpleprocessing(path_to_img):
             archi_auto['calfct_to_mm'] = {'vertical axis': calibX, 'horizontal axis': calibY}
             archi_auto['aposup'] = {'coords':'error'}
             archi_auto['apoinf'] = {'coords':'error'}
+            print('The detection of aponeuroses failed')
             return archi_auto
         
         '''
@@ -125,10 +138,12 @@ def simpleprocessing(path_to_img):
         InfApo_pp = np.copy(USimage_pp[locInf[0]:locInf[1],:])
 
         # Get exact contour of each aponeurosis
+        #initiate contour by quadrangle centered around linear modeling
         iniSupApo = apoC.initiateContour(SupApo_pp, typeC = 'quadrangle_param', param = [paramSup[0], paramSup[1] - locSup[0], 8])
+        #evolve curve with active contour model
         contourSup, nSup = apoC.activeContour(SupApo_pp,iniSupApo,0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
         print('Upper aponeurosis contour found in ', nSup, ' steps')
-    
+        #check contour has been found and ask for MANUAL validation from the user
         if np.min(contourSup)>0: #it means active contour model failed
             #try a second time with another initial contour
             iniSupApo = apoC.initiateContour(SupApo_pp, typeC = 'quadrangle_param', param = [paramSup[0], paramSup[1] - locSup[0], 40])
@@ -137,7 +152,6 @@ def simpleprocessing(path_to_img):
             #if min(contourSup) still positive
             #use linear approximation because it means active contour model failed again
             type_approx_UA = 'linear'
-    
         if np.min(contourSup)<=0: #ask for validation of the contour
             contourSup_image, contourSup_points = apoC.extractContour(contourSup, SupApo, offSetX = locSup[0], offSetY = 0)
             visu = np.copy(USimage)
@@ -146,8 +160,7 @@ def simpleprocessing(path_to_img):
             valid = tkbox.askyesno('Need user validation', 'Do you validate the contour? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'no', icon='question')
             cv2.waitKey(0) & 0xFF
             cv2.destroyAllWindows()
-            
-            if valid == False:
+            if valid == False: #not validated by the user, try again with new initial contour
                 iniSupApo = apoC.initiateContour(SupApo_pp, typeC = 'quadrangle_param', param = [0, int(SupApo.shape[0]/2), 40])
                 contourSup, nSup = apoC.activeContour(SupApo_pp, iniSupApo, 0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
                 print('Upper aponeurosis contour found in ', nSup, ' steps')
@@ -170,12 +183,12 @@ def simpleprocessing(path_to_img):
             elif valid == False: #use linear approximation from radon transform
                 type_approx_UA = 'linear'
     
-    
-    
+        #initiate contour of deep aponeurosis with quandrangle centered around linear modeling
         ini_InfApo = apoC.initiateContour(InfApo_pp, typeC = 'quadrangle_param', param = [paramInf[0], paramInf[1] - locInf[0], 8])
+        # evolve contour with active contour model
         contourInf, nInf = apoC.activeContour(InfApo_pp, ini_InfApo, 0.5, 0.01, 0.02, 3.0, 1.0, 1.0, 65.025, 0.10)
         print('Lower aponeurosis contour found in ', nInf, ' steps')
-        
+        #check that a contour has been detected and ask the user to validate
         if np.min(contourInf)>0: #it means active contour model failed
             #try a second time with another initial contour
             ini_InfApo = apoC.initiateContour(InfApo_pp, typeC = 'quadrangle_param', param = [paramInf[0], paramInf[1] - locInf[0], 40])
@@ -184,7 +197,6 @@ def simpleprocessing(path_to_img):
             #if min(contourInf) still positive
             #use linear approximation because it means active contour model failed again
             type_approx_LA = 'linear'
-    
         if np.min(contourInf)<=0: #ask for validation of the contour
             contourInf_image, contourInf_Points = apoC.extractContour(contourInf, InfApo, offSetX = locInf[0], offSetY = 0)
             visu = np.copy(USimage)
@@ -193,11 +205,10 @@ def simpleprocessing(path_to_img):
             valid = tkbox.askyesno('Need user validation', 'Do you validate the contour? If no, linear approximation will be used in the rest of the process. After clicking yes or no, please close the image windows to continue.', default = 'no', icon='question')
             cv2.waitKey(0) & 0xFF
             cv2.destroyAllWindows()   
-            if valid == False:
+            if valid == False:  #not validated by the user, try again with new initial contour
                 ini_InfApo = apoC.initiateContour(InfApo_pp, typeC = 'quadrangle_param', param = [0, int(InfApo.shape[0]/2), 40])
                 contourInf, nInf = apoC.activeContour(InfApo_pp, ini_InfApo, 0.3,0.01,0.02,3.0, 1.0, 1.0, 65.025, 0.10)
                 print('Lower aponeurosis contour found in ', nInf, ' steps')
-                
                 if np.min(contourInf)<=0:
                     contourInf_image, contourInf_Points = apoC.extractContour(contourInf, InfApo, offSetX = locInf[0], offSetY = 0)
                     visu = np.copy(USimage)
@@ -208,7 +219,7 @@ def simpleprocessing(path_to_img):
                     cv2.destroyAllWindows()    
 
             if valid == True:   #B-spline to approximate aponeurosis if contour suits
-                                #replace paramSup coefficients by the spline
+                                #replace paramInf coefficients by the spline
                 type_approx_LA = 'spline'
                 #polynomial approximation:
                 paramInf = apoC.approximateApo(p = contourInf_Points, apoType = 'lower', I = InfApo_pp, typeapprox = 'polyfit', d = 1)
@@ -219,10 +230,12 @@ def simpleprocessing(path_to_img):
         
     
         #calculate coordinates of aponeuroses
-        #if aponeusosis linear, param is transformed from a list of parameters into a spline
+        #if aponeusosis linear, param is transformed from a list of parameters into 
+        # a spline during function pointsCoordinates
+        #       approximation of aponeuroses:
         approx_sup, paramSup = MUFeaM.pointsCoordinates(typeA = type_approx_UA, param = paramSup, interval = [0, USimage.shape[1]])
         approx_inf, paramInf = MUFeaM.pointsCoordinates(typeA = type_approx_LA, param = paramInf, interval = [0, USimage.shape[1]])
-        
+        #       pixels really detected (= before approximation):
         if Bspl_sup != 0:
             coordSup, Bspl_sup = MUFeaM.pointsCoordinates(typeA = 'spline', param = Bspl_sup, interval = [0, RGBimage.shape[1]-1-c1])
         else:
@@ -237,14 +250,16 @@ def simpleprocessing(path_to_img):
         absc, thickness, spline_thickness = MUFeaM.muscleThickness(points1 = coordSup, points2 = coordInf,\
                                                                    start = 0, end = RGBimage.shape[1]-1-c1, calibV = calibX, calibH = calibY)
             
-            
+        
+        #Start fascicles detection
+        print('Looking for muscle fascicles')
         #ROI : region of interest in between aponeuroses
+        # contains only muscle fascicles
         crop1 = np.amax(approx_sup[:,0]) + 30
         crop2 = np.amin(approx_inf[:,0]) - 30
         ROI = np.copy(USimage[crop1:crop2, :, :])
         cv2.imwrite(path_to_img[:-8]+'_ROI.jpg', ROI)
                 
-        
         #Enhance tube-like structures with MVEF method - Frangi - 
         #let's consider that fascicle diameter is between 0.3 mm and 0.5 mm,
         #the following list is the equivalent interval in pixels, with a step of 0.5 pixel
@@ -253,14 +268,13 @@ def simpleprocessing(path_to_img):
         MVEF_image = FaDe.MVEF_2D(255-ROI, sca, [0.5, 0])
         cv2.imwrite(path_to_img[:-8]+'_MVEF.jpg', MVEF_image)
 
-        #
-        #threshold
+        #threshold to binarize filtered image
         threshMVEF_percent = 85
         threshMVEF = np.percentile(MVEF_image, threshMVEF_percent)
         MVEF_image2 = cv2.threshold(MVEF_image, threshMVEF, 255, cv2.THRESH_BINARY)[1]
         cv2.imwrite(path_to_img[:-8]+'_MVEF2.jpg', MVEF_image2)
     
-        #locate snippets and filter them to locate muscle fascicles
+        #locate snippets and filter them
         snippets, snip_lines = FaDe.locateSnippets(MVEF_image2, calibX, calibY,\
                                                    minLength = 4,\
                                                    offSetX = crop1, im = USimage)
@@ -281,14 +295,16 @@ def simpleprocessing(path_to_img):
             archi_auto['aposup'] = {'coords':coordSup, 'approx':approx_sup}
             archi_auto['apoinf'] = {'coords':coordInf, 'approx':approx_inf}
             archi_auto['MT'] = {'coords': thickness, 'columns interval': [0+c1, RGBimage.shape[1]-1]}
+            print('The detection of muscle fascicles failed.')
             return archi_auto 
         
-        
+        #look for aligned snippets, that would be part of the same fascicle
+        #fasc: fascicles made of 2 snippets and more
+        #fasc2: fascicles made of less than 2 snippets
         fasc, fasc2 = FaDe.combineSnippets(USimage, snippets, snip_lines, min_nb_sn = 2, thresh_alignment = 20)
     
         #transform the snippets, which are in fact the contours of the fascicles,
-        #into lines by taking the mean line inside the contour
-        #When branches exist, the mean is not computed (the region is ignored)
+        #into lines
         averages = [] 
         for i in range(len(fasc)):
             averages.append(FaDe.contourAverage(fasc[i]))
@@ -299,13 +315,28 @@ def simpleprocessing(path_to_img):
         
         
         #interpolations to get fascicles' curve
+        #all with degree = 1
         splines_fasc = FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages, d = 1)
         splines_fasc = splines_fasc + FaDe.approximateFasc(typeapprox = 'polyfit', listF = averages2, d = 1)
         
-        #intersections of fascicles with aponeuroses (in pixels)
+        #intersections of fascicles with aponeuroses
+        #determination of the dominant orientation of fascicles (positive or negative slope)
+        #to eliminate fascicles that would not follow the dominant tendancy
+        counter_posit = 0
+        counter_negat = 0
+        for fasci in splines_fasc:
+            if fasci((c1+c2)/2 + 50)-fasci((c1+c2)/2 - 50) > 0:
+                counter_posit =counter_posit+1
+            elif fasci((c1+c2)/2 + 50)-fasci((c1+c2)/2 - 50) < 0:
+                counter_negat =counter_negat+1
+        if counter_negat >counter_posit:
+            sig = -1
+        if counter_negat< counter_posit:
+            sig = 1
         intersecL, intersecU, splines_fasc = MUFeaM.findIntersections(spl_inf = paramInf, spl_sup = paramSup,\
-                                                                      listSpl = splines_fasc, start = 0, search_interval = [-200/calibY, 200/calibY])
+                                                                      listSpl = splines_fasc, signOfSlope = sig, start = 0, search_interval = [-200/calibY, 200/calibY])
         
+        print('Computing muscle architecture parameters.')
         #Pennation angles calculation (in degrees)
         PASup = MUFeaM.pennationAngles(paramSup, splines_fasc, intersecU, calibX, calibY)
         PA_Inf = MUFeaM.pennationAngles(paramInf, splines_fasc, intersecL, calibX, calibY)
@@ -375,7 +406,7 @@ def simpleprocessing(path_to_img):
     
     
         ################
-        #Visualization:
+        #Visualization of modeled aponeuroses, detected snippets and modeled fascicles
         #snippets
         couleurs = [[255,0,0], [0,255,0], [0,0,255], [255,255,0],[255,0,255], [0,255,255],\
                     [100,200,0],[100,200,100], [50,200,0],[50,100,50], [255,100,0],\
