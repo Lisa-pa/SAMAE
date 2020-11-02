@@ -4,8 +4,10 @@ import numpy as np
 def autoCalibration(I):
     """Returns horizontal and vertical factors by which every distance in
     pixels should be multiplied in order to obtain the equivalent distance in
-    millimeters. This program assumes that the scale presents clear dashes and
-    that the distance between two biggest dashes is equal to 10 mm.
+    millimeters. This program assumes that the scale presents clear axis ticks and
+    that the distance between two biggest ticks is equal to 10 mm.
+    It also assumes that both horizontal and vertical scales are present in the
+    up right quarter of image I.
     
     Args:
         I (array): one canal image. If I is a RGB image, it is transformed
@@ -14,19 +16,6 @@ def autoCalibration(I):
     Returns:
         calibFactorX (double) and calibFactorY (double) are respectively the
         horizontal and vertical calibration factors
-
-    Example:
-        > import tkinter as tk
-          from tkinter.filedialog import askopenfilename
-          root = tk.Tk()
-          root.withdraw()
-          filename = askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
-          RGB_image = cv2.imread('filename', -1)
-          calibX, calibY = autoCalibration(RGB_image)
-          print(calibX, calibY)
-          #works on the 'panoramic_echo.jpg' and 'simple_echo.jpg' images in data folder
-          #results panoramic_echo: 0.2631578947368421 0.2631578947368421
-          #results simple_echo: 0.06097560975609756 0.06097560975609756
     """
     
     #Check if I is a 1-canal image
@@ -34,8 +23,8 @@ def autoCalibration(I):
         I = cv2.cvtColor(I, cv2.COLOR_RGB2GRAY)
     length, width = I.shape[0], I.shape[1]
     
-    #Segmentation of the scale: cropping with empirical percentages and
-    #binarization of the selection
+    #Cropping with empirical percentages and binarization of the selection
+    # !!! EMPIRICAL
     TCP = 0.1 #Top cropping percentage - #empirical percentage
     LCP = 0.5 #Left cropping percentage
     BCP = 0.65 #Bottom cropping percentage
@@ -47,10 +36,10 @@ def autoCalibration(I):
 
 
         
-    #Selection of the biggest dashes: contours of white objects are found as
+    #Selection of the biggest axis ticks: contours of white objects are found as
     #well as minimal rectangles encapsulating each object. Conditions on the
     #size of these contours/bounding rectangles enable the removal of objects
-    #that are not the biggest dashes
+    #that are not the biggest ticks
     contours = cv2.findContours(Binar_I, cv2.RETR_EXTERNAL, \
                                            cv2.CHAIN_APPROX_NONE)[0]
     
@@ -65,8 +54,9 @@ def autoCalibration(I):
     Dashes = [BoundingRectangles[i] for i in range(len(BoundingRectangles)) if BoundingRectangles[i][2]>MeanPerim] #removal of points and small dashes
 
     
-    #Calculation of the minimal distances between two horizontal dashes and
-    #two vertical dashes
+    #Calculation of the minimal distances between two horizontal ticks and
+    #two vertical ticks
+    #browse all detected axis ticks
     horiz = 10000000.
     vertic = 10000000.
     for i in range (0, len(Dashes)-1):
@@ -89,13 +79,13 @@ def autoCalibration(I):
                     horiz = h             
 
     #Factors to convert distance in pixels into distance in millimeters
-    if horiz == 10000000.:
-        calibFactorX = False
+    if horiz == 10000000. or horiz == 0:
+        calibFactorX = None
     else:
         calibFactorX = 10./horiz
         
-    if vertic == 10000000.:
-        calibFactorY = False
+    if vertic == 10000000. or vertic == 0:
+        calibFactorY = None
     else:
         calibFactorY = 10./vertic
         
