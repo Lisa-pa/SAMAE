@@ -2,6 +2,7 @@
 # directory, which will be used to store the objects.
 # Note that pickle.HIGHEST_PROTOCOL is a binary format, which could not be always
 # convenient, but is good for performance. Protocol 0 is a text format.​
+# These two functions have been developed by Antonio J. Morales-Artacho
 def save_obj(obj, path):
     import pickle
     with open(path + '.pkl', 'wb') as f:
