@@ -1,8 +1,8 @@
-
+# preprocessing function
 
 def preprocessingApo(I, typeI, mode, margin, sizeContrast):
     """This function aims at enhancing the image I -and particularly aponeuroses-
-    before it is given to the active contour function.
+    before it is given to the aponeuroses localization function and to the active contour function.
     It applies a median filter to I, then enhances the contrast thanks to
     a chosen mode (global contrast enhancement or local contrast enhancement -
     mean, median or midgrey local contrast enhancement). Finally the image
@@ -12,7 +12,7 @@ def preprocessingApo(I, typeI, mode, margin, sizeContrast):
             
         Args:
                 I (np-array) : 1 canal or three-canal image. If the image has
-                three canals, it is converted to grayscale image.
+                        three canals, it is converted to grayscale image.
                 mode (string): chosen contrast method
                         'global': pixels whose value is less than 120 are set
                         to zero, while pixels whose value is above 120 are kept.
@@ -31,12 +31,14 @@ def preprocessingApo(I, typeI, mode, margin, sizeContrast):
                         pixel's value is unchanged. Otherwise it is set to zero.
                 margin (int) : constant used in contrast enhancement (see section above)
                 sizeContrast (int): odd integer that caracterizes neighborhood
-                size in local contrast enhancement. It should be big
-                enough to have a representative neighborhood of the pixel. We
-                recommend sizeContrast = 41.
+                        size in local contrast enhancement. It should be big
+                        enough to have a representative neighborhood of the pixel. We
+                        recommend sizeContrast = 41.
+                typeI (string): either 'panoramic' or 'simple'. It is the raw format
+                        of image I.
 
         Output:
-                np-array of same size than I
+                numpy array of same size than I
     """
     import numpy as np
     import cv2
@@ -98,8 +100,6 @@ def preprocessingApo(I, typeI, mode, margin, sizeContrast):
        
     elif typeI == 'panoramic':
         SE = np.uint8(np.array([[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]]))
-        #SE = np.uint8(np.array([[0.,1.,0.,1.,0.,1.,0.,1.,0.,1.,0.],[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.],[0.,1.,0.,1.,0.,1.,0.,1.,0.,1.,0.]]))
-
         #1) Erosion#
         I2 = cv2.erode(src=I2, kernel = SE,anchor=(-1,-1), iterations=3, borderType = cv2.BORDER_REPLICATE)
         #2) dilatation#
