@@ -150,14 +150,14 @@ Prerequisites
                 *imagename_bfs.txt*
 
                 Structure of imagename_bfs.txt:
-                        column 0: ID of each point
-                        column 1: X-coordinate (= coordinate along horizontal axis)
-                        column 2: Y-coordinate (= coordinate along vertical axis)
-                        row 0: columns' names (strings)
-                        rows 1 and 2: two points of the scale
-                        rows 3 to 6: superior aponeuroses' points
-                        rows 7 to 10: deep aponeuroses' points
-                        rows 11 to ...: muscle fascicles' points (10 points per fascicle)
+                        - column 0: ID of each point
+                        - column 1: X-coordinate (= coordinate along horizontal axis)
+                        - column 2: Y-coordinate (= coordinate along vertical axis)
+                        - row 0: columns' names (strings)
+                        - rows 1 and 2: two points of the scale
+                        - rows 3 to 6: superior aponeuroses' points
+                        - rows 7 to 10: deep aponeuroses' points
+                        - rows 11 to ...: muscle fascicles' points (10 points per fascicle)
 
 
 * Files for panoramic images processing
@@ -167,15 +167,15 @@ Prerequisites
                 *imagename_bfp.txt* (required for both methods since cropping is not automated for this type of images)
 
                 Structure inside the txt file:
-                        column 0: ID of each point
-                        column 1: X-coordinate (= coordinate along horizontal axis)
-                        column 2: Y-coordinate (= coordinate along vertical axis)
-                        row 0: columns' names (strings)
-                        rows 1 and 2: two points of the scale
-                        row 3: distal insertion point
-                        rows 4 to 8: deep aponeurosis' points
-                        rows 9 to 13: superficial aponeurosis' points 
-                        rows 14 to ...: muscle fascicles' points (4 points per fascicle)
+                        - column 0: ID of each point
+                        - column 1: X-coordinate (= coordinate along horizontal axis)
+                        - column 2: Y-coordinate (= coordinate along vertical axis)
+                        - row 0: columns' names (strings)
+                        - rows 1 and 2: two points of the scale
+                        - row 3: distal insertion point
+                        - rows 4 to 8: deep aponeurosis' points
+                        - rows 9 to 13: superficial aponeurosis' points 
+                        - rows 14 to ...: muscle fascicles' points (4 points per fascicle)
 
 --------
 2) Python packages
