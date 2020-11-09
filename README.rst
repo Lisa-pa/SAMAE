@@ -30,6 +30,7 @@ Features
 
 How to use this package?
 --------
+
 * How to compare manual and automated estimations of muscle architecture parameters ?
         See prerequisites on the structure  of the folder containing your images.
         To analyse US images automatically and compare the results with manual labelling with this package, open the filemanager.py file and adapt the 
@@ -38,14 +39,14 @@ How to use this package?
                 - colors variable (list of colors for the visualization);
         then run the file !
 
-* How to automatically analyze a panoramic image?
+* How to automatically analyze a panoramic image ?
 
 ::
 
         >>>import aponeurosesdetection.autoP as autoP
         >>>dict_results = autoP.panoprocessing(path_to_image, path_to_txtfile)
 
-* How to automatically analyze a simple image?
+* How to automatically analyze a simple image ?
 
 ::
 
@@ -149,7 +150,15 @@ Prerequisites
                 *imagename_bfs.txt*
 
                 Structure of imagename_bfs.txt:
-                        TO DO
+                        column 0: ID of each point
+                        column 1: X-coordinate (= coordinate along horizontal axis)
+                        column 2: Y-coordinate (= coordinate along vertical axis)
+                        row 0: columns' names (strings)
+                        rows 1 and 2: two points of the scale
+                        rows 3 to 6: superior aponeuroses' points
+                        rows 7 to 10: deep aponeuroses' points
+                        rows 11 to ...: muscle fascicles' points (10 points per fascicle)
+
 
 * Files for panoramic images processing
 
@@ -158,12 +167,26 @@ Prerequisites
                 *imagename_bfp.txt* (required for both methods since cropping is not automated for this type of images)
 
                 Structure inside the txt file:
-                        TO DO
+                        column 0: ID of each point
+                        column 1: X-coordinate (= coordinate along horizontal axis)
+                        column 2: Y-coordinate (= coordinate along vertical axis)
+                        row 0: columns' names (strings)
+                        rows 1 and 2: two points of the scale
+                        row 3: distal insertion point
+                        rows 4 to 8: deep aponeurosis' points
+                        rows 9 to 13: superficial aponeurosis' points 
+                        rows 14 to ...: muscle fascicles' points (4 points per fascicle)
 
 --------
 2) Python packages
 --------
-        TO do
+        python==3.7.4
+        pip==19.2.3
+        matplotlib==3.2.2
+        numpy==1.18.5
+        opencv-contrib-python==4.2.0.34
+        scikit-image==0.17.2
+        scipy==1.5.0
 
 
 
