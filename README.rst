@@ -180,13 +180,13 @@ Prerequisites
 --------
 2) Python packages
 --------
-        python==3.7.4
-        pip==19.2.3
-        matplotlib==3.2.2
-        numpy==1.18.5
-        opencv-contrib-python==4.2.0.34
-        scikit-image==0.17.2
-        scipy==1.5.0
+        * python==3.7.4
+        * pip==19.2.3
+        * matplotlib==3.2.2
+        * numpy==1.18.5
+        * opencv-contrib-python==4.2.0.34
+        * scikit-image==0.17.2
+        * scipy==1.5.0
 
 
 
