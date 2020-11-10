@@ -99,7 +99,7 @@ What happens when you run the filemanager.py file?
                         
                         Per sub-image, the search for aponeuroses follows the same process as for simple images. Superficial aponeurosis is searched all along the cropped image. Deep aponeurosis is searched only in the first half of the cropped image, according to our observations on our panoramic images of the biceps femoris.
                         
-                        Once all sub-images have been processed, aponeuroses are fitted with 2-degree polynomes (meaning, if aponeuroses are not found in a sub-image, this is not a problem; to ensure the fitting of aponeuroses, at least one portion of each aponeurosis should be found among all sub-images. However the more portions of aponeuroses are detected, the better the estimation would be).
+                        Once all sub-images have been processed, superficial aponeuroses are fitted with 3-degree polynomials, and deep aponeuroses are fitted with 2-degree polynomials (meaning, if aponeuroses are not found in a sub-image, this is not a problem; to ensure the fitting of aponeuroses, at least one portion of each aponeurosis should be found among all sub-images. However the more portions of aponeuroses are detected, the better the estimation would be).
                 5) Search for fascicles
                         Automatic detection of portions of fascicles sub-image by sub-image before reunification.
                 6) Visualization
