@@ -157,7 +157,7 @@ Prerequisites
                         - rows 1 and 2: two points of the scale
                         - rows 3 to 6: superior aponeuroses' points
                         - rows 7 to 10: deep aponeuroses' points
-                        - rows 11 to ...: muscle fascicles' points (10 points per fascicle)
+                        - rows 11 to ...: muscle fascicles' points (4 points per fascicle)
 
 
 * Files for panoramic images processing
@@ -175,7 +175,7 @@ Prerequisites
                         - row 3: distal insertion point
                         - rows 4 to 8: deep aponeurosis' points
                         - rows 9 to 13: superficial aponeurosis' points 
-                        - rows 14 to ...: muscle fascicles' points (4 points per fascicle)
+                        - rows 14 to ...: muscle fascicles' points (10 points per fascicle)
 
 --------
 2) Python packages
