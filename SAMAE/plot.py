@@ -400,48 +400,48 @@ def plotFeatures(path_to_dict, name_dict, colors, participants):
     '************************************************************************'
     '**************************PLOTS INITIALIZATION**************************'
     
-   #plots for simple images
-   # -- calibration
-   figSc, (axSc1, axSc2) = plt.subplots(1,2,sharex = False, sharey = False, figsize =(15,15))
-   # -- MT
-   figS0, axS0 = generateType0('Mean MT per participant in simple images', 'MT (mm)')
-   # -- FL
-   figS1, axS1 = generateType1('Automatically estimated length of fascicles relative to their closest manually identified fascicle, in simple images for all participants', r'$FL_m (mm)$', r'$FL_a (mm)$')
-   figS2, axS2 = generateType2('Comparison of automatic and manual outputs for FL estimation, in simple images for all participants', 'FL (mm)')
-   figS3, Slist_axes_FL = generateType3('Comparison of automatic and manual outputs for FL estimation, in simple images per participant', 'FL (mm)')
+    #plots for simple images
+    # -- calibration
+    figSc, (axSc1, axSc2) = plt.subplots(1,2,sharex = False, sharey = False, figsize =(15,15))
+    # -- MT
+    figS0, axS0 = generateType0('Mean MT per participant in simple images', 'MT (mm)')
+    # -- FL
+    figS1, axS1 = generateType1('Automatically estimated length of fascicles relative to their closest manually identified fascicle, in simple images for all participants', r'$FL_m (mm)$', r'$FL_a (mm)$')
+    figS2, axS2 = generateType2('Comparison of automatic and manual outputs for FL estimation, in simple images for all participants', 'FL (mm)')
+    figS3, Slist_axes_FL = generateType3('Comparison of automatic and manual outputs for FL estimation, in simple images per participant', 'FL (mm)')
 
-   # -- PAs
-   figS5, axS5 = generateType1('Automatically estimated superior PA of fascicles relative to their closest manually identified fascicle, in simple images for all participants', r'$PA_{sup,m} (degree)$', r'$PA_{sup,a} (degree)$')
-   figS6, axS6 = generateType2('Comparison of automatic and manual outputs for superior PA estimation, in simple images for all participants', r'$PA_{sup} (degree)$')
-   figS7, Slist_axes_PAs = generateType3('Comparison of automatic and manual outputs for superior PA estimation, in simple images per participant', r'$PA_{sup}$ (degree)')
+    # -- PAs
+    figS5, axS5 = generateType1('Automatically estimated superior PA of fascicles relative to their closest manually identified fascicle, in simple images for all participants', r'$PA_{sup,m} (degree)$', r'$PA_{sup,a} (degree)$')
+    figS6, axS6 = generateType2('Comparison of automatic and manual outputs for superior PA estimation, in simple images for all participants', r'$PA_{sup} (degree)$')
+    figS7, Slist_axes_PAs = generateType3('Comparison of automatic and manual outputs for superior PA estimation, in simple images per participant', r'$PA_{sup}$ (degree)')
 
-   # -- PAi
-   figS9, axS9 = generateType1('Automatically estimated inferior PA of fascicles relative to their closest manually identified fascicle, in simple images for all participants', r'$PA_{inf,m} (degree)$', r'$PA_{inf,a} (degree)$')
-   figS10, axS10 = generateType2('Comparison of automatic and manual outputs for inferior PA estimation, in simple images for all participants', r'$PA_{inf} (degree)$')
-   figS11, Slist_axes_PAi = generateType3('Comparison of automatic and manual outputs for inferior PA estimation, in simple images per participant', r'$PA_{inf}$ (degree)')
+    # -- PAi
+    figS9, axS9 = generateType1('Automatically estimated inferior PA of fascicles relative to their closest manually identified fascicle, in simple images for all participants', r'$PA_{inf,m} (degree)$', r'$PA_{inf,a} (degree)$')
+    figS10, axS10 = generateType2('Comparison of automatic and manual outputs for inferior PA estimation, in simple images for all participants', r'$PA_{inf} (degree)$')
+    figS11, Slist_axes_PAi = generateType3('Comparison of automatic and manual outputs for inferior PA estimation, in simple images per participant', r'$PA_{inf}$ (degree)')
 
-   #plots for panoramic images
-   # -- calibration
-   figPc, (axPc1, axPc2) = plt.subplots(1,2,sharex = False, sharey = False, figsize =(15,15))
+    #plots for panoramic images
+    # -- calibration
+    figPc, (axPc1, axPc2) = plt.subplots(1,2,sharex = False, sharey = False, figsize =(15,15))
 
-   # -- MT
-   figP0, axP0 = generateType0('Mean MT per participant in panoramic images','MT (mm)')
+    # -- MT
+    figP0, axP0 = generateType0('Mean MT per participant in panoramic images','MT (mm)')
 
-   # -- FL
-   figP1, axP1 =generateType1('Automatically estimated length of fascicles relative to their closest manually identified fascicle, in panoramic images for all participants', r'$FL_m (mm)$', r'$FL_a (mm)$')
-   figP2, axP2 = generateType2('Comparison of automatic and manual outputs for FL estimation, in panoramic images for all participants', 'FL (mm)')   
-   figP3, Plist_axes_FL = generateType3('Comparison of automatic and manual outputs for FL estimation, in panoramic images per participant','FL (mm)')   
+    # -- FL
+    figP1, axP1 =generateType1('Automatically estimated length of fascicles relative to their closest manually identified fascicle, in panoramic images for all participants', r'$FL_m (mm)$', r'$FL_a (mm)$')
+    figP2, axP2 = generateType2('Comparison of automatic and manual outputs for FL estimation, in panoramic images for all participants', 'FL (mm)')   
+    figP3, Plist_axes_FL = generateType3('Comparison of automatic and manual outputs for FL estimation, in panoramic images per participant','FL (mm)')   
 
-   # -- PAs
-   figP5, axP5 =generateType1('Automatically estimated superior PA of fascicles relative to their closest manually identified fascicle, in panoramic images for all participants', r'$PA_{sup,m} (degree)$', r'$PA_{sup,a} (degree)$')
-   figP6, axP6 = generateType2('Comparison of automatic and manual outputs for superior PA estimation, in panoramic images for all participants', r'$PA_{sup} (degree)$')
-   figP7, Plist_axes_PAs = generateType3('Comparison of automatic and manual outputs for superior PA estimation, in panoramic images per participant', r'$PA_{sup}$ (degree)')
+    # -- PAs
+    figP5, axP5 =generateType1('Automatically estimated superior PA of fascicles relative to their closest manually identified fascicle, in panoramic images for all participants', r'$PA_{sup,m} (degree)$', r'$PA_{sup,a} (degree)$')
+    figP6, axP6 = generateType2('Comparison of automatic and manual outputs for superior PA estimation, in panoramic images for all participants', r'$PA_{sup} (degree)$')
+    figP7, Plist_axes_PAs = generateType3('Comparison of automatic and manual outputs for superior PA estimation, in panoramic images per participant', r'$PA_{sup}$ (degree)')
 
-   # -- PAi
-   figP9, axP9 = generateType1('Automatically estimated inferior PA of fascicles relative to their closest manually identified fascicle, in panoramic images for all participants', r'$PA_{inf,m} (degree)$', r'$PA_{inf,a} (degree)$')
-   figP10, axP10 = generateType2('Comparison of automatic and manual outputs for inferior PA estimation, in panoramic images for all participants', r'$PA_{inf} (degree)$')
+    # -- PAi
+    figP9, axP9 = generateType1('Automatically estimated inferior PA of fascicles relative to their closest manually identified fascicle, in panoramic images for all participants', r'$PA_{inf,m} (degree)$', r'$PA_{inf,a} (degree)$')
+    figP10, axP10 = generateType2('Comparison of automatic and manual outputs for inferior PA estimation, in panoramic images for all participants', r'$PA_{inf} (degree)$')
    
-   figP11, Plist_axes_PAi = generateType3('Comparison of automatic and manual outputs for inferior PA estimation, in panoramic images per participant', r'$PA_{inf}$ (degree)')
+    figP11, Plist_axes_PAi = generateType3('Comparison of automatic and manual outputs for inferior PA estimation, in panoramic images per participant', r'$PA_{inf}$ (degree)')
     for par in range(len(participants)):
         ID = participants[par][:2]
 
@@ -538,67 +538,67 @@ def plotFeatures(path_to_dict, name_dict, colors, participants):
         '*********************************************************************'
         '********************************PLOTS********************************'
 
-       ##########
-       # -- FL
-       # --- simple
-       # ---- auto = f(manu) with filtered fascicles of all participants
-       plotType1(axS1, fl_s_m_filtered[par], fl_s_a_filtered[par], colors[par])
-       # ---- TOT PARTICIPANT; with jitter and alpha value
-       plotType2(axS2, fl_s_m_filtered[par], fl_s_a[par], fl_s_a_filtered[par])
-       # ---- PER PARTICIPANT; with jitter and alpha value
-       plotType3(ID, 'FL (mm)', Slist_axes_FL[par], fl_s_a[par], fl_s_a_filtered[par], fl_s_m_filtered[par], s_a_FL_mean, s_a_filt_FL_mean, s_m_filt_FL_mean, s_a_FL_std, s_a_filt_FL_std, s_m_filt_FL_std,colors[par])
+        ##########
+        # -- FL
+        # --- simple
+        # ---- auto = f(manu) with filtered fascicles of all participants
+        plotType1(axS1, fl_s_m_filtered[par], fl_s_a_filtered[par], colors[par])
+        # ---- TOT PARTICIPANT; with jitter and alpha value
+        plotType2(axS2, fl_s_m_filtered[par], fl_s_a[par], fl_s_a_filtered[par])
+        # ---- PER PARTICIPANT; with jitter and alpha value
+        plotType3(ID, 'FL (mm)', Slist_axes_FL[par], fl_s_a[par], fl_s_a_filtered[par], fl_s_m_filtered[par], s_a_FL_mean, s_a_filt_FL_mean, s_m_filt_FL_mean, s_a_FL_std, s_a_filt_FL_std, s_m_filt_FL_std,colors[par])
                
-       # --- panoramic
-       # ---- auto = f(manu)
-       plotType1(axP1, fl_p_m_filtered[par], fl_p_a_filtered[par], colors[par])
-       # ---- TOT PARTICIPANT
-       plotType2(axP2, fl_p_m_filtered[par], fl_p_a[par], fl_p_a_filtered[par])
-       # ---- PER PARTICIPANT
-       plotType3(ID, 'FL (mm)', Plist_axes_FL[par], fl_p_a[par], fl_p_a_filtered[par], fl_p_m_filtered[par], p_a_FL_mean, p_a_filt_FL_mean, p_m_filt_FL_mean, p_a_FL_std, p_a_filt_FL_std, p_m_filt_FL_std,colors[par])
+        # --- panoramic
+        # ---- auto = f(manu)
+        plotType1(axP1, fl_p_m_filtered[par], fl_p_a_filtered[par], colors[par])
+        # ---- TOT PARTICIPANT
+        plotType2(axP2, fl_p_m_filtered[par], fl_p_a[par], fl_p_a_filtered[par])
+        # ---- PER PARTICIPANT
+        plotType3(ID, 'FL (mm)', Plist_axes_FL[par], fl_p_a[par], fl_p_a_filtered[par], fl_p_m_filtered[par], p_a_FL_mean, p_a_filt_FL_mean, p_m_filt_FL_mean, p_a_FL_std, p_a_filt_FL_std, p_m_filt_FL_std,colors[par])
 
-       ##########
-       # -- PA sup
-       # --- simple
-       # ---- auto = f(manu)
-       plotType1(axS5, PAs_s_m_filtered[par], PAs_s_a_filtered[par], colors[par])
-       # ---- TOT PARTICIPANT; with jitter and alpha value
-       plotType2(axS6, PAs_s_m_filtered[par], PAs_s_a[par], PAs_s_a_filtered[par])
-       # ---- PER PARTICIPANT; with jitter and alpha value
-       plotType3(ID, r'$PA_{sup} (degree)$', Slist_axes_PAs[par], PAs_s_a[par], PAs_s_a_filtered[par], PAs_s_m_filtered[par], s_a_PASUP_mean, s_a_filt_PASUP_mean, s_m_filt_PASUP_mean, s_a_PASUP_std, s_a_filt_PASUP_std, s_m_filt_PASUP_std, colors[par])
+        ##########
+        # -- PA sup
+        # --- simple
+        # ---- auto = f(manu)
+        plotType1(axS5, PAs_s_m_filtered[par], PAs_s_a_filtered[par], colors[par])
+        # ---- TOT PARTICIPANT; with jitter and alpha value
+        plotType2(axS6, PAs_s_m_filtered[par], PAs_s_a[par], PAs_s_a_filtered[par])
+        # ---- PER PARTICIPANT; with jitter and alpha value
+        plotType3(ID, r'$PA_{sup} (degree)$', Slist_axes_PAs[par], PAs_s_a[par], PAs_s_a_filtered[par], PAs_s_m_filtered[par], s_a_PASUP_mean, s_a_filt_PASUP_mean, s_m_filt_PASUP_mean, s_a_PASUP_std, s_a_filt_PASUP_std, s_m_filt_PASUP_std, colors[par])
        
-       # --- panoramic
-       # ---- auto = f(manu)
-       plotType1(axP5, PAs_p_m_filtered[par], PAs_p_a_filtered[par], colors[par])
-       # ---- TOT PARTICIPANT
-       plotType2(axP6, PAs_p_m_filtered[par], PAs_p_a[par], PAs_p_a_filtered[par])
-       # ---- PER PARTICIPANT
-       plotType3(ID, r'$PA_{sup} (degree)', Plist_axes_PAs[par], PAs_p_a[par], PAs_p_a_filtered[par], PAs_p_m_filtered[par], p_a_PASUP_mean, p_a_filt_PASUP_mean, p_m_filt_PASUP_mean, p_a_PASUP_std, p_a_filt_PASUP_std, p_m_filt_PASUP_std, colors[par])
+        # --- panoramic
+        # ---- auto = f(manu)
+        plotType1(axP5, PAs_p_m_filtered[par], PAs_p_a_filtered[par], colors[par])
+        # ---- TOT PARTICIPANT
+        plotType2(axP6, PAs_p_m_filtered[par], PAs_p_a[par], PAs_p_a_filtered[par])
+        # ---- PER PARTICIPANT
+        plotType3(ID, r'$PA_{sup} (degree)', Plist_axes_PAs[par], PAs_p_a[par], PAs_p_a_filtered[par], PAs_p_m_filtered[par], p_a_PASUP_mean, p_a_filt_PASUP_mean, p_m_filt_PASUP_mean, p_a_PASUP_std, p_a_filt_PASUP_std, p_m_filt_PASUP_std, colors[par])
        
-       ##########
-       # -- PA inf
-       # --- simple
-       # ---- auto = f(manu)
-       plotType1(axS9, PAi_s_m_filtered[par], PAi_s_a_filtered[par], colors[par])
-       # ---- TOT PARTICIPANT; with jitter and alpha value
-       plotType2(axS10, PAi_s_m_filtered[par], PAi_s_a[par], PAi_s_a_filtered[par])
-       # ---- PER PARTICIPANT; with jitter and alpha value
-       plotType3(ID, r'$PA_{inf} (degree)', Slist_axes_PAi[par], PAi_s_a[par], PAi_s_a_filtered[par], PAi_s_m_filtered[par], s_a_PAINF_mean, s_a_filt_PAINF_mean, s_m_filt_PAINF_mean, s_a_PAINF_std, s_a_filt_PAINF_std, s_m_filt_PAINF_std, colors[par])
+        ##########
+        # -- PA inf
+        # --- simple
+        # ---- auto = f(manu)
+        plotType1(axS9, PAi_s_m_filtered[par], PAi_s_a_filtered[par], colors[par])
+        # ---- TOT PARTICIPANT; with jitter and alpha value
+        plotType2(axS10, PAi_s_m_filtered[par], PAi_s_a[par], PAi_s_a_filtered[par])
+        # ---- PER PARTICIPANT; with jitter and alpha value
+        plotType3(ID, r'$PA_{inf} (degree)', Slist_axes_PAi[par], PAi_s_a[par], PAi_s_a_filtered[par], PAi_s_m_filtered[par], s_a_PAINF_mean, s_a_filt_PAINF_mean, s_m_filt_PAINF_mean, s_a_PAINF_std, s_a_filt_PAINF_std, s_m_filt_PAINF_std, colors[par])
        
-       # --- panoramic
-       # ---- auto = f(manu)
-       plotType1(axP9, PAi_p_m_filtered[par], PAi_p_a_filtered[par], colors[par])
-       # ---- TOT PARTICIPANT
-       plotType2(axP10, PAi_p_m_filtered[par], PAi_p_a[par], PAi_p_a_filtered[par])
-       # ---- PER PARTICIPANT
-       plotType3(ID, r'$PA_{inf} (degree)', Plist_axes_PAi[par], PAi_p_a[par], PAi_p_a_filtered[par], PAi_p_m_filtered[par], p_a_PAINF_mean, p_a_filt_PAINF_mean, p_m_filt_PAINF_mean, p_a_PAINF_std, p_a_filt_PAINF_std, p_m_filt_PAINF_std, colors[par])
+        # --- panoramic
+        # ---- auto = f(manu)
+        plotType1(axP9, PAi_p_m_filtered[par], PAi_p_a_filtered[par], colors[par])
+        # ---- TOT PARTICIPANT
+        plotType2(axP10, PAi_p_m_filtered[par], PAi_p_a[par], PAi_p_a_filtered[par])
+        # ---- PER PARTICIPANT
+        plotType3(ID, r'$PA_{inf} (degree)', Plist_axes_PAi[par], PAi_p_a[par], PAi_p_a_filtered[par], PAi_p_m_filtered[par], p_a_PAINF_mean, p_a_filt_PAINF_mean, p_m_filt_PAINF_mean, p_a_PAINF_std, p_a_filt_PAINF_std, p_m_filt_PAINF_std, colors[par])
                
-       ##########  
+        ##########  
 
-       #MT 
-       axS0.plot(rand_jitter([0,1]), rand_jitter([s_a_MT_mean, s_m_MT_mean]), color = colors[par], marker='.', markersize = 7, linestyle='solid', linewidth = 1)
-       axS0.text(0.3+par*0.3/11, (s_a_MT_mean+s_m_MT_mean)/2-0.2, ID, color = colors[par], fontsize = 8)
-       axP0.plot(rand_jitter([0,1]), rand_jitter([p_a_MT_mean, p_m_MT_mean]), color = colors[par], marker='.', markersize = 7, linestyle='solid', linewidth = 1)
-       axP0.text(0.3+par*0.3/11, (p_a_MT_mean+p_m_MT_mean)/2-0.2, ID, color = colors[par], fontsize = 8)
+        #MT 
+        axS0.plot(rand_jitter([0,1]), rand_jitter([s_a_MT_mean, s_m_MT_mean]), color = colors[par], marker='.', markersize = 7, linestyle='solid', linewidth = 1)
+        axS0.text(0.3+par*0.3/11, (s_a_MT_mean+s_m_MT_mean)/2-0.2, ID, color = colors[par], fontsize = 8)
+        axP0.plot(rand_jitter([0,1]), rand_jitter([p_a_MT_mean, p_m_MT_mean]), color = colors[par], marker='.', markersize = 7, linestyle='solid', linewidth = 1)
+        axP0.text(0.3+par*0.3/11, (p_a_MT_mean+p_m_MT_mean)/2-0.2, ID, color = colors[par], fontsize = 8)
     
     #statistics on the population
     TOT_p_a_PASUP_mean = np.mean([item for sublist in PAs_p_a for item in sublist])
@@ -677,17 +677,17 @@ def plotFeatures(path_to_dict, name_dict, colors, participants):
 
     #Plot error bars
         #on MT plots
-   axP0.errorbar([0,1],[TOT_p_a_MT_mean, TOT_p_m_MT_mean], [TOT_p_a_MT_std,TOT_p_m_MT_std], fmt='ok', lw=2, capsize = 5, capthick = 2)
-   axS0.errorbar([0,1],[TOT_s_a_MT_mean, TOT_s_m_MT_mean], [TOT_s_a_MT_std,TOT_s_m_MT_std], fmt='ok', lw=2, capsize = 5, capthick = 2)
+    axP0.errorbar([0,1],[TOT_p_a_MT_mean, TOT_p_m_MT_mean], [TOT_p_a_MT_std,TOT_p_m_MT_std], fmt='ok', lw=2, capsize = 5, capthick = 2)
+    axS0.errorbar([0,1],[TOT_s_a_MT_mean, TOT_s_m_MT_mean], [TOT_s_a_MT_std,TOT_s_m_MT_std], fmt='ok', lw=2, capsize = 5, capthick = 2)
        # on FL plot for all participants
-   axS2.errorbar([0.15,1.15,2.15], [TOT_s_a_FL_mean, TOT_s_a_filt_FL_mean, TOT_s_m_filt_FL_mean], [TOT_s_a_FL_std, TOT_s_a_filt_FL_std, TOT_s_m_filt_FL_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
-   axP2.errorbar([0.15,1.15,2.15], [TOT_p_a_FL_mean, TOT_p_a_filt_FL_mean, TOT_p_m_filt_FL_mean], [TOT_p_a_FL_std, TOT_p_a_filt_FL_std, TOT_p_m_filt_FL_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
+    axS2.errorbar([0.15,1.15,2.15], [TOT_s_a_FL_mean, TOT_s_a_filt_FL_mean, TOT_s_m_filt_FL_mean], [TOT_s_a_FL_std, TOT_s_a_filt_FL_std, TOT_s_m_filt_FL_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
+    axP2.errorbar([0.15,1.15,2.15], [TOT_p_a_FL_mean, TOT_p_a_filt_FL_mean, TOT_p_m_filt_FL_mean], [TOT_p_a_FL_std, TOT_p_a_filt_FL_std, TOT_p_m_filt_FL_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
        # on PAs plot for all participants
-   axS6.errorbar([0.15,1.15,2.15], [TOT_s_a_PASUP_mean, TOT_s_a_filt_PASUP_mean, TOT_s_m_filt_PASUP_mean], [TOT_s_a_PASUP_std, TOT_s_a_filt_PASUP_std, TOT_s_m_filt_PASUP_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
-   axP6.errorbar([0.15,1.15,2.15], [TOT_p_a_PASUP_mean, TOT_p_a_filt_PASUP_mean, TOT_p_m_filt_PASUP_mean], [TOT_p_a_PASUP_std, TOT_p_a_filt_PASUP_std, TOT_p_m_filt_PASUP_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
+    axS6.errorbar([0.15,1.15,2.15], [TOT_s_a_PASUP_mean, TOT_s_a_filt_PASUP_mean, TOT_s_m_filt_PASUP_mean], [TOT_s_a_PASUP_std, TOT_s_a_filt_PASUP_std, TOT_s_m_filt_PASUP_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
+    axP6.errorbar([0.15,1.15,2.15], [TOT_p_a_PASUP_mean, TOT_p_a_filt_PASUP_mean, TOT_p_m_filt_PASUP_mean], [TOT_p_a_PASUP_std, TOT_p_a_filt_PASUP_std, TOT_p_m_filt_PASUP_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
        # on PAi plot for all participants
-   axS10.errorbar([0.15,1.15,2.15], [TOT_s_a_PAINF_mean, TOT_s_a_filt_PAINF_mean, TOT_s_m_filt_PAINF_mean], [TOT_s_a_PAINF_std, TOT_s_a_filt_PAINF_std, TOT_s_m_filt_PAINF_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
-   axP10.errorbar([0.15,1.15,2.15], [TOT_p_a_PAINF_mean, TOT_p_a_filt_PAINF_mean, TOT_p_m_filt_PAINF_mean], [TOT_p_a_PAINF_std, TOT_p_a_filt_PAINF_std, TOT_p_m_filt_PAINF_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
+    axS10.errorbar([0.15,1.15,2.15], [TOT_s_a_PAINF_mean, TOT_s_a_filt_PAINF_mean, TOT_s_m_filt_PAINF_mean], [TOT_s_a_PAINF_std, TOT_s_a_filt_PAINF_std, TOT_s_m_filt_PAINF_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
+    axP10.errorbar([0.15,1.15,2.15], [TOT_p_a_PAINF_mean, TOT_p_a_filt_PAINF_mean, TOT_p_m_filt_PAINF_mean], [TOT_p_a_PAINF_std, TOT_p_a_filt_PAINF_std, TOT_p_m_filt_PAINF_std], fmt='ok', markersize = 30, lw=8, capsize = 16, capthick = 8, barsabove=True)
 
 
   
@@ -695,59 +695,59 @@ def plotFeatures(path_to_dict, name_dict, colors, participants):
 
 
    #calibration factors
-   if len(diff_calfct_s)>0:
-       diff_med_s = np.median(diff_calfct_s)
-       diff_max_s = max(diff_calfct_s)
-       diff_mean_s = np.mean(diff_calfct_s)
-       diff_std_s = np.std(diff_calfct_s)
-       figSc.suptitle('Difference in manual/automatic calibration factor in simple images', va = 'bottom')
-       axSc1.plot([1]*len(diff_calfct_s), diff_calfct_s, color = colors[1], marker = 'o', markersize = 5, linestyle = 'None')
-       axSc1.set_ylabel(r'$ |Calib_m - Calib_a| (mm/pixel)$', fontsize= 8)
-       axSc1.grid(True)
-       axSc2.text(0.2,0.2, 'Mean ='+str(diff_mean_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axSc2.text(0.2,0.7, 'Median ='+str(diff_med_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axSc2.text(0.2,0.5, 'Max ='+str(diff_max_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axSc2.text(0.2,0.1, 'STD ='+str(diff_std_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axSc2.set_axis_off()
+    if len(diff_calfct_s)>0:
+        diff_med_s = np.median(diff_calfct_s)
+        diff_max_s = max(diff_calfct_s)
+        diff_mean_s = np.mean(diff_calfct_s)
+        diff_std_s = np.std(diff_calfct_s)
+        figSc.suptitle('Difference in manual/automatic calibration factor in simple images', va = 'bottom')
+        axSc1.plot([1]*len(diff_calfct_s), diff_calfct_s, color = colors[1], marker = 'o', markersize = 5, linestyle = 'None')
+        axSc1.set_ylabel(r'$ |Calib_m - Calib_a| (mm/pixel)$', fontsize= 8)
+        axSc1.grid(True)
+        axSc2.text(0.2,0.2, 'Mean ='+str(diff_mean_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axSc2.text(0.2,0.7, 'Median ='+str(diff_med_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axSc2.text(0.2,0.5, 'Max ='+str(diff_max_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axSc2.text(0.2,0.1, 'STD ='+str(diff_std_s)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axSc2.set_axis_off()
 
-   if len(diff_calfct_p) >0:
-       diff_med_p = np.median(diff_calfct_p)
-       diff_max_p = max(diff_calfct_p)
-       diff_mean_p = np.mean(diff_calfct_p)
-       diff_std_p = np.std(diff_calfct_p)
-       figPc.suptitle('Difference in manual/automatic calibration factor in panoramic images',  va = 'bottom')
-       axPc1.plot([1]*len(diff_calfct_p), diff_calfct_p, color = colors[1], marker = 'o', markersize = 5, linestyle = 'None')
-       axPc1.set_ylabel(r'$ |Calib_m - Calib_a| (mm/pixel)$', fontsize= 8)
-       axPc1.grid(True)
-       axPc2.text(0.2,0.2, 'Mean ='+str(diff_mean_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axPc2.text(0.2,0.7, 'Median ='+str(diff_med_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axPc2.text(0.2,0.5, 'Max ='+str(diff_max_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axPc2.text(0.2,0.1, 'STD ='+str(diff_std_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
-       axPc2.set_axis_off()
+    if len(diff_calfct_p) >0:
+        diff_med_p = np.median(diff_calfct_p)
+        diff_max_p = max(diff_calfct_p)
+        diff_mean_p = np.mean(diff_calfct_p)
+        diff_std_p = np.std(diff_calfct_p)
+        figPc.suptitle('Difference in manual/automatic calibration factor in panoramic images',  va = 'bottom')
+        axPc1.plot([1]*len(diff_calfct_p), diff_calfct_p, color = colors[1], marker = 'o', markersize = 5, linestyle = 'None')
+        axPc1.set_ylabel(r'$ |Calib_m - Calib_a| (mm/pixel)$', fontsize= 8)
+        axPc1.grid(True)
+        axPc2.text(0.2,0.2, 'Mean ='+str(diff_mean_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axPc2.text(0.2,0.7, 'Median ='+str(diff_med_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axPc2.text(0.2,0.5, 'Max ='+str(diff_max_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axPc2.text(0.2,0.1, 'STD ='+str(diff_std_p)+' mm/pixel', fontsize= 15, color='k', bbox=dict(facecolor='red', alpha=0.5))
+        axPc2.set_axis_off()
 
 
-   figSc.savefig('C:/Users/Lisa Paillard/Desktop/calibs.jpg')
-   figS0.savefig('C:/Users/Lisa Paillard/Desktop/mts.jpg')
-   figS1.savefig('C:/Users/Lisa Paillard/Desktop/fls1.jpg')
-   figS2.savefig('C:/Users/Lisa Paillard/Desktop/fls2.jpg')
-   figS3.savefig('C:/Users/Lisa Paillard/Desktop/fls3.jpg')
-   figS5.savefig('C:/Users/Lisa Paillard/Desktop/pasups1.jpg')
-   figS6.savefig('C:/Users/Lisa Paillard/Desktop/pasups2.jpg')
-   figS7.savefig('C:/Users/Lisa Paillard/Desktop/pasups3.jpg')
-   figS9.savefig('C:/Users/Lisa Paillard/Desktop/painfs1.jpg')
-   figS10.savefig('C:/Users/Lisa Paillard/Desktop/painfs2.jpg')
-   figS11.savefig('C:/Users/Lisa Paillard/Desktop/painfs3.jpg')
-   figPc.savefig('C:/Users/Lisa Paillard/Desktop/calibp.jpg')
-   figP0.savefig('C:/Users/Lisa Paillard/Desktop/mtp.jpg')
-   figP1.savefig('C:/Users/Lisa Paillard/Desktop/flp1.jpg')
-   figP2.savefig('C:/Users/Lisa Paillard/Desktop/flp2.jpg')
-   figP3.savefig('C:/Users/Lisa Paillard/Desktop/flp3.jpg')
-   figP5.savefig('C:/Users/Lisa Paillard/Desktop/pasupp1.jpg')
-   figP6.savefig('C:/Users/Lisa Paillard/Desktop/pasupp2.jpg')
-   figP7.savefig('C:/Users/Lisa Paillard/Desktop/pasupp3.jpg')
-   figP9.savefig('C:/Users/Lisa Paillard/Desktop/painfp1.jpg')
-   figP10.savefig('C:/Users/Lisa Paillard/Desktop/painfp2.jpg')
-   figP11.savefig('C:/Users/Lisa Paillard/Desktop/painfp3.jpg')
+    figSc.savefig('C:/Users/Lisa Paillard/Desktop/calibs.jpg')
+    figS0.savefig('C:/Users/Lisa Paillard/Desktop/mts.jpg')
+    figS1.savefig('C:/Users/Lisa Paillard/Desktop/fls1.jpg')
+    figS2.savefig('C:/Users/Lisa Paillard/Desktop/fls2.jpg')
+    figS3.savefig('C:/Users/Lisa Paillard/Desktop/fls3.jpg')
+    figS5.savefig('C:/Users/Lisa Paillard/Desktop/pasups1.jpg')
+    figS6.savefig('C:/Users/Lisa Paillard/Desktop/pasups2.jpg')
+    figS7.savefig('C:/Users/Lisa Paillard/Desktop/pasups3.jpg')
+    figS9.savefig('C:/Users/Lisa Paillard/Desktop/painfs1.jpg')
+    figS10.savefig('C:/Users/Lisa Paillard/Desktop/painfs2.jpg')
+    figS11.savefig('C:/Users/Lisa Paillard/Desktop/painfs3.jpg')
+    figPc.savefig('C:/Users/Lisa Paillard/Desktop/calibp.jpg')
+    figP0.savefig('C:/Users/Lisa Paillard/Desktop/mtp.jpg')
+    figP1.savefig('C:/Users/Lisa Paillard/Desktop/flp1.jpg')
+    figP2.savefig('C:/Users/Lisa Paillard/Desktop/flp2.jpg')
+    figP3.savefig('C:/Users/Lisa Paillard/Desktop/flp3.jpg')
+    figP5.savefig('C:/Users/Lisa Paillard/Desktop/pasupp1.jpg')
+    figP6.savefig('C:/Users/Lisa Paillard/Desktop/pasupp2.jpg')
+    figP7.savefig('C:/Users/Lisa Paillard/Desktop/pasupp3.jpg')
+    figP9.savefig('C:/Users/Lisa Paillard/Desktop/painfp1.jpg')
+    figP10.savefig('C:/Users/Lisa Paillard/Desktop/painfp2.jpg')
+    figP11.savefig('C:/Users/Lisa Paillard/Desktop/painfp3.jpg')
     
     #stats on detection of fascicles
     #average number of detected fascicles per image
