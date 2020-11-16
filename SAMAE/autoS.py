@@ -105,6 +105,29 @@ def simpleprocessing(path_to_img):
         #locate both aponeuroses in image + linear modeling of aponeuroses
         print('Looking for aponeuroses')
         paramSup, paramInf, locSup, locInf = apoL.twoApoLocation(USimage_pp, angle1 = 80, angle2 = 100, thresh = None, calibV = calibX)
+        
+        ##########################################
+        #for visualization
+        #linear model from Radon transform in red 
+        USimageV = np.copy(USimage)
+        ycoordinatesS = np.arange(0,USimage.shape[1],1)
+        xcoordinatesS = np.int32(paramSup[0]*ycoordinatesS+paramSup[1])
+        ycoordinatesI = np.arange(0,USimage.shape[1],1)
+        xcoordinatesI = np.int32(paramInf[0]*ycoordinatesI+paramInf[1])
+        
+        for indexA in range(USimage.shape[1]):
+            if xcoordinatesS[indexA]>=1 and xcoordinatesS[indexA]<USimage.shape[0]-1:
+                USimageV[xcoordinatesS[indexA], ycoordinatesS[indexA],:]=[28,66,255]
+                USimageV[xcoordinatesS[indexA]-1, ycoordinatesS[indexA],:]=[28,66,255]
+                USimageV[xcoordinatesS[indexA]+1, ycoordinatesS[indexA],:]=[28,66,255]
+            if xcoordinatesI[indexA]>=1 and xcoordinatesI[indexA]<USimage.shape[0]-1:
+                USimageV[xcoordinatesI[indexA], ycoordinatesI[indexA],:]=[28,66,255]
+                USimageV[xcoordinatesI[indexA]-1, ycoordinatesI[indexA],:]=[28,66,255]
+                USimageV[xcoordinatesI[indexA]+1, ycoordinatesI[indexA],:]=[28,66,255]
+
+        #########################################
+        
+        
         cv2.imwrite(path_to_img[:-8]+'_preprocessed.jpg', USimage_pp)        
         Bspl_sup = 0
         Bspl_inf = 0
@@ -406,7 +429,8 @@ def simpleprocessing(path_to_img):
     
         ################
         #Visualization of modeled aponeuroses, detected snippets and modeled fascicles
-        #snippets
+        
+        #snippets in white
         couleurs = [[255,0,0], [0,255,0], [0,0,255], [255,255,0],[255,0,255], [0,255,255],\
                     [100,200,0],[100,200,100], [50,200,0],[50,100,50], [255,100,0],\
                     [120,120,255], [255,80,80],[0,100,200], [0,100,80], [255,255,255],\
@@ -414,11 +438,67 @@ def simpleprocessing(path_to_img):
                     [100,150,50],[150,50,100],[12,75,255],[40,140,40]]
         for f in range(len(fasc)):
             for g in range(fasc[f].shape[0]):
-                USimage[fasc[f][g,0], fasc[f][g,1], :] = couleurs[f]
+                USimageV[fasc[f][g,0], fasc[f][g,1], :] = [255,255,255]
         for f in range(len(fasc2)):
             for g in range(fasc2[f].shape[0]):
-                USimage[fasc2[f][g,0], fasc2[f][g,1], :] = couleurs[-f]
-                
+                USimageV[fasc2[f][g,0], fasc2[f][g,1], :] = [255,255,255]
+            
+        #fascicles in yellow
+        for a in range(len(splines_fasc)):
+            newy = np.arange(0, USimageV.shape[1], 1)
+            newx = np.int32(splines_fasc[a](newy))
+            coord = np.vstack((newx, newy)).T
+            for b in range(coord.shape[0]):
+                if coord[b][0]>=0 and coord[b][0]>=intersecU[a][0]\
+                and coord[b][0]<=intersecL[a][0] and coord[b][0]<USimageV.shape[0]:
+                    USimageV[coord[b][0], coord[b][1], :] = [0,204,255]
+                    if coord[b][1]-1>=0 and coord[b][1]-1<USimage.shape[1]:
+                        USimageV[coord[b][0], coord[b][1]-1, :] = [0,204,255]
+                    if coord[b][1]+1>=0 and coord[b][1]+1<USimageV.shape[1]:
+                        USimageV[coord[b][0], coord[b][1]+1, :] = [0,204,255]
+                        
+        
+        #aponeuroses contours in green
+        for index0 in range(len(contourSup_points)):
+            if contourSup_points[index0][0]>=0 and contourSup_points[index0][0]<USimage.shape[0]:
+                if contourSup_points[index0][1]>=0 and contourSup_points[index0][1]<USimage.shape[1]:
+                    USimageV[contourSup_points[index0][0],contourSup_points[index0][1],:] = [51, 204, 51]
+                    if contourSup_points[index0][0]+1>=0 and contourSup_points[index0][0]+1<USimage.shape[0]:
+                        USimageV[contourSup_points[index0][0]+1,contourSup_points[index0][1],:] = [51, 204, 51]
+                    if contourSup_points[index0][0]-1>=0 and contourSup_points[index0][0]-1<USimage.shape[0]:
+                        USimageV[contourSup_points[index0][0]-1,contourSup_points[index0][1],:] = [51, 204, 51]                
+        for index1 in range(len(contourInf_Points)):
+            if contourInf_Points[index1][0]>=0 and contourInf_Points[index1][0]<USimage.shape[0]:
+                if contourInf_Points[index1][1]>=0 and contourInf_Points[index1][1]<USimage.shape[1]:
+                    USimageV[contourInf_Points[index1][0],contourInf_Points[index1][1],:] = [51, 204, 51]
+                    if contourInf_Points[index1][0]+1>=0 and contourInf_Points[index1][0]+1<USimage.shape[0]:
+                        USimageV[contourInf_Points[index1][0]+1,contourInf_Points[index1][1],:] = [51, 204, 51]
+                    if contourInf_Points[index1][0]-1>=0 and contourInf_Points[index1][0]-1<USimage.shape[0]:
+                        USimageV[contourInf_Points[index1][0]-1,contourInf_Points[index1][1],:] = [51, 204, 51]
+
+        #aponeuroses model from contour in blue
+        for index in range(approx_sup.shape[0]):
+            if approx_sup[index][0] >= 0 and approx_sup[index][0] < USimage.shape[0]:
+                if approx_sup[index][1] >= 0 and approx_sup[index][1] < USimage.shape[1]:
+                    USimageV[approx_sup[index][0], approx_sup[index][1],:] = [255,102,0]
+                    if approx_sup[index][0] +1 >= 0 and approx_sup[index][0]+1 < USimage.shape[0]:
+                        USimageV[approx_sup[index][0]+1, approx_sup[index][1],:] = [255,102,0]
+                    if approx_sup[index][0]-1 >= 0 and approx_sup[index][0]-1 < USimage.shape[0]:
+                        USimageV[approx_sup[index][0]-1, approx_sup[index][1],:] = [255,102,0]
+            if approx_inf[index][0] >= 0 and approx_inf[index][0] < USimage.shape[0]:
+                if approx_inf[index][1] >= 0 and approx_inf[index][1] < USimage.shape[1]:
+                    USimageV[approx_inf[index][0], approx_inf[index][1], :] = [255,102,0]
+                    if approx_inf[index][0]+1 >= 0 and approx_inf[index][0]+1 < USimage.shape[0]:
+                        USimageV[approx_inf[index][0]+1, approx_inf[index][1], :] = [255,102,0]
+                    if approx_inf[index][0]-1 >= 0 and approx_inf[index][0]-1 < USimage.shape[0]:
+                        USimageV[approx_inf[index][0]-1, approx_inf[index][1], :] = [255,102,0]
+
+        cv2.imwrite(path_to_img[:-8]+'_visualization.jpg', USimageV)
+        cv2.imshow('Final image', USimageV)
+        cv2.waitKey(0) & 0xFF
+        cv2.destroyAllWindows()
+
+        """
         Zerosvertic = np.uint8(np.zeros(USimage.shape))
         ImF = cv2.hconcat([Zerosvertic,Zerosvertic, USimage, Zerosvertic, Zerosvertic])
     
@@ -465,5 +545,5 @@ def simpleprocessing(path_to_img):
         cv2.imshow('Final image', ImF)
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
-        
+        """
         return archi_auto

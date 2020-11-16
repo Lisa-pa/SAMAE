@@ -1,8 +1,9 @@
+'''#what is this script?
 from skimage.color import rgb2gray
 import cv2
 
-from aponeurosesdetection.aponeuroses_contours import apoContour
-import aponeurosesdetection.data as dt
+from SAMAE.apoCont import apoContour
+import SAMAE.data as dt
 
 # Import sample images 
 cirimg = rgb2gray(dt.circle()) # circle sample img
@@ -15,4 +16,4 @@ contour, n, maxiDPHI, LIF, GIF = apoContour(cirimg, pt1, 1.0, 1.0, 1.0, 65.025, 
 cv2.imshow('Initial I',cirimg)
 cv2.imshow('LGIF',contour)
 cv2.waitKey(0) & 0xFF
-cv2.destroyAllWindows()
+cv2.destroyAllWindows()'''

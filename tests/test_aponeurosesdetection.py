@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
-"""Tests for `aponeurosesdetection` package."""
+"""Tests for `SAMAE` package."""
 
 
 import unittest
 #from click.testing import CliRunner
 
-#from aponeurosesdetection import aponeurosesdetection
-#from aponeurosesdetection import cli
+#from SAMAE import SAMAE
+#from SAMAE import cli
 
 
 
 
 class TestAponeurosesdetection(unittest.TestCase):
-    """Tests for `aponeurosesdetection` package."""
+    """Tests for `SAMAE` package."""
 
     def setUp(self):
         """Set up test fixtures, if any."""
@@ -28,7 +28,7 @@ class TestAponeurosesdetection(unittest.TestCase):
         runner = CliRunner()
         result = runner.invoke(cli.main)
         assert result.exit_code == 0
-        assert 'aponeurosesdetection.cli.main' in result.output
+        assert 'SAMAE.cli.main' in result.output
         help_result = runner.invoke(cli.main, ['--help'])
         assert help_result.exit_code == 0
         assert '--help  Show this message and exit.' in help_result.output

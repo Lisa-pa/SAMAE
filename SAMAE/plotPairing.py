@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from aponeurosesdetection.plot import rand_jitter
+from SAMAE.plot import rand_jitter
 
 def plotPairingSimple(path_to_dict, name_dict, colors, participants):
     """Function that aims at comparing the way fascicles should be matched

@@ -848,7 +848,6 @@ def plotFeatures(path_to_dict, name_dict, colors, participants):
 #    figP11.savefig('C:/Users/Lisa Paillard/Desktop/painfp3.jpg')
 #    figP12.savefig('C:/Users/Lisa Paillard/Desktop/painfp4.jpg')
     
-    """
     #stats on detection of fascicles
     #average number of detected fascicles per image
     meanF_tot_s = nb_fasc_tot_s / nb_images_s
@@ -869,8 +868,11 @@ def plotFeatures(path_to_dict, name_dict, colors, participants):
     print('Average nb of filtered fasc detected in PI:', meanF_filtered_p)
     print('Total number of filtered fasc detected in SI:',nb_fasc_filt_s)
     print('Total number of filtered fasc detected in PI:',nb_fasc_filt_p)
-    """
     
+    nb_filt_fascPerParts = [len(subL) for subL in fl_s_a_filtered]
+    nb_filt_fascPerPartp = [len(subL) for subL in fl_p_a_filtered]
+    print('s', np.mean(nb_filt_fascPerParts))
+    print('p', np.mean(nb_filt_fascPerPartp))
 #    from scipy.stats.mstats import ttest_rel
 #    t,p=ttest_rel([item for sublist in PAs_s_m_filtered for item in sublist],[item for sublist in PAs_s_a_filtered for item in sublist],axis=None)
 #    print('PAS s',t,p)

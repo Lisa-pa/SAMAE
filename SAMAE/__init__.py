@@ -1,4 +1,4 @@
-"""Top-level package for AponeurosesDetection."""
+"""Top-level package for SAMAE."""
 
 __author__ = """Lisa PAILLARD"""
 __email__ = 'lisapaillardfr86@gmail.com'

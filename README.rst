@@ -1,7 +1,7 @@
 ====================
-AponeurosesDetection
+SAMAE
 ====================
-
+(Semi-) Automatic Muscle Architecture Evaluation
 
 .. image:: https://img.shields.io/pypi/v/aponeurosesdetection.svg
         :target: https://pypi.python.org/pypi/aponeurosesdetection
@@ -16,11 +16,11 @@ AponeurosesDetection
 
 
 
-This package contains functions that will enable automatic aponeuroses and tubular structures detection in ultrasound images.
+This package contains functions that will enable automatic aponeuroses and fascicles detection in ultrasound images of muscle.
 
 
 * Free software: MIT license
-* Documentation: https://aponeurosesdetection.readthedocs.io.
+* Documentation: https://samae.readthedocs.io.
 
 
 Features
@@ -43,14 +43,14 @@ How to use this package?
 
 ::
 
-        >>>import aponeurosesdetection.autoP as autoP
+        >>>import SAMAE.autoP as autoP
         >>>dict_results = autoP.panoprocessing(path_to_image, path_to_txtfile)
 
 * How to automatically analyze a simple image ?
 
 ::
 
-        >>>import aponeurosesdetection.autoS as autoS
+        >>>import SAMAE.autoS as autoS
         >>>dict_results = autoS.simpleprocessing(path_to_img)
 
 What happens when you run the filemanager.py file?

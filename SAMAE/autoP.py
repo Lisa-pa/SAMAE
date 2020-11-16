@@ -483,20 +483,23 @@ def panoprocessing(path_to_image, path_to_txtfile):
         #Visualization of modeled aponeuroses, detected snippets and modeled fascicles
         for index in range(coordSup.shape[0]):
             if coordSup[index][0] >= 0 and coordSup[index][0] < USimageP.shape[0]:
-                USimageP[coordSup[index][0], coordSup[index][1], :] = [255, 0, 0]
+                USimageP[coordSup[index][0], coordSup[index][1], :] = [255, 102, 0]
                 if coordSup[index][0] +1 >= 0 and coordSup[index][0]+1 < USimageP.shape[0]:
-                    USimageP[coordSup[index][0]+1, coordSup[index][1],:] = [255, 0, 0]
+                    USimageP[coordSup[index][0]+1, coordSup[index][1],:] = [255, 102, 0]
                 if coordSup[index][0]-1 >= 0 and coordSup[index][0]-1 < USimageP.shape[0]:
-                    USimageP[coordSup[index][0]-1, coordSup[index][1],:] = [255, 0, 0]
+                    USimageP[coordSup[index][0]-1, coordSup[index][1],:] = [255, 102, 0]
             if coordInf[index][0] >= 0 and coordInf[index][0] < USimageP.shape[0]:
-                USimageP[coordInf[index][0], coordInf[index][1], :] = [255, 0, 0]
+                USimageP[coordInf[index][0], coordInf[index][1], :] = [255, 102, 0]
                 if coordInf[index][0]+1 >= 0 and coordInf[index][0]+1 < USimageP.shape[0]:
-                    USimageP[coordInf[index][0]+1, coordInf[index][1], :] = [255, 0, 0]
+                    USimageP[coordInf[index][0]+1, coordInf[index][1], :] = [255, 102, 0]
                 if coordInf[index][0]-1 >= 0 and coordInf[index][0]-1 < USimageP.shape[0]:
-                    USimageP[coordInf[index][0]-1, coordInf[index][1], :] = [255, 0, 0]
+                    USimageP[coordInf[index][0]-1, coordInf[index][1], :] = [255, 102, 0]
       
         #snippets
-        couleurs = [[255,0,0], [0,255,0], [0,0,255], [255,255,0],[255,0,255], [0,255,255],\
+        couleurs = [[28,66,255],[255,115,115],[255,51,204],[255,102,0],\
+                    [153,255,0],[51,204,51],[0,204,255],[0,0,204],\
+                    [102,0,255],[0,62,255],[204,0,0],\
+                    [255,0,0], [0,255,0], [0,0,255], [255,255,0],[255,0,255], [0,255,255],\
                     [100,200,0],[100,200,100], [50,200,0],[50,100,50], [255,100,0],\
                     [120,120,255], [255,80,80],[0,100,200], [0,100,80], [255,255,255],\
                     [120,120,120], [50,100,150],[100,50,150], [150,100,50], [50,150,100],
@@ -516,11 +519,11 @@ def panoprocessing(path_to_image, path_to_txtfile):
             coord = np.vstack((newx, newy)).T
             for n2 in range(coord.shape[0]):
                 if coord[n2][0]>=0 and coord[n2][0]<USimageP.shape[0]:
-                    USimageP[coord[n2][0], coord[n2][1], :] = [0,255,0]
+                    USimageP[coord[n2][0], coord[n2][1], :] = [0,204,255]
                     if coord[n2][1] - 1 >= 0 and coord[n2][1] - 1 < USimageP.shape[1]:
-                        USimageP[coord[n2][0], coord[n2][1] - 1, :] = [0,255,0]
+                        USimageP[coord[n2][0], coord[n2][1] - 1, :] = [0,204,255]
                     if coord[n2][1] + 1 >= 0 and coord[n2][1] + 1 < USimageP.shape[1]:
-                        USimageP[coord[n2][0], coord[n2][1] + 1, :] = [0,255,0]
+                        USimageP[coord[n2][0], coord[n2][1] + 1, :] = [0,204,255]
 
         #pointsintersection
         for i0 in range(len(intersecU)):
