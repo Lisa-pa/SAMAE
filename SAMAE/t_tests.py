@@ -101,56 +101,56 @@ def ttests(path_to_dict, name_dict='\\TOTresults'):
             dictioS = dictio[participant][fam]['BF']['simple']
             images = [str(im) for im in dictioS.keys()]
             for i in images:
-                if par == 9 and fam =='fam_2' and i=='img_2':
-                    print(par, fam, i)
-                else:
-                    nb_images_s = nb_images_s + 1
-                    
-                    ###############################################################
-                    # SIMPLE - manual
-                    dictioM = dictioS[i]['architecture manual']
-                    fascicles = [str(fa) for fa in dictioM if any(fnmatch.fnmatch(fa, p) for p in l2)]
-                    for f in fascicles:
-                        dictioF = dictioM[f]
-                        idf = fam + '/' + i + '/' + f
-                        if len(dictioF.keys())>1:
-                            s_manuFasc.append((idf, dictioF['dist from (0,0) of RGB image, in mm']))
-                            d_s_m[par].append(dictioF['dist from (0,0) of RGB image, in mm'])
-                    ###############################################################
-                    # SIMPLE - automatic
-                    if ('architecture auto' in dictioS[i]):
-                        dictioA = dictioS[i]['architecture auto']
-                        midRow = np.mean(dictioA['crop']['lines'])
-                        midCol = np.mean(dictioA['crop']['columns'])
-                        if dictioA and ('MT' in dictioA):
-                            fascicles = [fa for fa in dictioA if any(fnmatch.fnmatch(fa, p) for p in l2)]
-                            nb_fasc_tot_s = nb_fasc_tot_s + len(fascicles)
-                            for f in fascicles:
-                                dictioF = dictioA[f]
-                                idf = fam + '/' + i + '/' + f
-                                if len(dictioF.keys())>1:
-                                    #keep the fascicles that are in the lower half of the image,
-                                    #to compare with manual data - often taken in that region
-                                    PAi = dictioF['PAinf']['intersection with apo']
-                                    PAs = dictioF['PAsup']['intersection with apo']
-                                    fasc_row = (PAs[0]-PAi[0])/(PAs[1]-PAi[1])*(midCol-PAs[1])+PAs[0]
-                                    
-                                    if fasc_row <= midRow:
-                                        s_autoFasc.append((idf, dictioF['dist from (0,0) of RGB image, in mm']))
-                                        d_s_a[par].append(dictioF['dist from (0,0) of RGB image, in mm'])
-                                        nb_fasc_in_s = nb_fasc_in_s + 1
-                                    
-                            if ('MT for labelled points' in dictioM['MT']):
-                                for ind0 in range(len(dictioM['MT']['MT for labelled points'])):
-                                    elem = dictioM['MT']['MT for labelled points'][ind0]
-                                    if elem != 'error':
-                                        mt_s_m[par].append(elem) #MT in mm
+                # if par == 9 and fam =='fam_2' and i=='img_2':
+                #     print(par, fam, i)
+                # else:
+                nb_images_s = nb_images_s + 1
+                
+                ###############################################################
+                # SIMPLE - manual
+                dictioM = dictioS[i]['architecture manual']
+                fascicles = [str(fa) for fa in dictioM if any(fnmatch.fnmatch(fa, p) for p in l2)]
+                for f in fascicles:
+                    dictioF = dictioM[f]
+                    idf = fam + '/' + i + '/' + f
+                    if len(dictioF.keys())>1:
+                        s_manuFasc.append((idf, dictioF['dist from (0,0) of RGB image, in mm']))
+                        d_s_m[par].append(dictioF['dist from (0,0) of RGB image, in mm'])
+                ###############################################################
+                # SIMPLE - automatic
+                if ('architecture auto' in dictioS[i]):
+                    dictioA = dictioS[i]['architecture auto']
+                    midRow = np.mean(dictioA['crop']['lines'])
+                    midCol = np.mean(dictioA['crop']['columns'])
+                    if dictioA and ('MT' in dictioA):
+                        fascicles = [fa for fa in dictioA if any(fnmatch.fnmatch(fa, p) for p in l2)]
+                        nb_fasc_tot_s = nb_fasc_tot_s + len(fascicles)
+                        for f in fascicles:
+                            dictioF = dictioA[f]
+                            idf = fam + '/' + i + '/' + f
+                            if len(dictioF.keys())>1:
+                                #keep the fascicles that are in the lower half of the image,
+                                #to compare with manual data - often taken in that region
+                                PAi = dictioF['PAinf']['intersection with apo']
+                                PAs = dictioF['PAsup']['intersection with apo']
+                                fasc_row = (PAs[0]-PAi[0])/(PAs[1]-PAi[1])*(midCol-PAs[1])+PAs[0]
                                 
-                                for ind0 in range(len(dictioA['MT']['MT for labelled points'])):
-                                    elem = dictioA['MT']['MT for labelled points'][ind0]
-                                    if elem != 'error':
-                                        mt_s_a[par].append(elem)
-                                            
+                                if fasc_row <= midRow:
+                                    s_autoFasc.append((idf, dictioF['dist from (0,0) of RGB image, in mm']))
+                                    d_s_a[par].append(dictioF['dist from (0,0) of RGB image, in mm'])
+                                    nb_fasc_in_s = nb_fasc_in_s + 1
+                                
+                        if ('MT for labelled points' in dictioM['MT']):
+                            for ind0 in range(len(dictioM['MT']['MT for labelled points'])):
+                                elem = dictioM['MT']['MT for labelled points'][ind0]
+                                if elem != 'error':
+                                    mt_s_m[par].append(elem) #MT in mm
+                            
+                            for ind0 in range(len(dictioA['MT']['MT for labelled points'])):
+                                elem = dictioA['MT']['MT for labelled points'][ind0]
+                                if elem != 'error':
+                                    mt_s_a[par].append(elem)
+                                        
             ###################################################################
             # panoramic images
             dictioP = dictio[participant][fam]['BF']['panoramic']

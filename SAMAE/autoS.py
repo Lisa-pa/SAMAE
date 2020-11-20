@@ -495,10 +495,7 @@ def simpleprocessing(path_to_img):
 
         cv2.imwrite(path_to_img[:-8]+'_visualization.jpg', USimageV)
         cv2.imshow('Final image', USimageV)
-        cv2.waitKey(0) & 0xFF
-        cv2.destroyAllWindows()
 
-        """
         Zerosvertic = np.uint8(np.zeros(USimage.shape))
         ImF = cv2.hconcat([Zerosvertic,Zerosvertic, USimage, Zerosvertic, Zerosvertic])
     
@@ -545,5 +542,5 @@ def simpleprocessing(path_to_img):
         cv2.imshow('Final image', ImF)
         cv2.waitKey(0) & 0xFF
         cv2.destroyAllWindows()
-        """
+        
         return archi_auto
