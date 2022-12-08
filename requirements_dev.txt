@@ -24,7 +24,7 @@ scikit-image==0.17.2
 scipy==1.5.0
 six==1.15.0
 tifffile==2020.6.3
-certifi==2020.6.20
+certifi==2022.12.7
 chardet==3.0.4
 dropbox==10.2.0
 idna==2.10
